@@ -63,10 +63,10 @@ git log --oneline main..feat/step-01-project-rules-and-docker-removal
 ```
 
 ```bash
-git grep -n -i docker -- backend frontend ":!backend/CHANGELOG.md"
+git grep -n -i docker -- backend frontend ":!backend/CHANGELOG.md" ":!backend/package-lock.json"
 ```
 
-This should print nothing.
+This should print nothing. The lockfile is excluded because it lists `is-docker`, a transitive npm dependency, not Docker usage.
 
 ```bash
 cd backend && npm ci && npm run lint && npx tsc --noEmit && npm run build

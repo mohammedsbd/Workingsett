@@ -159,7 +159,7 @@ See [parallel-routes.md](./parallel-routes.md) for:
 
 See [self-hosting.md](./self-hosting.md) for:
 
-- `output: 'standalone'` for Docker
+- `output: 'standalone'` for self-hosting
 - Cache handlers for multi-instance ISR
 - What works vs needs extra setup
 

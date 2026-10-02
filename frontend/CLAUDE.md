@@ -9,7 +9,7 @@ This is a Next.js 16 + shadcn/ui admin dashboard starter kit.
 - **[docs/themes.md](./docs/themes.md)** — Theme system: OKLCH colors, adding themes, font config
 - **[docs/nav-rbac.md](./docs/nav-rbac.md)** — Navigation RBAC: access control, Clerk integration
 - **[docs/clerk_setup.md](./docs/clerk_setup.md)** — Clerk auth setup: organizations, billing, environment variables
-- **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
+- **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables
 
 ## Critical Conventions
 

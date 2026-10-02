@@ -1,6 +1,6 @@
 # Deployment
 
-The starter deploys to Vercel out of the box, or anywhere Docker runs. `next.config.ts` sets `output: 'standalone'`, so production builds are optimized for self-hosting.
+The starter deploys to Vercel out of the box, or on any Node.js server. `next.config.ts` sets `output: 'standalone'`, so production builds are optimized for self-hosting.
 
 ## Vercel (Recommended)
 
@@ -20,32 +20,3 @@ Ensure these are set in your deployment platform:
 - `SENTRY_*` variables if using error tracking
 
 Sentry source maps are uploaded automatically in CI.
-
-## Docker
-
-Two production-ready Dockerfiles are included: `Dockerfile` (Node.js) and `Dockerfile.bun` (Bun). Pass `NEXT_PUBLIC_*` variables as `--build-arg` at build time and runtime secrets via `-e` at run time.
-
-Build the image:
-
-```bash
-# Node.js
-docker build \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -t shadcn-dashboard .
-
-# OR Bun
-docker build -f Dockerfile.bun \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -t shadcn-dashboard .
-```
-
-Run the container:
-
-```bash
-docker run -d -p 3000:3000 \
-  -e NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -e CLERK_SECRET_KEY=sk_live_xxxxx \
-  --restart unless-stopped \
-  --name shadcn-dashboard \
-  shadcn-dashboard
-```

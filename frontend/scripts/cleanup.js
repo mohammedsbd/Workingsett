@@ -91,8 +91,6 @@ const DOC_RULES = {
         'Clerk Webhooks'
       ]
     },
-    { file: 'Dockerfile', lines: ['ARG NEXT_PUBLIC_CLERK'] },
-    { file: 'Dockerfile.bun', lines: ['ARG NEXT_PUBLIC_CLERK'] },
     { file: 'docs/deployment.md', lines: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'] },
     { file: 'src/app/about/page.tsx', jsxSections: ['Authentication by Clerk'] },
     { file: 'src/app/privacy-policy/page.tsx', jsxSections: ['Authentication by Clerk'] }
@@ -115,8 +113,6 @@ const DOC_RULES = {
       sections: ['### Optional for Error Tracking (Sentry)', '### Sentry Integration']
     },
     { file: 'env.example.txt', envSections: ['Error Tracking Configuration (Sentry)'] },
-    { file: 'Dockerfile', lines: ['ARG NEXT_PUBLIC_SENTRY'] },
-    { file: 'Dockerfile.bun', lines: ['ARG NEXT_PUBLIC_SENTRY'] },
     { file: 'docs/deployment.md', lines: ['- `SENTRY_*` variables', 'Sentry source maps'] }
   ],
   kanban: [

@@ -15,7 +15,6 @@ This file provides essential information for AI coding agents working on this pr
 - **Authentication**: Clerk (with Organizations/Billing support)
 - **Error Tracking**: Sentry
 - **Charts**: Recharts
-- **Containerization**: Docker (Node.js & Bun Dockerfiles)
 - **Package Manager**: Bun (preferred) or npm
 
 The project follows a feature-based folder structure designed for scalability in SaaS applications, internal tools, and admin panels.
@@ -160,10 +159,6 @@ The project follows a feature-based folder structure designed for scalability in
 /scripts                   # Dev tooling
     ├── cleanup.js         # Feature removal, run via `bun run cleanup` (templates in cleanup-templates/, typechecked)
     └── cleanup-templates/ # Replacement files cleanup.js copies into the repo
-
-Dockerfile                 # Node.js production Dockerfile
-Dockerfile.bun             # Bun production Dockerfile
-.dockerignore              # Docker build exclusions
 ```
 
 ---
@@ -547,7 +542,7 @@ Recommended test locations:
 
 ## Deployment
 
-Canonical guide: [docs/deployment.md](./docs/deployment.md) (Vercel, production environment variables, Docker).
+Canonical guide: [docs/deployment.md](./docs/deployment.md) (Vercel, production environment variables).
 
 ### Vercel (Recommended)
 
@@ -564,18 +559,9 @@ Ensure these are set in your deployment platform:
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
 
-### Docker
-
-Production-ready Dockerfiles are included:
-
-- `Dockerfile` — Node.js-based
-- `Dockerfile.bun` — Bun-based
-
-Both use `output: 'standalone'` in `next.config.ts`. Pass `NEXT_PUBLIC_*` vars as `--build-arg` at build time, and runtime secrets via `-e` at run time.
-
 ### Build Considerations
 
-- Output: `standalone` (optimized for Docker/self-hosting)
+- Output: `standalone` (optimized for self-hosting)
 - Images: Configured for `api.slingacademy.com`, `img.clerk.com`, `clerk.com`
 - Sentry source maps uploaded automatically in CI
 

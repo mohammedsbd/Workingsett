@@ -221,7 +221,7 @@ Run `bun run cleanup --interactive` and pick what to strip, or `bun run cleanup 
 Yes. The template is built on Next.js 16 (App Router), React 19, and Tailwind CSS v4, with shadcn/ui on Base UI primitives, and is actively maintained to track new releases.
 
 **Can I use npm instead of Bun?**
-Yes. Bun is preferred, but npm works too, and the repo even ships both Node.js and Bun Dockerfiles for deployment.
+Yes. Bun is preferred, but npm works too.
 
 **Does it work with AI coding assistants?**
 Yes. The repo ships AGENTS.md and CLAUDE.md with the project's conventions, plus a bundled Claude Code skill (`.claude/skills/kiranism-shadcn-dashboard`) that teaches agents how to add pages, tables, forms, and navigation the template way. Works with Claude Code, Cursor, and any tool that reads AGENTS.md.
@@ -230,11 +230,11 @@ Yes. The repo ships AGENTS.md and CLAUDE.md with the project's conventions, plus
 TanStack React Query with the official SSR pattern: `prefetchQuery` on the server, `HydrationBoundary` with `dehydrate` for hydration, and `useSuspenseQuery` on the client, plus nuqs for URL-synced search-param state. Mutations invalidate the cache on success.
 
 **How do I deploy it?**
-Deploy to Vercel out of the box, or use the included Docker setups: a Node.js Dockerfile and a Bun Dockerfile, both using Next.js standalone output mode. See the [deployment guide](./docs/deployment.md).
+Deploy to Vercel out of the box, or self-host on any Node.js server using Next.js standalone output mode. See the [deployment guide](./docs/deployment.md).
 
 ## Deploy
 
-Deploy to Vercel out of the box, or use the included Docker setups: a Node.js Dockerfile and a Bun Dockerfile, both using Next.js standalone output mode. Full guide: [docs/deployment.md](./docs/deployment.md).
+Deploy to Vercel out of the box, or self-host on any Node.js server using Next.js standalone output mode. Full guide: [docs/deployment.md](./docs/deployment.md).
 
 ### Support
 

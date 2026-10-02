@@ -11,8 +11,6 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
 - [Comfortable development (PostgreSQL + TypeORM)](#comfortable-development-postgresql--typeorm)
   - [Video guideline (PostgreSQL + TypeORM)](#video-guideline-postgresql--typeorm)
 - [Comfortable development (MongoDB + Mongoose)](#comfortable-development-mongodb--mongoose)
-- [Quick run (PostgreSQL + TypeORM)](#quick-run-postgresql--typeorm)
-- [Quick run (MongoDB + Mongoose)](#quick-run-mongodb--mongoose)
 - [Links](#links)
 
 ---
@@ -32,14 +30,12 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
    cp env-example-relational .env
    ```
 
-1. Change `DATABASE_HOST=postgres` to `DATABASE_HOST=localhost`
+1. Make sure PostgreSQL is available. Either install it locally (the defaults in `.env` expect `localhost:5432`) or point the `DATABASE_*` values in `.env` at a hosted PostgreSQL instance.
 
-   Change `MAIL_HOST=maildev` to `MAIL_HOST=localhost`
-
-1. Run additional container:
+1. Optional: run a local mail catcher for auth emails (SMTP on port 1025, web UI on port 1080):
 
    ```bash
-   docker compose up -d postgres adminer maildev
+   npx maildev
    ```
 
 1. Install dependency
@@ -99,12 +95,12 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
    cp env-example-document .env
    ```
 
-1. Change `DATABASE_URL=mongodb://mongo:27017` to `DATABASE_URL=mongodb://localhost:27017`
+1. Make sure MongoDB is available. Either install it locally (the default in `.env` expects `mongodb://localhost:27017`) or point `DATABASE_URL` in `.env` at a hosted MongoDB instance.
 
-1. Run additional container:
+1. Optional: run a local mail catcher for auth emails (SMTP on port 1025, web UI on port 1080):
 
    ```bash
-   docker compose -f docker-compose.document.yaml up -d mongo mongo-express maildev
+   npx maildev
    ```
 
 1. Install dependency
@@ -139,77 +135,9 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
 
 ---
 
-## Quick run (PostgreSQL + TypeORM)
-
-If you want quick run your app, you can use following commands:
-
-1. Clone repository
-
-   ```bash
-   git clone --depth 1 https://github.com/brocoders/nestjs-boilerplate.git my-app
-   ```
-
-1. Go to folder, and copy `env-example-relational` as `.env`.
-
-   ```bash
-   cd my-app/
-   cp env-example-relational .env
-   ```
-
-1. Run containers
-
-   ```bash
-   docker compose up -d
-   ```
-
-1. For check status run
-
-   ```bash
-   docker compose logs
-   ```
-
-1. Open <http://localhost:3001>
-
----
-
-## Quick run (MongoDB + Mongoose)
-
-If you want quick run your app, you can use following commands:
-
-1. Clone repository
-
-   ```bash
-   git clone --depth 1 https://github.com/brocoders/nestjs-boilerplate.git my-app
-   ```
-
-1. Go to folder, and copy `env-example-document` as `.env`.
-
-   ```bash
-   cd my-app/
-   cp env-example-document .env
-   ```
-
-1. Run containers
-
-   ```bash
-   docker compose -f docker-compose.document.yaml up -d
-   ```
-
-1. For check status run
-
-   ```bash
-   docker compose -f docker-compose.document.yaml logs
-   ```
-
-1. Open <http://localhost:3001>
-
----
-
 ## Links
 
 - Swagger (API docs): <http://localhost:3001/docs>
-- Adminer (client for DB): <http://localhost:8080>
-- MongoDB Express (client for DB): <http://localhost:8081/>
 - Maildev: <http://localhost:1080>
 
 ---

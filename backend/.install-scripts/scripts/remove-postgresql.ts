@@ -49,28 +49,10 @@ const removePostgreSql = () => {
       'relational',
     ),
     path.join(process.cwd(), 'env-example-relational'),
-    path.join(process.cwd(), 'docker-compose.relational.ci.yaml'),
-    path.join(process.cwd(), 'docker-compose.relational.test.yaml'),
-    path.join(process.cwd(), 'docker-compose.yaml'),
-    path.join(process.cwd(), 'startup.relational.ci.sh'),
-    path.join(process.cwd(), 'startup.relational.test.sh'),
-    path.join(process.cwd(), 'startup.relational.dev.sh'),
-    path.join(process.cwd(), 'Dockerfile'),
-    path.join(process.cwd(), 'relational.e2e.Dockerfile'),
-    path.join(process.cwd(), 'relational.test.Dockerfile'),
     path.join(process.cwd(), '.hygen', 'seeds', 'create-relational'),
     path.join(process.cwd(), 'src', 'utils', 'relational-entity-helper.ts'),
   ];
 
-  replace({
-    path: path.join(process.cwd(), '.github', 'workflows', 'docker-e2e.yml'),
-    actions: [
-      {
-        find: /\# <database-relational-block>.*\# <\/database-relational-block>/gs,
-        replace: '',
-      },
-    ],
-  });
   replace({
     path: path.join(process.cwd(), 'src', 'app.module.ts'),
     actions: [
@@ -344,10 +326,6 @@ const removePostgreSql = () => {
       },
       {
         find: /\s*\"schema:drop\":.*/g,
-        replace: '',
-      },
-      {
-        find: /\s*\"test:e2e:relational:docker\":.*/g,
         replace: '',
       },
       {

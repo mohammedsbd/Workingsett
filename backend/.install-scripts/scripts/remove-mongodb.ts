@@ -47,28 +47,10 @@ const removeMongoDb = () => {
       'document',
     ),
     path.join(process.cwd(), 'env-example-document'),
-    path.join(process.cwd(), 'docker-compose.document.ci.yaml'),
-    path.join(process.cwd(), 'docker-compose.document.test.yaml'),
-    path.join(process.cwd(), 'docker-compose.document.yaml'),
-    path.join(process.cwd(), 'startup.document.ci.sh'),
-    path.join(process.cwd(), 'startup.document.dev.sh'),
-    path.join(process.cwd(), 'startup.document.test.sh'),
-    path.join(process.cwd(), 'document.Dockerfile'),
-    path.join(process.cwd(), 'document.e2e.Dockerfile'),
-    path.join(process.cwd(), 'document.test.Dockerfile'),
     path.join(process.cwd(), '.hygen', 'seeds', 'create-document'),
     path.join(process.cwd(), 'src', 'utils', 'document-entity-helper.ts'),
   ];
 
-  replace({
-    path: path.join(process.cwd(), '.github', 'workflows', 'docker-e2e.yml'),
-    actions: [
-      {
-        find: /\# <database-document-block>.*\# <\/database-document-block>/gs,
-        replace: '',
-      },
-    ],
-  });
   replace({
     path: path.join(process.cwd(), 'src', 'app.module.ts'),
     actions: [
@@ -313,10 +295,6 @@ const removeMongoDb = () => {
       },
       {
         find: /\s*\"seed:create:document\":.*/g,
-        replace: '',
-      },
-      {
-        find: /\s*\"test:e2e:document:docker\":.*/g,
         replace: '',
       },
     ],

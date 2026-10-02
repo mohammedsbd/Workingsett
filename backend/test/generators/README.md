@@ -12,8 +12,7 @@ End-to-end tests for the hygen-based code generators (`npm run generate:resource
 ## Phases
 
 1. **Phase 1 (static)** — runs generators, then `npm run lint`, `npm run build`, then [generators-file-assertions.e2e-spec.ts](generators-file-assertions.e2e-spec.ts). No database, no app boot. Catches compile/lint regressions and DTO-shape errors.
-2. **Phase 2 (relational CRUD)** — boots Nest against PostgreSQL in Docker and exercises the generated REST endpoints. Uses [docker-compose.generators-relational.test.yaml](../../docker-compose.generators-relational.test.yaml) which mounts a custom [startup.relational.test.sh](startup.relational.test.sh) that includes the `migration:generate` step for the freshly-created entities.
-3. **Phase 3 (document CRUD)** — same for MongoDB. Reuses the existing [docker-compose.document.test.yaml](../../docker-compose.document.test.yaml) (no migrations needed for Mongoose).
+2. **Phase 2 (relational CRUD)** and **Phase 3 (document CRUD)**: the specs [generators-relational.e2e-spec.ts](generators-relational.e2e-spec.ts) and [generators-document.e2e-spec.ts](generators-document.e2e-spec.ts) exercise the generated REST endpoints against a running app. Their container-based runners were removed, so there is currently no npm script for these phases.
 
 ## Running locally
 
@@ -24,23 +23,14 @@ npm run test:generators:relational
 npm run test:generators:document
 ```
 
-Phase 2 / 3 require Docker (Compose v2):
-
-```bash
-npm run test:e2e:generators:relational:docker
-npm run test:e2e:generators:document:docker
-```
-
 **Precondition:** your tracked working tree must be clean. The dirty-tree guard checks `git diff` (tracked changes only); brand-new untracked files outside the cleanup paths are fine.
 
 ## Cleanup model
 
-Each orchestrator installs an `EXIT` trap that:
+The orchestrator installs an `EXIT` trap that:
 
 - `rm -rf src/articles src/tags src/comments` — removes only the generated resource directories.
 - `git checkout -- src` — reverts every tracked change inside `src/`, including the auto-patched `src/app.module.ts` and any lint-fix incidentals.
-- Phase 2: `find src/database/migrations -name "*-GeneratorE2E.ts" -delete` then `docker compose down`.
-- Phase 3: `docker compose down -v` (drops Mongo volumes).
 
 Cleanup is **bounded by path** — it never touches the repo root, `node_modules`, or `test/`. New untracked files in `test/` survive the run.
 
@@ -55,11 +45,8 @@ test/generators/
     exec.ts                            # child_process wrapper
     payloads-relational.ts             # CRUD payload builder for TypeORM variant
     payloads-document.ts               # CRUD payload builder for Mongoose variant
-  _matrix.sh                           # generator command list (sourced by both orchestrators)
+  _matrix.sh                           # generator command list (sourced by the orchestrator)
   run-static.sh                        # Phase 1 orchestrator
-  run-crud-relational.sh               # Phase 2 orchestrator
-  run-crud-document.sh                 # Phase 3 orchestrator
-  startup.relational.test.sh           # Custom Docker startup with migration:generate
   generators-file-assertions.e2e-spec.ts
   generators-relational.e2e-spec.ts
   generators-document.e2e-spec.ts

@@ -2,6 +2,15 @@
 
 This guide explains how to add a new theme to the application. The theme system uses CSS custom properties with `[data-theme]` selectors for easy theme switching.
 
+## Parsim theme (default)
+
+`src/styles/themes/parsim.css` is the default theme. Dark is the default color mode (`defaultTheme='dark'` in `src/app/layout.tsx`); light mode stays available.
+
+- Accent: `#FF3B00` as `--primary`, `--ring` and `--sidebar-primary`, with black text on it (5.9:1). In light mode, `.text-primary` uses the darker `#C93000` so small orange text stays above 4.5:1.
+- Fonts: Poppins (`--font-sans`) and JetBrains Mono (`--font-mono`).
+- GC decision colors, for charts and badges: `--gc-keep`, `--gc-compress`, `--gc-archive`, `--gc-drop`. They are mapped in the theme's `@theme inline` block, so Tailwind classes such as `bg-gc-drop` or `text-gc-archive` work. Tailwind only generates a class once it is used in source.
+- Other themes do not define the `--gc-*` variables yet. Give them values before using these classes outside the Parsim theme.
+
 ## The Journey: Adding a New Theme
 
 When adding a new theme, follow this journey:
@@ -10,7 +19,7 @@ When adding a new theme, follow this journey:
 2. **Import theme** → Add `@import` to `src/styles/theme.css`
 3. **Register theme** → Add to `THEMES` array in `src/components/themes/theme.config.ts`
 4. **Add fonts (if needed)** → Import fonts in `src/components/themes/font.config.ts` if using custom Google Fonts
-5. **Set as default (optional)** → Update `DEFAULT_THEME` in `src/components/themes/active-theme.tsx`
+5. **Set as default (optional)** → Update `DEFAULT_THEME` in `src/components/themes/theme.config.ts`
 
 See the **Step-by-Step Guide** section below for detailed instructions.
 
@@ -18,8 +27,8 @@ See the **Step-by-Step Guide** section below for detailed instructions.
 
 To make your new theme the default (so it loads automatically without the theme switcher):
 
-1. Open `src/components/themes/active-theme.tsx`
-2. Change line 12: `const DEFAULT_THEME = 'your-theme-name';`
+1. Open `src/components/themes/theme.config.ts`
+2. Change `export const DEFAULT_THEME = 'your-theme-name';`
 3. Save and restart your dev server
 
 That's it! Your theme will now be the default for all new users.
@@ -334,7 +343,7 @@ If you want your theme to be the default theme that loads when users first visit
  * Default theme that loads when no user preference is set
  * Change this value to set a different default theme
  */
-export const DEFAULT_THEME = 'your-theme-name'; // Change from 'vercel' to your theme name
+export const DEFAULT_THEME = 'your-theme-name'; // Change from 'parsim' to your theme name
 ```
 
 **Note:**
@@ -361,7 +370,7 @@ When adding a new theme, you'll work with these files in this order:
 2. ✅ `src/styles/theme.css` - Import your theme file
 3. ✅ `src/components/themes/theme.config.ts` - Add theme to `THEMES` array
 4. ⚠️ `src/components/themes/font.config.ts` - Add fonts only if needed
-5. ⚠️ `src/components/themes/active-theme.tsx` - Set as default only if desired
+5. ⚠️ `src/components/themes/theme.config.ts` - Set as default only if desired
 
 ## Required Tokens
 
@@ -470,7 +479,7 @@ All themes automatically support scaled variants. When a user selects "Theme Nam
 
 ## Setting a Default Theme
 
-By default, the application uses the `vercel` theme. To change the default theme that loads for new users:
+By default, the application uses the `parsim` theme in dark mode. To change the default theme that loads for new users:
 
 ### Change Default Theme Constant
 

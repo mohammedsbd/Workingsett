@@ -1,0 +1,35 @@
+{
+  "id": "short-chat",
+  "description": "A short assistant chat with no tools. Below any GC threshold; the GC should leave it unchanged.",
+  "model": "fixture-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a concise, friendly assistant."
+    },
+    {
+      "role": "user",
+      "content": "What is a good way to keep notes for a long project?"
+    },
+    {
+      "role": "assistant",
+      "content": "Keep one running log file with dated entries, plus a short summary at the top that you update each week. Link out to details instead of copying them."
+    },
+    {
+      "role": "user",
+      "content": "Should the summary be bullets or prose?"
+    },
+    {
+      "role": "assistant",
+      "content": "Bullets. They are faster to scan and easier to update without rewriting everything."
+    },
+    {
+      "role": "user",
+      "content": "Thanks. Give me a three-line template."
+    },
+    {
+      "role": "assistant",
+      "content": "Status: <one line>\nDecisions this week: <bullets>\nOpen questions: <bullets>"
+    }
+  ]
+}

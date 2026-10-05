@@ -1,0 +1,485 @@
+{
+  "id": "support-agent-session",
+  "description": "A support-agent session with 4 tickets (45 messages). The help-center search returns the same article for every ticket (duplicates), finished tickets are good archive candidates, and issue_refund and send_reply are side-effect tools that must be kept.",
+  "model": "fixture-model",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_customer",
+        "description": "Look up a customer by email.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "email"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_order",
+        "description": "Get an order by id.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "orderId"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_kb",
+        "description": "Search the help center.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "issue_refund",
+        "description": "Refund an order. Has side effects.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "orderId",
+            "amount"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "send_reply",
+        "description": "Send a reply to the ticket. Has side effects.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "ticketId": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ticketId",
+            "body"
+          ]
+        }
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a support agent for Example Store. Resolve each ticket: look up the customer and order, check the help center, issue refunds only when policy allows, and always send a reply. Refund policy: within 30 days, unused items only."
+    },
+    {
+      "role": "user",
+      "content": "New ticket T-1001 from alex@example.com: The kettle arrived with a cracked lid. Order O-5001."
+    },
+    {
+      "role": "assistant",
+      "content": "Handling T-1001.",
+      "tool_calls": [
+        {
+          "id": "call_0001",
+          "type": "function",
+          "function": {
+            "name": "lookup_customer",
+            "arguments": "{\"email\":\"alex@example.com\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0001",
+      "content": "{\"customerId\":\"C-5001\",\"email\":\"alex@example.com\",\"tier\":\"standard\",\"openTickets\":1}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0002",
+          "type": "function",
+          "function": {
+            "name": "get_order",
+            "arguments": "{\"orderId\":\"O-5001\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0002",
+      "content": "{\"orderId\":\"O-5001\",\"daysSincePurchase\":12,\"total\":49.9,\"items\":[{\"sku\":\"SKU-1\",\"name\":\"Synthetic item\",\"used\":false}],\"shipping\":{\"status\":\"delivered\"}}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0003",
+          "type": "function",
+          "function": {
+            "name": "search_kb",
+            "arguments": "{\"query\":\"refund policy\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0003",
+      "content": "Refund policy (help center article). Rule 1: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 2: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 3: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 4: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 5: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 6: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 7: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 8: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 9: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 10: synthetic policy text about returns, shipping windows and exceptions, numbered for reference."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0004",
+          "type": "function",
+          "function": {
+            "name": "issue_refund",
+            "arguments": "{\"orderId\":\"O-5001\",\"amount\":49.9}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0004",
+      "content": "{\"ok\":true,\"refundId\":\"R-5001\"}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0005",
+          "type": "function",
+          "function": {
+            "name": "send_reply",
+            "arguments": "{\"ticketId\":\"T-1001\",\"body\":\"Sorry about that. A full refund of 49.90 has been issued for O-5001.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0005",
+      "content": "{\"ok\":true}"
+    },
+    {
+      "role": "assistant",
+      "content": "T-1001 resolved."
+    },
+    {
+      "role": "user",
+      "content": "New ticket T-1002 from sam@example.com: I want to return a lamp I bought about six weeks ago. Order O-5002."
+    },
+    {
+      "role": "assistant",
+      "content": "Handling T-1002.",
+      "tool_calls": [
+        {
+          "id": "call_0006",
+          "type": "function",
+          "function": {
+            "name": "lookup_customer",
+            "arguments": "{\"email\":\"sam@example.com\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0006",
+      "content": "{\"customerId\":\"C-5002\",\"email\":\"sam@example.com\",\"tier\":\"standard\",\"openTickets\":1}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0007",
+          "type": "function",
+          "function": {
+            "name": "get_order",
+            "arguments": "{\"orderId\":\"O-5002\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0007",
+      "content": "{\"orderId\":\"O-5002\",\"daysSincePurchase\":45,\"total\":49.9,\"items\":[{\"sku\":\"SKU-1\",\"name\":\"Synthetic item\",\"used\":false}],\"shipping\":{\"status\":\"delivered\"}}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0008",
+          "type": "function",
+          "function": {
+            "name": "search_kb",
+            "arguments": "{\"query\":\"refund policy\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0008",
+      "content": "Refund policy (help center article). Rule 1: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 2: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 3: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 4: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 5: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 6: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 7: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 8: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 9: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 10: synthetic policy text about returns, shipping windows and exceptions, numbered for reference."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0009",
+          "type": "function",
+          "function": {
+            "name": "send_reply",
+            "arguments": "{\"ticketId\":\"T-1002\",\"body\":\"This order is past the 30-day refund window, so we cannot refund it. We can offer store credit instead.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0009",
+      "content": "{\"ok\":true}"
+    },
+    {
+      "role": "assistant",
+      "content": "T-1002 resolved."
+    },
+    {
+      "role": "user",
+      "content": "New ticket T-1003 from robin@example.com: Wrong size shoes were delivered. Order O-5003."
+    },
+    {
+      "role": "assistant",
+      "content": "Handling T-1003.",
+      "tool_calls": [
+        {
+          "id": "call_0010",
+          "type": "function",
+          "function": {
+            "name": "lookup_customer",
+            "arguments": "{\"email\":\"robin@example.com\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0010",
+      "content": "{\"customerId\":\"C-5003\",\"email\":\"robin@example.com\",\"tier\":\"standard\",\"openTickets\":1}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0011",
+          "type": "function",
+          "function": {
+            "name": "get_order",
+            "arguments": "{\"orderId\":\"O-5003\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0011",
+      "content": "{\"orderId\":\"O-5003\",\"daysSincePurchase\":3,\"total\":49.9,\"items\":[{\"sku\":\"SKU-1\",\"name\":\"Synthetic item\",\"used\":false}],\"shipping\":{\"status\":\"delivered\"}}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0012",
+          "type": "function",
+          "function": {
+            "name": "search_kb",
+            "arguments": "{\"query\":\"refund policy\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0012",
+      "content": "Refund policy (help center article). Rule 1: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 2: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 3: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 4: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 5: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 6: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 7: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 8: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 9: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 10: synthetic policy text about returns, shipping windows and exceptions, numbered for reference."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0013",
+          "type": "function",
+          "function": {
+            "name": "issue_refund",
+            "arguments": "{\"orderId\":\"O-5003\",\"amount\":49.9}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0013",
+      "content": "{\"ok\":true,\"refundId\":\"R-5003\"}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0014",
+          "type": "function",
+          "function": {
+            "name": "send_reply",
+            "arguments": "{\"ticketId\":\"T-1003\",\"body\":\"Sorry about that. A full refund of 49.90 has been issued for O-5003.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0014",
+      "content": "{\"ok\":true}"
+    },
+    {
+      "role": "assistant",
+      "content": "T-1003 resolved."
+    },
+    {
+      "role": "user",
+      "content": "New ticket T-1004 from kim@example.com: Where is my package? Tracking has not updated. Order O-5004."
+    },
+    {
+      "role": "assistant",
+      "content": "Handling T-1004.",
+      "tool_calls": [
+        {
+          "id": "call_0015",
+          "type": "function",
+          "function": {
+            "name": "lookup_customer",
+            "arguments": "{\"email\":\"kim@example.com\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0015",
+      "content": "{\"customerId\":\"C-5004\",\"email\":\"kim@example.com\",\"tier\":\"standard\",\"openTickets\":1}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0016",
+          "type": "function",
+          "function": {
+            "name": "get_order",
+            "arguments": "{\"orderId\":\"O-5004\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0016",
+      "content": "{\"orderId\":\"O-5004\",\"daysSincePurchase\":20,\"total\":49.9,\"items\":[{\"sku\":\"SKU-1\",\"name\":\"Synthetic item\",\"used\":false}],\"shipping\":{\"status\":\"in_transit\"}}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0017",
+          "type": "function",
+          "function": {
+            "name": "search_kb",
+            "arguments": "{\"query\":\"refund policy\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0017",
+      "content": "Refund policy (help center article). Rule 1: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 2: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 3: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 4: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 5: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 6: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 7: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 8: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 9: synthetic policy text about returns, shipping windows and exceptions, numbered for reference. Rule 10: synthetic policy text about returns, shipping windows and exceptions, numbered for reference."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_0018",
+          "type": "function",
+          "function": {
+            "name": "send_reply",
+            "arguments": "{\"ticketId\":\"T-1004\",\"body\":\"Your package is in transit. Tracking can lag up to 48 hours; we will follow up if it does not move by then.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0018",
+      "content": "{\"ok\":true}"
+    },
+    {
+      "role": "assistant",
+      "content": "T-1004 resolved."
+    }
+  ]
+}

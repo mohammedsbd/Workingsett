@@ -3,7 +3,9 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
-  "testPathIgnorePatterns": ["/node_modules/", "<rootDir>/generators/"],
+  "testPathIgnorePatterns": ["/node_modules/"],
+  "globalSetup": "<rootDir>/setup-test-db.ts",
+  "testTimeout": 30000,
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   }

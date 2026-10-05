@@ -22,12 +22,13 @@ body {
 /* This ensures theme-specific fonts override Next.js font variables */
 /* Font variables are defined on [data-theme] (html element) */
 /* We need to override Next.js font variables on body to use html's values */
-/* Using initial removes the property, allowing parent (html) values to cascade */
+/* inherit takes html's value; initial would leave the variable unset, which */
+/* silently broke font-mono and font-serif for every theme */
 [data-theme] body {
-  /* Remove Next.js font variables to allow theme variables from html to cascade */
-  --font-sans: initial;
-  --font-mono: initial;
-  --font-serif: initial;
+  /* Replace Next.js font variables with the theme variables from html */
+  --font-sans: inherit;
+  --font-mono: inherit;
+  --font-serif: inherit;
   /* Apply font-family - will now resolve from html's [data-theme] variables */
   font-family: var(--font-sans);
 }

@@ -13,6 +13,7 @@ import {
   Playfair_Display,
   Noto_Sans_Mono,
   Outfit,
+  Poppins,
   Source_Code_Pro,
   Space_Mono
 } from 'next/font/google';
@@ -102,6 +103,12 @@ const fontPlayfairDisplay = Playfair_Display({
   variable: '--font-playfair-display'
 });
 
+const fontPoppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-poppins'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
@@ -118,5 +125,6 @@ export const fontVariables = cn(
   fontSpaceMono.variable,
   fontJetBrainsMono.variable,
   fontMerriweather.variable,
-  fontPlayfairDisplay.variable
+  fontPlayfairDisplay.variable,
+  fontPoppins.variable
 );

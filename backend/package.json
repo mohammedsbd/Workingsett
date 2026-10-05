@@ -46,8 +46,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "env-cmd -- jest --config ./test/jest-e2e.json",
-    "test:generators:relational": "bash test/generators/run-static.sh relational",
-    "test:generators:document": "bash test/generators/run-static.sh document",
     "prepare": "is-ci || husky",
     "release": "release-it"
   },

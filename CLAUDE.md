@@ -1,6 +1,6 @@
 # Parsim project rules
 
-Parsim is a garbage collector for the context of long-running AI agents, focused on non-coding agents (research, support, operations, data and browser agents). It is a drop-in proxy that speaks the OpenAI and Anthropic APIs. On every request it decides, for each piece of context, whether to **keep** it, **compress** it into a state block, **archive** it (store it, leave a stub, let the model recall it) or **drop** it (duplicate or superseded). It forwards the smaller request upstream, returns the response unchanged, and records tokens and dollars saved. Shadow mode and replay prove that quality did not drop.
+Parsim is a garbage collector for the context of long-running AI agents, focused on non-coding agents (research, support, operations, data and browser agents). It is a drop-in proxy that speaks the OpenAI, Anthropic and Google Gemini APIs. On every request it decides, for each piece of context, whether to **keep** it, **compress** it into a state block, **archive** it (store it, leave a stub, let the model recall it) or **drop** it (duplicate or superseded). It forwards the smaller request upstream, returns the response unchanged, and records tokens and dollars saved. Shadow mode and replay prove that quality did not drop.
 
 These rules are permanent and apply to every step.
 
@@ -20,9 +20,28 @@ These rules are permanent and apply to every step.
 - If a step conflicts with the existing code, explain and propose the smallest change. Ask before deleting large parts of either repo.
 - Keep the original LICENSE files of `frontend/` and `backend/` (MIT requires keeping their copyright notices).
 
+## Things you need from me
+
+- At the start of every step, before writing code, list anything you need from me: API keys, accounts, budgets, or decisions. Then wait for my answer.
+- For an API key, ask me for it by name (for example `GEMINI_API_KEY`). When I give it to you, write it into the right gitignored env file yourself (`backend/.env`, and `backend/.env.test` if tests need it), creating the file from its example if needed. Then check that the file is gitignored. Never echo the key back, never print it in output or logs, never put it in any other file, and never commit it. Refer to it only by its variable name.
+- If a key is missing during a step, skip only the tests that need it (live tests), say so in the step summary, and continue with everything else.
+- Never ask for my PostgreSQL superuser password. Give me the exact commands to run myself instead.
+- Ask before any action that spends more than a small amount of money (live benchmarks, large replays), and state the estimated cost.
+
+## Providers and models
+
+- Supported upstream providers, in build order:
+  1. OpenAI format (`/v1/chat/completions`), forwarding either to OpenAI or to Google Gemini's OpenAI-compatible endpoint (configurable per project). This is how Gemini is supported first.
+  2. Anthropic Messages API (`/v1/messages`).
+  3. Gemini native API (`generateContent` and `streamGenerateContent`).
+- Every provider is an adapter behind one interface. Adding a provider must not change the GC engine.
+- Parsim's own internal model calls (compression summaries, the replay judge, the demo agent, benchmarks and live tests) default to a Gemini Flash model through `GEMINI_API_KEY`. The provider and model are configurable in `.env`; never hardcode a model name in code.
+- Customers bring their own provider keys. Parsim forwards with them and never pays for customer traffic.
+- Never send real customer data through a free-tier key.
+
 ## Architecture (build in this order)
 
-1. **Proxy.** `POST /v1/chat/completions` (OpenAI format) and `POST /v1/messages` (Anthropic format). Authenticate with a Parsim key, run the GC, forward with the customer's provider key, stream the response back unchanged (SSE), and record the usage the provider reports. Upstream errors pass through with the same status and body.
+1. **Proxy.** `POST /v1/chat/completions` (OpenAI format, upstream OpenAI or Gemini), `POST /v1/messages` (Anthropic format), then the Gemini native endpoints. Authenticate with a Parsim key, run the GC, forward with the customer's provider key, stream the response back unchanged (SSE), and record the usage the provider reports. Upstream errors pass through with the same status and body.
 2. **Storage.** Postgres entities for sessions, messages, context items (with a content hash), archived originals, GC decisions and usage records.
 3. **GC engine.** A pure, deterministic module: same input and same config give byte-identical output. Each decision is recorded with a reason.
 4. **Recall.** Archived items become a short stub. Parsim adds a `parsim_recall` tool; when the model calls it, Parsim fetches the original from Postgres and continues the call itself, so the agent never sees the round trip.
@@ -62,7 +81,7 @@ Every step ships with real NestJS tests. A step is not done until its tests are 
 
 ### Live tests (opt-in only)
 
-- Tests that call real providers live in files named `*.live-spec.ts`, run only when `LIVE_TESTS=true`, use the cheapest model, and are never part of the default test run or CI.
+- Tests that call real providers live in files named `*.live-spec.ts`, run only when `LIVE_TESTS=true`, use the cheapest model (Gemini Flash by default, other providers only when their key is set), skip cleanly when a key is missing, and are never part of the default test run or CI.
 
 ### Frontend
 

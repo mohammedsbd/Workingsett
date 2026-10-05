@@ -34,6 +34,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "env-cmd -- jest --config ./test/jest-e2e.json",
+    "test:db:setup": "env-cmd -f .env.test -- ts-node -r tsconfig-paths/register ./test/setup-test-db.ts",
     "prepare": "is-ci || husky",
     "release": "release-it"
   },

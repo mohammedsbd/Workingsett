@@ -44,7 +44,22 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader />
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size='lg'
+              tooltip='Parsim'
+              render={<Link href='/dashboard/overview' aria-label='Parsim overview' />}
+            >
+              <div className='bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md font-mono text-sm font-bold'>
+                P
+              </div>
+              <span className='truncate text-base font-semibold tracking-tight'>Parsim</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label || 'ungrouped'} className='py-0'>

@@ -2,9 +2,13 @@
  * Default theme that loads when no user preference is set
  * Change this value to set a different default theme
  */
-export const DEFAULT_THEME = 'vercel';
+export const DEFAULT_THEME = 'parsim';
 
 export const THEMES = [
+  {
+    name: 'Parsim',
+    value: 'parsim'
+  },
   {
     name: 'Claude',
     value: 'claude'

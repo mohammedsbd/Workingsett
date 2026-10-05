@@ -22,7 +22,7 @@ function checkPlaceholderSecrets(): void {
     return;
   }
 
-  const message = `${placeholders.join(', ')} still use the placeholder values from env-example. Generate strong secrets before deploying (see "Configure Auth" in docs/auth.md).`;
+  const message = `${placeholders.join(', ')} still use the placeholder values from .env.example. Generate strong secrets before deploying (see "Configure Auth" in docs/auth.md).`;
 
   if (process.env.NODE_ENV === 'production') {
     throw new Error(message);

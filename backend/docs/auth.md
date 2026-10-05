@@ -89,7 +89,7 @@ For auth with external services or social networks you need:
    AUTH_REFRESH_SECRET=HERE_SECRET_KEY_FROM_STEP_1
    ```
 
-> The app refuses to start with `NODE_ENV=production` while any `AUTH_*_SECRET` still has the placeholder value from `env-example-*`. In development it only logs a warning.
+> The app refuses to start with `NODE_ENV=production` while any `AUTH_*_SECRET` still has the placeholder value from `.env.example`. In development it only logs a warning.
 
 ## Auth via Apple
 
@@ -233,7 +233,7 @@ Because every refresh also rotates the `refreshToken`, the `AUTH_REFRESH_TOKEN_E
 
 Security defaults the boilerplate ships with, and what is intentionally left to you:
 
-- **Strong secrets are enforced in production.** Startup fails when `NODE_ENV=production` and any `AUTH_*_SECRET` still contains the placeholder value from `env-example-*` (see [Configure Auth](#configure-auth)).
+- **Strong secrets are enforced in production.** Startup fails when `NODE_ENV=production` and any `AUTH_*_SECRET` still contains the placeholder value from `.env.example` (see [Configure Auth](#configure-auth)).
 - **HTTP security headers** are set by [helmet](https://helmetjs.github.io/) in `src/main.ts`. `Content-Security-Policy` is disabled because Swagger UI on `/docs` relies on inline scripts; enable it if you turn Swagger off.
 - **CORS allow-list.** `APP_CORS_ORIGINS` accepts a comma-separated list of origins (e.g. `https://app.example.com,https://admin.example.com`). When it is not set, `FRONTEND_DOMAIN` is used; when neither is set, any origin is allowed (`*`). Requests without an `Origin` header (mobile apps, curl, server-to-server) are not affected by CORS. Credentials mode stays off because auth uses the `Authorization` header, not cookies — which is also why the `*` fallback does not leak credentials.
 - **Password reset links are single-use.** The reset token is signed with a secret derived from the user's current password hash, so a link stops verifying the moment the password changes. All sessions are also revoked on reset.

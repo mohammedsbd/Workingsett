@@ -10,14 +10,14 @@ Paste these into Claude Code one at a time, from the repo root. Step 01 creates 
 4. Merge the branch into `main`, then run `git checkout main && git pull`.
 5. Paste the next prompt. If something is wrong, tell Claude in the same session before merging.
 
-At the start of every step, Claude lists what it needs from you (keys, decisions, budgets) and waits. Secrets always go into `backend/.env` yourself, under the variable name Claude gives you. Never paste a key into the chat.
+At the start of every step, Claude lists what it needs from you (keys, decisions, budgets) and waits. When Claude asks for an API key, paste it in the chat and Claude writes it into the gitignored `backend/.env` itself. It never echoes, logs or commits it. Because keys you paste stay in the chat history, use keys with a spending limit, and rotate any key you think was exposed.
 
 ## What you need to provide
 
 | What | When | How |
 | --- | --- | --- |
 | PostgreSQL 17, installed locally | step 01 | Windows installer; Claude gives you the psql commands to create the app database in step 03 |
-| Gemini API key (`GEMINI_API_KEY`) | step 06 | Google AI Studio, "Get API key". Set a spending limit in Google Cloud billing. The free tier is fine for development, but never send real customer data through it |
+| Gemini API key (`GEMINI_API_KEY`) | step 06 | Google AI Studio, "Get API key". Give it to Claude when asked. Set a spending limit in Google Cloud billing. The free tier is fine for development, but never send real customer data through it |
 | Anthropic API key (`ANTHROPIC_API_KEY`), optional | step 07 | only for its live tests; skipped if missing |
 | OpenAI API key (`OPENAI_API_KEY`), optional | step 06 | only for its live tests; skipped if missing |
 | A budget for the benchmark | step 16 | Claude asks before spending |
@@ -91,7 +91,7 @@ These rules are permanent and apply to every step.
 ## Things you need from me
 
 - At the start of every step, before writing code, list anything you need from me: API keys, accounts, budgets, or decisions. Then wait for my answer.
-- For a secret, tell me the exact variable name and file (for example `GEMINI_API_KEY` in `backend/.env`). I put it there myself. Never ask me to paste a secret into chat, never print it, and never commit it.
+- For an API key, ask me for it by name (for example `GEMINI_API_KEY`). When I give it to you, write it into the right gitignored env file yourself (`backend/.env`, and `backend/.env.test` if tests need it), creating the file from its example if needed. Then check that the file is gitignored. Never echo the key back, never print it in output or logs, never put it in any other file, and never commit it. Refer to it only by its variable name.
 - If a key is missing during a step, skip only the tests that need it (live tests), say so in the step summary, and continue with everything else.
 - Never ask for my PostgreSQL superuser password. Give me the exact commands to run myself instead.
 - Ask before any action that spends more than a small amount of money (live benchmarks, large replays), and state the estimated cost.
@@ -351,7 +351,7 @@ Step 06: build the proxy pass-through for the OpenAI API format, forwarding to O
 
 Follow CLAUDE.md. Branch: feat/step-06-proxy-openai from main.
 
-Before you start: ask me to put GEMINI_API_KEY (required for live tests) and optionally OPENAI_API_KEY in backend/.env, and to tell you the Gemini Flash model name to use. Wait for my answer.
+Before you start: ask me for GEMINI_API_KEY (required for live tests), optionally OPENAI_API_KEY, and the Gemini Flash model name to use. Write the keys into backend/.env and backend/.env.test yourself as CLAUDE.md describes. Wait for my answer.
 
 Note: the backend already has a "session" module for login sessions. Put all Parsim code under clearly named modules (for example src/proxy, src/projects, src/usage) and never reuse the word "session" for agent sessions without a prefix (use "agent session").
 
@@ -390,7 +390,7 @@ Step 07: add the Anthropic Messages API to the proxy.
 
 Follow CLAUDE.md. Branch: feat/step-07-proxy-anthropic from main.
 
-Before you start: ask me whether I will provide ANTHROPIC_API_KEY in backend/.env for live tests. If not, skip the live tests and say so in the summary.
+Before you start: ask me for ANTHROPIC_API_KEY for the live tests and write it into backend/.env and backend/.env.test yourself. If I don't have one, skip the live tests and say so in the summary.
 
 What to build
 1. POST /v1/messages that forwards to the Anthropic API (config, default https://api.anthropic.com), reusing the auth, provider-key handling, streaming pipeline and usage recording from step 06. Refactor shared parts into provider adapters (one interface, an OpenAI adapter and an Anthropic adapter) instead of duplicating code.
@@ -416,7 +416,7 @@ Step 08: add Google Gemini's native API to the proxy.
 
 Follow CLAUDE.md. Branch: feat/step-08-proxy-gemini-native from main.
 
-Before you start: confirm GEMINI_API_KEY is in backend/.env for live tests.
+Before you start: check that GEMINI_API_KEY is set in backend/.env (without printing it). If it is missing, ask me for it and write it in yourself.
 
 What to build
 1. Gemini native endpoints, reusing the auth, provider-key handling, streaming pipeline and usage recording through a new Gemini adapter:

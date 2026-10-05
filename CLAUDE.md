@@ -23,7 +23,7 @@ These rules are permanent and apply to every step.
 ## Things you need from me
 
 - At the start of every step, before writing code, list anything you need from me: API keys, accounts, budgets, or decisions. Then wait for my answer.
-- For a secret, tell me the exact variable name and file (for example `GEMINI_API_KEY` in `backend/.env`). I put it there myself. Never ask me to paste a secret into chat, never print it, and never commit it.
+- For an API key, ask me for it by name (for example `GEMINI_API_KEY`). When I give it to you, write it into the right gitignored env file yourself (`backend/.env`, and `backend/.env.test` if tests need it), creating the file from its example if needed. Then check that the file is gitignored. Never echo the key back, never print it in output or logs, never put it in any other file, and never commit it. Refer to it only by its variable name.
 - If a key is missing during a step, skip only the tests that need it (live tests), say so in the step summary, and continue with everything else.
 - Never ask for my PostgreSQL superuser password. Give me the exact commands to run myself instead.
 - Ask before any action that spends more than a small amount of money (live benchmarks, large replays), and state the estimated cost.

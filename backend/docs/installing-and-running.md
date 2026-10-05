@@ -1,34 +1,28 @@
 # Installation
 
-NestJS Boilerplate supports [TypeORM](https://www.npmjs.com/package/typeorm) and [Mongoose](https://www.npmjs.com/package/mongoose) for working with databases. By default, TypeORM uses [PostgreSQL](https://www.postgresql.org/) as the main database, but you can use any relational database.
-
-Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Architecture](architecture.md#hexagonal-architecture). This makes it easy to choose the right database for your application.
+The backend uses [TypeORM](https://www.npmjs.com/package/typeorm) with [PostgreSQL](https://www.postgresql.org/). It runs natively on Windows, macOS and Linux; no Docker is needed.
 
 ---
 
 ## Table of Contents <!-- omit in toc -->
 
-- [Comfortable development (PostgreSQL + TypeORM)](#comfortable-development-postgresql--typeorm)
+- [Development setup (PostgreSQL + TypeORM)](#development-setup-postgresql--typeorm)
   - [Video guideline (PostgreSQL + TypeORM)](#video-guideline-postgresql--typeorm)
-- [Comfortable development (MongoDB + Mongoose)](#comfortable-development-mongodb--mongoose)
+- [Test database](#test-database)
 - [Links](#links)
 
 ---
 
-## Comfortable development (PostgreSQL + TypeORM)
+## Development setup (PostgreSQL + TypeORM)
 
-1. Clone repository
-
-   ```bash
-   git clone --depth 1 https://github.com/brocoders/nestjs-boilerplate.git my-app
-   ```
-
-1. Go to folder, and copy `env-example-relational` as `.env`.
+1. Go to the `backend` folder and copy `.env.example` as `.env`.
 
    ```bash
-   cd my-app/
-   cp env-example-relational .env
+   cd backend
+   cp .env.example .env
    ```
+
+   In PowerShell, use `Copy-Item .env.example .env`.
 
 1. Make sure PostgreSQL is available. Either install it locally (the defaults in `.env` expect `localhost:5432`) or point the `DATABASE_*` values in `.env` at a hosted PostgreSQL instance.
 
@@ -38,20 +32,10 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
    npx maildev
    ```
 
-1. Install dependency
+1. Install dependencies
 
    ```bash
    npm install
-   ```
-
-1. Run app configuration
-
-   > You should run this command only the first time on initialization of your project, all next time skip it.
-
-   > If you want to contribute to the boilerplate, you should NOT run this command.
-
-   ```bash
-   npm run app:config
    ```
 
 1. Run migrations
@@ -80,58 +64,28 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
 
 ---
 
-## Comfortable development (MongoDB + Mongoose)
+## Test database
 
-1. Clone repository
+End-to-end tests use their own database (`api_test` by default), never the dev database. See [Tests](tests.md) for details.
 
-   ```bash
-   git clone --depth 1 https://github.com/brocoders/nestjs-boilerplate.git my-app
-   ```
-
-1. Go to folder, and copy `env-example-document` as `.env`.
+1. Copy `.env.test.example` as `.env.test` and set the database credentials. The user needs permission to create databases (`CREATEDB`), or create `api_test` yourself first.
 
    ```bash
-   cd my-app/
-   cp env-example-document .env
+   cp .env.test.example .env.test
    ```
 
-1. Make sure MongoDB is available. Either install it locally (the default in `.env` expects `mongodb://localhost:27017`) or point `DATABASE_URL` in `.env` at a hosted MongoDB instance.
-
-1. Optional: run a local mail catcher for auth emails (SMTP on port 1025, web UI on port 1080):
+1. Create and migrate the test database:
 
    ```bash
-   npx maildev
+   npm run test:db:setup
    ```
 
-1. Install dependency
+1. Run the tests:
 
    ```bash
-   npm install
+   npm test
+   npm run test:e2e
    ```
-
-1. Run app configuration
-
-   > You should run this command only the first time on initialization of your project, all next time skip it.
-
-   > If you want to contribute to the boilerplate, you should NOT run this command.
-
-   ```bash
-   npm run app:config
-   ```
-
-1. Run seeds
-
-   ```bash
-   npm run seed:run:document
-   ```
-
-1. Run app in dev mode
-
-   ```bash
-   npm run start:dev
-   ```
-
-1. Open <http://localhost:3001>
 
 ---
 

@@ -10,6 +10,8 @@ Paste these into Claude Code one at a time, from the repo root. Step 01 creates 
 4. Merge the branch into `main`, then run `git checkout main && git pull`.
 5. Paste the next prompt. If something is wrong, tell Claude in the same session before merging.
 
+Authentication (sign-in pages, Google and GitHub, emails) is deliberately the last step, so the early steps focus on the product. Until step 18 the dashboard has no login and must only run locally. Do not deploy Parsim publicly before step 18 is done.
+
 At the start of every step, Claude lists what it needs from you (keys, decisions, budgets) and waits. When Claude asks for an API key, paste it in the chat and Claude writes it into the gitignored `backend/.env` itself. It never echoes, logs or commits it. Because keys you paste stay in the chat history, use keys with a spending limit, and rotate any key you think was exposed.
 
 ## What you need to provide
@@ -17,6 +19,9 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | What | When | How |
 | --- | --- | --- |
 | PostgreSQL 17, installed locally | step 01 | Windows installer; Claude gives you the psql commands to create the app database in step 03 |
+| Google OAuth client ID and secret | step 18 | Google Cloud Console, Credentials, OAuth client (web app). Claude tells you the localhost origins and redirect URIs to enter |
+| GitHub OAuth app client ID and secret | step 18 | GitHub, Settings, Developer settings, OAuth Apps. Claude tells you the homepage and callback URLs |
+| Email sending, optional at first | step 18 | Locally nothing is needed (emails go to `npx maildev`). For real inboxes: a Resend API key and a domain you own, verified in Resend |
 | Gemini API key (`GEMINI_API_KEY`) | step 06 | Google AI Studio, "Get API key". Give it to Claude when asked. Set a spending limit in Google Cloud billing. The free tier is fine for development, but never send real customer data through it |
 | Anthropic API key (`ANTHROPIC_API_KEY`), optional | step 07 | only for its live tests; skipped if missing |
 | OpenAI API key (`OPENAI_API_KEY`), optional | step 06 | only for its live tests; skipped if missing |
@@ -44,6 +49,7 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | 15 | Replay |
 | 16 | Demo agent and benchmark |
 | 17 | Developer integration (docs, llms.txt, CLI) |
+| 18 | Authentication: email, Google and GitHub sign-in, real emails, protected dashboard (last, before deploying) |
 
 ---
 
@@ -358,7 +364,7 @@ Note: the backend already has a "session" module for login sessions. Put all Par
 What to build
 1. Projects and Parsim API keys
    - Entity Project (name, created by user) and ParsimApiKey (project, hashed key, prefix for display, created at, last used at, revoked at). Store only a hash of the key; show the full key once at creation.
-   - Endpoints (JWT-protected, using the boilerplate's auth): create a project, list projects, create, list and revoke API keys.
+   - Endpoints (JWT-protected, using the boilerplate's existing auth): create a project, list projects, create, list and revoke API keys. There is no sign-in UI until step 18, so every project belongs to a user and, for now, that user is the seeded admin. Tests log in as the seeded admin to get a JWT. Design everything so adding real users later needs no database changes.
 2. Proxy endpoint POST /v1/chat/completions (no /api prefix, so SDKs work with baseURL https://host/v1)
    - Authenticate with the Parsim key from the header x-parsim-key, or from Authorization: Bearer when it starts with the Parsim key prefix. Missing or bad key: 401 in OpenAI error format.
    - The customer's own provider key is sent in a separate header, x-provider-key, or configured per project (encrypted at rest with a key from .env). Never log it.
@@ -569,7 +575,7 @@ Backend
 - Never return raw content unless the project allows content storage, and then only on the session detail endpoint.
 
 Frontend (use the existing layout, data tables, cards and charts; Parsim theme from step 04)
-1. Login page against the backend's existing JWT auth (/api/v1/auth/email/login), with the token stored securely and refreshed. The dashboard routes require login again.
+1. There is no login page yet (it comes in step 18). Backend endpoints still require the existing JWT. For local use only, add a development auto-login: the frontend's server signs in as the seeded admin and keeps the token in an httpOnly cookie, enabled by DEV_AUTO_LOGIN=true. It must refuse to run when NODE_ENV=production, and step 18 replaces it with real sign-in.
 2. Overview: tokens saved, dollars saved, percent reduction, requests, recalls; a savings-over-time chart; decisions by type using the --gc-* colors; a clear "Shadow mode: estimated savings" label when the project is in shadow mode.
 3. Agent sessions: data table with search, sort and paging.
 4. Session detail: a timeline of requests, and the decisions with their reasons. Show content only if allowed.
@@ -682,6 +688,77 @@ Tests
 - Unit tests for the CLI's project detection and the code changes it proposes, using sample projects in cli/test/fixtures.
 - E2E for /llms.txt and the health endpoint.
 - Manual check: in a fresh sample project, ask Claude Code "add Parsim to this project" with only llms.txt as guidance, and record whether it succeeded in the step summary.
+
+Finish with the step summary (include test counts), push, and stop.
+```
+
+---
+
+## Step 18: Authentication with email, Google and GitHub
+
+```text
+Step 18: authentication with email, Google and GitHub, with real emails. This is the last step before deploying.
+
+Follow CLAUDE.md. Branch: feat/step-18-auth from main.
+
+Before you start, list what you need from me and wait. Expect to ask for:
+- GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (Google Cloud Console, OAuth client for a web app). Tell me the exact authorized JavaScript origins and redirect URIs to enter for localhost.
+- GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET (GitHub, Settings, Developer settings, OAuth Apps). Tell me the exact homepage URL and callback URL to enter for localhost.
+- For real email delivery: whether I want to set up Resend now (a Resend API key and a verified sending domain) or use only the local mail catcher for now.
+Write the keys into backend/.env (and frontend/.env.local where the frontend needs a public client ID) yourself, as CLAUDE.md describes. If a key is missing, build and test everything with fakes and skip only the live checks.
+
+Use the auth that already exists in the backend boilerplate. Do not replace it with another auth library. Read these first:
+- backend/src/auth (email register, confirm, login, refresh, forgot and reset password, logout, me)
+- backend/src/auth-google (verifies a Google ID token sent by the frontend)
+- backend/src/mail and backend/src/mailer (email sending with nodemailer over SMTP and handlebars templates)
+- backend/docs/auth.md
+
+Part A: backend
+1. Remove Facebook and Apple sign-in (modules, config, env entries, docs). We only support email, Google and GitHub.
+2. Add GitHub sign-in as a new module backend/src/auth-github, following the structure of auth-google:
+   - GET /api/v1/auth/github/start redirects to GitHub's authorize URL with a random state value (stored in a short-lived httpOnly cookie) and the scope needed to read the user's email.
+   - GET /api/v1/auth/github/callback checks the state, exchanges the code for an access token, reads the GitHub profile and the primary verified email, then signs the user in or creates the account through the existing social login logic (same as Google). Then it redirects to the frontend with the login completed (see Part C for how tokens reach the frontend safely).
+   - If GitHub returns no verified email, show a clear error instead of creating an account without email.
+   - Add GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET and the callback URL to config and .env.example.
+3. Account linking: if someone signs up with email and later uses Google or GitHub with the same verified email, sign them into the same account instead of creating a duplicate. Explain the rule you chose.
+4. Email sending:
+   - Locally, emails go to a mail catcher: npx maildev (SMTP on 1025, web UI on http://localhost:1080). Document it in backend/README.md.
+   - Production uses SMTP settings only (no code changes), for example Resend over SMTP. Document the exact MAIL_* values in .env.example comments.
+   - Rebrand the email templates (activation, reset password, confirm new email) to Parsim: Parsim name, a simple clean layout using the brand orange #FF3B00, plain text that still works if HTML is blocked. No em dashes.
+   - Check that the links in the emails point to frontend pages that exist (read mail.service.ts for the exact paths and query parameters, and build those pages in Part B).
+5. Add rate limiting on login, register, forgot password and resend confirmation (for example @nestjs/throttler), with sensible limits in config.
+6. Make sure error messages do not reveal whether an email is registered (forgot password always returns the same response).
+
+Part B: frontend pages (use the existing shadcn/ui components and the current theme)
+1. /auth/sign-in: email and password, "Continue with Google", "Continue with GitHub", links to sign up and forgot password.
+2. /auth/sign-up: name, email, password (with strength hint), the same Google and GitHub buttons. After sign-up, show "Check your email to confirm your account".
+3. The page the confirmation email links to: confirms the account and then sends the user to sign in (or signs them in directly if the backend returns tokens).
+4. /auth/forgot-password and the reset password page the reset email links to.
+5. "Continue with Google" uses Google Identity Services to get an ID token and sends it to POST /api/v1/auth/google/login, which already exists.
+6. "Continue with GitHub" goes to GET /api/v1/auth/github/start.
+7. Clear loading, success and error states on every form. No em dashes in any copy.
+
+Part C: sessions and protecting the dashboard
+1. Do not store tokens in localStorage. Use Next.js route handlers as a thin layer that calls the backend and keeps the access and refresh tokens in httpOnly, secure, sameSite cookies.
+2. Refresh the access token automatically with POST /api/v1/auth/refresh when it expires.
+3. Protect every /dashboard route in frontend/src/proxy.ts: signed-out users go to /auth/sign-in and come back to the page they wanted after signing in. Signed-in users visiting /auth pages go to /dashboard/overview.
+4. Show the signed-in user's name and email in the existing user menu, with a working "Sign out" that calls the backend logout and clears the cookies.
+
+Tests
+- Backend e2e (real Postgres test database), with emails captured by a test mail transport instead of a real server:
+  - sign up sends a confirmation email; the link's hash confirms the account; login before confirming is refused if the boilerplate requires confirmation
+  - login, refresh and logout
+  - forgot password sends an email; the reset link works once and expires
+  - the same response for forgot password whether the email exists or not
+  - Google login with a faked Google token verifier
+  - GitHub start sets the state cookie; callback with a wrong state is refused; callback with a faked GitHub API creates the account or links it by verified email; no verified email gives a clear error
+  - rate limiting kicks in on repeated failed logins
+- Frontend: unit tests for form validation and the redirect logic (add Vitest if no test runner exists), lint and typecheck.
+- Manual check in the browser with the backend and npx maildev running: sign up, open the email in maildev, confirm, sign in, sign out, forgot and reset password, and Google and GitHub sign-in if the keys are set. Save screenshots of the sign-in and sign-up pages under docs/progress/screenshots/.
+
+Notes
+- Remove the development-only auto-login from step 13 and replace it with real sign-in. Every dashboard page and endpoint must require a signed-in user, scoped to that user's projects.
+- Projects, keys and sessions created so far belong to the seeded admin. Keep them working after this step.
 
 Finish with the step summary (include test counts), push, and stop.
 ```

@@ -37,7 +37,6 @@ These rules are permanent and apply to every step.
   3. Gemini native API (`generateContent` and `streamGenerateContent`).
 - Every provider is an adapter behind one interface. Adding a provider must not change the GC engine.
 - Parsim's own internal model calls (compression summaries, the replay judge, the demo agent, benchmarks and live tests) default to a Gemini Flash model through `GEMINI_API_KEY`. The provider and model are configurable in `.env`; never hardcode a model name in code.
-- Ollama (local, OpenAI-compatible at http://localhost:11434/v1) is a supported upstream for free local development and tests. It is never used for benchmark results or quality claims, because small local models do not represent real customer models.
 - Customers bring their own provider keys. Parsim forwards with them and never pays for customer traffic.
 - Never send real customer data through a free-tier key.
 

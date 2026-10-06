@@ -11,7 +11,8 @@ import { AddressInfo } from 'node:net';
  * In-process fake of the upstream LLM providers, for tests. It never calls a
  * real provider. Supported routes:
  *
- * - POST /v1/chat/completions                       OpenAI format (also Gemini's OpenAI-compatible endpoint)
+ * - POST /v1/chat/completions                       OpenAI format
+ * - POST /v1beta/openai/chat/completions            Gemini's OpenAI-compatible endpoint
  * - POST /v1/messages                               Anthropic Messages API
  * - POST /v1beta/models/{model}:generateContent       Gemini native
  * - POST /v1beta/models/{model}:streamGenerateContent Gemini native, streamed
@@ -21,7 +22,11 @@ import { AddressInfo } from 'node:net';
  * Every request is recorded so tests can assert on what Parsim forwarded.
  */
 
-export type UpstreamFormat = 'openai' | 'anthropic' | 'gemini';
+export type UpstreamFormat =
+  | 'openai'
+  | 'gemini-openai'
+  | 'anthropic'
+  | 'gemini';
 
 export type RecordedRequest = {
   format: UpstreamFormat;
@@ -44,6 +49,8 @@ export type CannedResponse =
       status?: number;
       body: unknown;
       headers?: Record<string, string>;
+      /** Wait this long before sending headers, to test timeouts. */
+      delayMs?: number;
     }
   /** An SSE stream. Each event is written as `event:` (if set) plus `data:`. */
   | {
@@ -51,6 +58,8 @@ export type CannedResponse =
       status?: number;
       events: { event?: string; data: unknown }[];
       headers?: Record<string, string>;
+      /** Pause before each event, to test that streams are not buffered. */
+      delayMs?: number;
     };
 
 type Route = {
@@ -63,6 +72,11 @@ const ROUTES: Route[] = [
   {
     format: 'openai',
     match: /^\/v1\/chat\/completions$/,
+    stream: (_path, body) => isStreamRequested(body),
+  },
+  {
+    format: 'gemini-openai',
+    match: /^\/v1beta\/openai\/chat\/completions$/,
     stream: (_path, body) => isStreamRequested(body),
   },
   {
@@ -80,6 +94,8 @@ const ROUTES: Route[] = [
 
 export class FakeUpstream {
   readonly requests: RecordedRequest[] = [];
+  /** Responses whose connection the client closed before they finished. */
+  closedEarly = 0;
   private readonly queued: CannedResponse[] = [];
   private server?: Server;
   private port = 0;
@@ -118,6 +134,7 @@ export class FakeUpstream {
   reset(): void {
     this.requests.length = 0;
     this.queued.length = 0;
+    this.closedEarly = 0;
   }
 
   async stop(): Promise<void> {
@@ -156,6 +173,10 @@ export class FakeUpstream {
       return;
     }
 
+    res.on('close', () => {
+      if (!res.writableFinished) this.closedEarly += 1;
+    });
+
     const rawBody = await readBody(req);
     const body = parseJson(rawBody);
     const streamed = route.stream(url.pathname, body);
@@ -180,9 +201,13 @@ export class FakeUpstream {
       this.queued.shift() ??
       defaultResponse(route.format, streamed, body, model);
     if (response.kind === 'json') {
+      if (response.delayMs) {
+        await new Promise((resolve) => setTimeout(resolve, response.delayMs));
+        if (res.destroyed) return;
+      }
       writeJson(res, response.status ?? 200, response.body, response.headers);
     } else {
-      writeSse(res, response);
+      await writeSse(res, response);
     }
   }
 }
@@ -222,10 +247,10 @@ function writeJson(
   res.end(JSON.stringify(body));
 }
 
-function writeSse(
+async function writeSse(
   res: ServerResponse,
   response: Extract<CannedResponse, { kind: 'sse' }>,
-): void {
+): Promise<void> {
   res.writeHead(response.status ?? 200, {
     'content-type': 'text/event-stream',
     'cache-control': 'no-cache',
@@ -233,6 +258,11 @@ function writeSse(
     ...response.headers,
   });
   for (const { event, data } of response.events) {
+    if (response.delayMs) {
+      res.flushHeaders();
+      await new Promise((resolve) => setTimeout(resolve, response.delayMs));
+    }
+    if (res.destroyed) return;
     if (event) res.write(`event: ${event}\n`);
     res.write(
       `data: ${typeof data === 'string' ? data : JSON.stringify(data)}\n\n`,
@@ -246,6 +276,21 @@ export const FAKE_REPLY_TEXT = 'Hello from the fake upstream.';
 
 /** Token usage reported by every canned response. */
 export const FAKE_USAGE = { input: 42, output: 7 } as const;
+
+/**
+ * Hidden thinking tokens in canned Gemini OpenAI-compatible responses. Like
+ * the real endpoint, they count in total_tokens but not completion_tokens.
+ */
+export const FAKE_GEMINI_THINKING_TOKENS = 20;
+
+function wantsStreamUsage(body: unknown): boolean {
+  const options =
+    typeof body === 'object' && body !== null
+      ? (body as { stream_options?: { include_usage?: unknown } })
+          .stream_options
+      : undefined;
+  return options?.include_usage === true;
+}
 
 function requestedModel(body: unknown, fallback: string): string {
   const model =
@@ -292,10 +337,14 @@ export function defaultResponse(
         },
       };
     }
+    // Like OpenAI: with include_usage every chunk has "usage": null and a
+    // final usage-only chunk follows; without it there is no usage at all.
+    const includeUsage = wantsStreamUsage(body);
     const chunk = (delta: object, finish: string | null) => ({
       ...base,
       object: 'chat.completion.chunk',
       choices: [{ index: 0, delta, finish_reason: finish }],
+      ...(includeUsage ? { usage: null } : {}),
     });
     return {
       kind: 'sse',
@@ -304,13 +353,73 @@ export function defaultResponse(
         { data: chunk({ content: first }, null) },
         { data: chunk({ content: second }, null) },
         { data: chunk({}, 'stop') },
+        ...(includeUsage
+          ? [
+              {
+                data: {
+                  ...base,
+                  object: 'chat.completion.chunk',
+                  choices: [],
+                  usage,
+                },
+              },
+            ]
+          : []),
+        { data: '[DONE]' },
+      ],
+    };
+  }
+
+  if (format === 'gemini-openai') {
+    // Mirrors what Gemini's OpenAI-compatible endpoint returned on
+    // 2026-10-06: thinking tokens only in total_tokens, and with
+    // include_usage the usage object on every chunk (no usage-only chunk).
+    const model = requestedModel(body, 'fake-model');
+    const base = { id: 'gemini-fake', created: 1700000000, model };
+    const usage = {
+      completion_tokens: FAKE_USAGE.output,
+      prompt_tokens: FAKE_USAGE.input,
+      total_tokens:
+        FAKE_USAGE.input + FAKE_USAGE.output + FAKE_GEMINI_THINKING_TOKENS,
+    };
+    const signature = { google: { thought_signature: 'fake-signature' } };
+    if (!streamed) {
+      return {
+        kind: 'json',
+        body: {
+          choices: [
+            {
+              finish_reason: 'stop',
+              index: 0,
+              message: {
+                content: FAKE_REPLY_TEXT,
+                extra_content: signature,
+                role: 'assistant',
+              },
+            },
+          ],
+          ...base,
+          object: 'chat.completion',
+          usage,
+        },
+      };
+    }
+    const includeUsage = wantsStreamUsage(body);
+    const chunk = (delta: object, finish?: string) => ({
+      choices: [
+        { delta, ...(finish ? { finish_reason: finish } : {}), index: 0 },
+      ],
+      ...base,
+      object: 'chat.completion.chunk',
+      ...(includeUsage ? { usage } : {}),
+    });
+    return {
+      kind: 'sse',
+      events: [
+        { data: chunk({ content: first, role: 'assistant' }) },
+        { data: chunk({ content: second, role: 'assistant' }) },
         {
-          data: {
-            ...base,
-            object: 'chat.completion.chunk',
-            choices: [],
-            usage,
-          },
+          data: chunk({ extra_content: signature, role: 'assistant' }, 'stop'),
         },
         { data: '[DONE]' },
       ],

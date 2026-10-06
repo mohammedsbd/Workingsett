@@ -33,7 +33,7 @@ Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
 
 ## Use the proxy
 
-Parsim serves an OpenAI-compatible endpoint at `POST /v1/chat/completions` (no `/api` prefix), so any OpenAI SDK works with `baseURL` set to `http://localhost:3001/v1`. Each project forwards to OpenAI or to Gemini's OpenAI-compatible endpoint. See [docs/proxy.md](docs/proxy.md) for details.
+Parsim serves an OpenAI-compatible endpoint at `POST /v1/chat/completions` and the Anthropic Messages API at `POST /v1/messages` (no `/api` prefix). OpenAI SDKs work with `baseURL` set to `http://localhost:3001/v1`, Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=http://localhost:3001`. Each project forwards to OpenAI, Gemini (through its OpenAI-compatible endpoint) or Anthropic. See [docs/proxy.md](docs/proxy.md) for details.
 
 ### 1. Create a project and a Parsim key
 
@@ -51,7 +51,7 @@ curl -s http://localhost:3001/api/v1/projects -H "authorization: Bearer $TOKEN" 
 curl -s http://localhost:3001/api/v1/projects/<projectId>/api-keys -H "authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"name":"local"}'
 ```
 
-Set `"upstream":"openai"` for OpenAI. To store your provider key on the project (encrypted, never returned), add `"providerKey":"..."`; you can then leave it out of requests.
+Set `"upstream":"openai"` for OpenAI or `"upstream":"anthropic"` for Anthropic. To store your provider key on the project (encrypted, never returned), add `"providerKey":"..."`; you can then leave it out of requests.
 
 ### 2. Send requests with curl
 
@@ -103,7 +103,30 @@ for await (const chunk of stream) {
 }
 ```
 
-Every request is recorded in `usage_record` with token counts, cost from [config/model-prices.json](config/model-prices.json) and latency, never with prompt or response content.
+### 4. Use the Anthropic SDK or Claude Code
+
+Create a project with `"upstream":"anthropic"`. The simplest setup stores your Anthropic key on the project and uses the Parsim key as the API key, which also works for tools that only let you set `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`:
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  baseURL: 'http://localhost:3001',
+  apiKey: process.env.PARSIM_KEY, // psm_...; the Anthropic key is stored on the project
+});
+
+const message = await client.messages.create({
+  model: 'claude-haiku-4-5',
+  max_tokens: 256,
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+```
+
+To keep your Anthropic key off the server, send it per request instead: `defaultHeaders: { 'x-provider-key': process.env.ANTHROPIC_API_KEY! }`.
+
+For Claude Code, set `ANTHROPIC_BASE_URL=http://localhost:3001` and `ANTHROPIC_API_KEY=psm_...` before running `claude`. See [Using Claude Code through Parsim](docs/proxy.md#using-claude-code-through-parsim).
+
+Every request is recorded in `usage_record` with token counts, cost from [config/model-prices.json](config/model-prices.json) and latency, never with prompt or response content. Anthropic cache reads and cache writes are recorded and priced separately.
 
 ## Features
 

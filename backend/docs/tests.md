@@ -73,8 +73,9 @@ Each provider is skipped when its settings are missing from `.env.test`:
 
 - Gemini: `GEMINI_API_KEY` and `PARSIM_INTERNAL_MODEL` (a Gemini Flash model).
 - OpenAI: `OPENAI_API_KEY` and `OPENAI_LIVE_TEST_MODEL`.
+- Anthropic: `ANTHROPIC_API_KEY` and `ANTHROPIC_LIVE_TEST_MODEL` (uses the official `@anthropic-ai/sdk`).
 
-A full run makes four small calls. The Gemini free tier allows only about 20 requests per day per model, so do not loop on them.
+A full run makes six small calls. The Gemini free tier allows only about 20 requests per day per model, so do not loop on them.
 
 ## Test utilities
 
@@ -83,7 +84,7 @@ A full run makes four small calls. The Gemini free tier allows only about 20 req
 `test/utils/fake-upstream.ts` is an in-process HTTP server on a random port that stands in for the LLM providers:
 
 - `POST /v1/chat/completions` (OpenAI format)
-- `POST /v1/messages` (Anthropic)
+- `POST /v1/messages` and `POST /v1/messages/count_tokens` (Anthropic, with cache read and write tokens in the usage)
 - `POST /v1beta/openai/chat/completions` (Gemini's OpenAI-compatible endpoint, with its quirks: thinking tokens only in `total_tokens`, usage on every stream chunk; see [Proxy](proxy.md))
 - `POST /v1beta/models/{model}:generateContent` and `:streamGenerateContent` (Gemini native)
 

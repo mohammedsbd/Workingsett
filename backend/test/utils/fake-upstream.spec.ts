@@ -8,6 +8,7 @@ import {
 } from '@jest/globals';
 import {
   FAKE_REPLY_TEXT,
+  FAKE_GEMINI_THINKING_TOKENS,
   FAKE_USAGE,
   FakeUpstream,
   parseSse,
@@ -207,6 +208,91 @@ describe('FakeUpstream', () => {
 
       expect(fake.lastRequest.rawBody).toBe('not json');
       expect(fake.lastRequest.body).toBeUndefined();
+    });
+  });
+
+  describe('stream usage, like the real providers', () => {
+    const chunksOf = async (res: Response) =>
+      parseSse(await res.text())
+        .filter((e) => e.data !== '[DONE]')
+        .map((e) => JSON.parse(e.data) as Record<string, unknown>);
+
+    it('should send no usage in an OpenAI stream unless include_usage is set', async () => {
+      const plain = await chunksOf(
+        await post('/v1/chat/completions', { model: 'm', stream: true }),
+      );
+      const withUsage = await chunksOf(
+        await post('/v1/chat/completions', {
+          model: 'm',
+          stream: true,
+          stream_options: { include_usage: true },
+        }),
+      );
+
+      expect(plain.some((c) => 'usage' in c)).toBe(false);
+      expect(withUsage.slice(0, -1).every((c) => c.usage === null)).toBe(true);
+      expect(withUsage[withUsage.length - 1]).toMatchObject({
+        choices: [],
+        usage: { prompt_tokens: FAKE_USAGE.input },
+      });
+    });
+
+    it('should mimic Gemini: thinking tokens only in the total, usage on every chunk', async () => {
+      const res = await post('/v1beta/openai/chat/completions', {
+        model: 'gemini-test',
+      });
+      const body = (await res.json()) as {
+        usage: { completion_tokens: number; total_tokens: number };
+      };
+      const chunks = await chunksOf(
+        await post('/v1beta/openai/chat/completions', {
+          model: 'gemini-test',
+          stream: true,
+          stream_options: { include_usage: true },
+        }),
+      );
+
+      expect(fake.requests[0].format).toBe('gemini-openai');
+      expect(body.usage.completion_tokens).toBe(FAKE_USAGE.output);
+      expect(body.usage.total_tokens).toBe(
+        FAKE_USAGE.input + FAKE_USAGE.output + FAKE_GEMINI_THINKING_TOKENS,
+      );
+      expect(chunks.every((c) => c.usage)).toBe(true);
+      expect(chunks.some((c) => (c.choices as unknown[]).length === 0)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('timing', () => {
+    it('should delay a JSON response when asked', async () => {
+      fake.respondNext({ kind: 'json', body: { ok: true }, delayMs: 200 });
+      const started = Date.now();
+
+      await post('/v1/chat/completions', {});
+
+      expect(Date.now() - started).toBeGreaterThanOrEqual(180);
+    });
+
+    it('should count responses the client closed before they finished', async () => {
+      fake.respondNext({
+        kind: 'sse',
+        events: [{ data: 'a' }, { data: 'b' }],
+        delayMs: 300,
+      });
+      const controller = new AbortController();
+      const res = await fetch(`${fake.baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        body: '{}',
+        signal: controller.signal,
+      });
+      expect(res.status).toBe(200);
+      controller.abort();
+
+      for (let i = 0; i < 40 && fake.closedEarly === 0; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(fake.closedEarly).toBe(1);
     });
   });
 

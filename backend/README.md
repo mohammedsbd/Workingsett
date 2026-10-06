@@ -26,9 +26,84 @@ Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
 
 ## Table of Contents <!-- omit in toc -->
 
+- [Use the proxy](#use-the-proxy)
 - [Features](#features)
 - [Contributors](#contributors)
 - [Support](#support)
+
+## Use the proxy
+
+Parsim serves an OpenAI-compatible endpoint at `POST /v1/chat/completions` (no `/api` prefix), so any OpenAI SDK works with `baseURL` set to `http://localhost:3001/v1`. Each project forwards to OpenAI or to Gemini's OpenAI-compatible endpoint. See [docs/proxy.md](docs/proxy.md) for details.
+
+### 1. Create a project and a Parsim key
+
+Log in as the seeded admin, create a project, then create a key. The full key is shown only once.
+
+```bash
+TOKEN=$(curl -s http://localhost:3001/api/v1/auth/email/login -H "content-type: application/json" -d '{"email":"admin@example.com","password":"secret"}' | node -p "JSON.parse(require('fs').readFileSync(0)).token")
+```
+
+```bash
+curl -s http://localhost:3001/api/v1/projects -H "authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"name":"My agent","upstream":"gemini"}'
+```
+
+```bash
+curl -s http://localhost:3001/api/v1/projects/<projectId>/api-keys -H "authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"name":"local"}'
+```
+
+Set `"upstream":"openai"` for OpenAI. To store your provider key on the project (encrypted, never returned), add `"providerKey":"..."`; you can then leave it out of requests.
+
+### 2. Send requests with curl
+
+The Parsim key goes in `x-parsim-key` (or as the bearer token); your provider key goes in `x-provider-key` (or as the bearer token when the Parsim key is in `x-parsim-key`).
+
+```bash
+curl http://localhost:3001/v1/chat/completions -H "content-type: application/json" -H "x-parsim-key: psm_..." -H "x-provider-key: $GEMINI_API_KEY" -d '{"model":"gemini-3.8-flash","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+For an OpenAI project, use your OpenAI key in `x-provider-key` and an OpenAI model such as `gpt-5-mini`. Add `"stream":true` to stream.
+
+### 3. Use the OpenAI SDK
+
+OpenAI upstream:
+
+```ts
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:3001/v1',
+  apiKey: process.env.PARSIM_KEY, // psm_...
+  defaultHeaders: { 'x-provider-key': process.env.OPENAI_API_KEY! },
+});
+
+const reply = await client.chat.completions.create({
+  model: 'gpt-5-mini',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+```
+
+Gemini upstream (project created with `"upstream":"gemini"`):
+
+```ts
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:3001/v1',
+  apiKey: process.env.GEMINI_API_KEY, // provider key as the bearer token
+  defaultHeaders: { 'x-parsim-key': process.env.PARSIM_KEY! },
+});
+
+const stream = await client.chat.completions.create({
+  model: 'gemini-3.8-flash',
+  stream: true,
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? '');
+}
+```
+
+Every request is recorded in `usage_record` with token counts, cost from [config/model-prices.json](config/model-prices.json) and latency, never with prompt or response content.
 
 ## Features
 

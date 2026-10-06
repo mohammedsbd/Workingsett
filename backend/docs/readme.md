@@ -10,6 +10,7 @@
 - [Command Line Interface](cli.md)
 - [Database](database.md)
 - [Auth](auth.md)
+- [Proxy](proxy.md)
 - [Serialization](serialization.md)
 - [File uploading](file-uploading.md)
 - [Tests](tests.md)

@@ -24,6 +24,11 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
+import proxyConfig from './proxy/config/proxy.config';
+import { ProxyModule } from './proxy/proxy.module';
+import { ProjectsModule } from './projects/projects.module';
+import { ParsimApiKeysModule } from './parsim-api-keys/parsim-api-keys.module';
+import { UsageRecordsModule } from './usage-records/usage-records.module';
 
 const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   useClass: TypeOrmConfigService,
@@ -45,6 +50,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
         facebookConfig,
         googleConfig,
         appleConfig,
+        proxyConfig,
       ],
       envFilePath: ['.env'],
     }),
@@ -82,6 +88,10 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
     MailModule,
     MailerModule,
     HomeModule,
+    ProjectsModule,
+    ParsimApiKeysModule,
+    UsageRecordsModule,
+    ProxyModule,
   ],
 })
 export class AppModule {}

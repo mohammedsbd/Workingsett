@@ -25,6 +25,7 @@ import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import proxyConfig from './proxy/config/proxy.config';
+import { ProjectsModule } from './projects/projects.module';
 
 const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   useClass: TypeOrmConfigService,
@@ -84,6 +85,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
     MailModule,
     MailerModule,
     HomeModule,
+    ProjectsModule,
   ],
 })
 export class AppModule {}

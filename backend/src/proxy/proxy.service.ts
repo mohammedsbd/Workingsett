@@ -12,14 +12,17 @@ import { Project } from '../projects/domain/project';
 import { ProjectsService } from '../projects/projects.service';
 import { TokenUsage } from '../usage-records/domain/token-usage';
 import { UsageRecordsService } from '../usage-records/usage-records.service';
-import { ProxyError, proxyErrors } from './openai-error';
 import { parseProxyCredentials } from './proxy-credentials';
+import { ProxyError, proxyErrors } from './proxy-error';
 import {
-  CHAT_COMPLETIONS_ADAPTERS,
-  ChatCompletionsAdapter,
-  ChatRequestInfo,
   PreparedUpstreamRequest,
-} from './providers/chat-completions-adapter';
+  PROVIDER_ADAPTERS,
+  ProviderAdapter,
+  ProxyApi,
+  ProxyOperation,
+  RequestInfo,
+  Upstream,
+} from './providers/provider-adapter';
 import { SseStreamFilter } from './streaming/sse-stream-filter';
 
 /** Status recorded when the client disconnects before the response ends. */
@@ -41,10 +44,18 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
+/** The endpoint each upstream is served on, for wrong-endpoint errors. */
+const ENDPOINT_FOR_UPSTREAM: Record<Upstream, string> = {
+  openai: '/v1/chat/completions',
+  gemini: '/v1/chat/completions',
+  anthropic: '/v1/messages',
+};
+
 type Forward = {
+  operation: ProxyOperation;
   project: Project;
-  adapter: ChatCompletionsAdapter;
-  info: ChatRequestInfo;
+  adapter: ProviderAdapter;
+  info: RequestInfo;
   prepared: PreparedUpstreamRequest;
   startedAt: number;
 };
@@ -52,29 +63,37 @@ type Forward = {
 type Outcome = { status: number; usage: TokenUsage | null };
 
 /**
- * The OpenAI-format proxy pipeline: authenticate, pick the project's
- * upstream adapter, forward the request, relay the response unchanged
- * (streamed or not) and record token usage. Never logs keys or content.
+ * The proxy pipeline shared by every endpoint and provider: authenticate,
+ * pick the adapter for the client's API and the project's upstream, forward
+ * the request, relay the response unchanged (streamed or not) and record
+ * token usage. Never logs keys or content.
  */
 @Injectable()
 export class ProxyService implements BeforeApplicationShutdown {
   private readonly logger = new Logger(ProxyService.name);
-  private readonly adapters: Map<string, ChatCompletionsAdapter>;
+  private readonly adapters: Map<string, ProviderAdapter>;
   /** Requests still running, including their usage record write. */
   private readonly inFlight = new Set<Promise<void>>();
 
   constructor(
-    @Inject(CHAT_COMPLETIONS_ADAPTERS) adapters: ChatCompletionsAdapter[],
+    @Inject(PROVIDER_ADAPTERS) adapters: ProviderAdapter[],
     private readonly keysService: ParsimApiKeysService,
     private readonly projectsService: ProjectsService,
     private readonly usageRecords: UsageRecordsService,
     private readonly configService: ConfigService<AllConfigType>,
   ) {
-    this.adapters = new Map(adapters.map((a) => [a.upstream, a]));
+    this.adapters = new Map(
+      adapters.map((a) => [adapterKey(a.api, a.upstream), a]),
+    );
   }
 
-  chatCompletions(req: Request, res: Response): Promise<void> {
-    const handling = this.handle(req, res);
+  /** Proxies one request for the given endpoint. */
+  handle(
+    operation: ProxyOperation,
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    const handling = this.run(operation, req, res);
     this.inFlight.add(handling);
     void handling.finally(() => this.inFlight.delete(handling));
     return handling;
@@ -92,13 +111,17 @@ export class ProxyService implements BeforeApplicationShutdown {
     return this.whenIdle();
   }
 
-  private async handle(req: Request, res: Response): Promise<void> {
+  private async run(
+    operation: ProxyOperation,
+    req: Request,
+    res: Response,
+  ): Promise<void> {
     const startedAt = performance.now();
     let forward: Forward;
     try {
-      forward = await this.prepare(req, startedAt);
+      forward = await this.prepare(operation, req, startedAt);
     } catch (error) {
-      this.sendError(res, error);
+      this.sendError(res, error, operation.api);
       return;
     }
 
@@ -109,15 +132,29 @@ export class ProxyService implements BeforeApplicationShutdown {
       this.logger.error(
         `Proxy failure project=${forward.project.id}: ${(error as Error).message}`,
       );
-      this.sendError(res, error);
+      this.sendError(res, error, operation.api);
       outcome = { status: res.statusCode || 500, usage: null };
     }
     await this.record(forward, outcome);
   }
 
-  private async prepare(req: Request, startedAt: number): Promise<Forward> {
-    const credentials = parseProxyCredentials(req.headers);
+  private async prepare(
+    operation: ProxyOperation,
+    req: Request,
+    startedAt: number,
+  ): Promise<Forward> {
+    const credentials = parseProxyCredentials(req.headers, operation.api);
     const project = await this.resolveProject(req, credentials.parsimKey);
+
+    const adapter = this.adapters.get(
+      adapterKey(operation.api, project.upstream),
+    );
+    if (!adapter) {
+      throw proxyErrors.wrongEndpoint(
+        project.upstream,
+        ENDPOINT_FOR_UPSTREAM[project.upstream],
+      );
+    }
 
     const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     const info = readRequestInfo(rawBody);
@@ -127,20 +164,13 @@ export class ProxyService implements BeforeApplicationShutdown {
       this.projectsService.storedProviderKey(project);
     if (!providerKey) throw proxyErrors.missingProviderKey();
 
-    const adapter = this.adapters.get(project.upstream);
-    if (!adapter) {
-      throw new ProxyError(
-        500,
-        `No adapter for upstream "${project.upstream}".`,
-        'server_error',
-      );
-    }
-
     return {
+      operation,
       project,
       adapter,
       info,
       prepared: adapter.prepare({
+        operation,
         rawBody,
         info,
         providerKey,
@@ -274,13 +304,13 @@ export class ProxyService implements BeforeApplicationShutdown {
   private async relayStream(
     upstream: globalThis.Response,
     res: Response,
-    adapter: ChatCompletionsAdapter,
+    adapter: ProviderAdapter,
     prepared: PreparedUpstreamRequest,
     armTimer: () => void,
     interruptedStatus: () => number,
   ): Promise<Outcome> {
     const filter = new SseStreamFilter(
-      (chunk) => adapter.usageFromChunk(chunk),
+      (event, previous) => adapter.usageFromStreamEvent(event, previous),
       prepared.usageInjected,
     );
     res.setHeader('cache-control', 'no-cache');
@@ -307,7 +337,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     }
   }
 
-  private sendError(res: Response, error: unknown): void {
+  private sendError(res: Response, error: unknown, api: ProxyApi): void {
     const proxyError =
       error instanceof ProxyError
         ? error
@@ -319,14 +349,15 @@ export class ProxyService implements BeforeApplicationShutdown {
       res.end();
       return;
     }
-    res.status(proxyError.status).json(proxyError.toBody());
+    res.status(proxyError.status).json(proxyError.toBody(api));
   }
 
   private async record(forward: Forward, outcome: Outcome): Promise<void> {
     const latencyMs = Math.round(performance.now() - forward.startedAt);
     this.logger.log(
-      `chat.completions project=${forward.project.id} upstream=${forward.adapter.upstream} model=${forward.info.model} status=${outcome.status} streamed=${forward.info.stream} latencyMs=${latencyMs} inputTokens=${outcome.usage?.inputTokens ?? '-'} outputTokens=${outcome.usage?.outputTokens ?? '-'}`,
+      `${forward.operation.name} project=${forward.project.id} upstream=${forward.adapter.upstream} model=${forward.info.model} status=${outcome.status} streamed=${forward.info.stream} latencyMs=${latencyMs} inputTokens=${outcome.usage?.inputTokens ?? '-'} outputTokens=${outcome.usage?.outputTokens ?? '-'}`,
     );
+    if (!forward.operation.recordsUsage) return;
     try {
       await this.usageRecords.record({
         projectId: forward.project.id,
@@ -345,8 +376,12 @@ export class ProxyService implements BeforeApplicationShutdown {
   }
 }
 
+function adapterKey(api: ProxyApi, upstream: string): string {
+  return `${api}:${upstream}`;
+}
+
 /** Reads model, stream and stream_options from the body. Never logs it. */
-export function readRequestInfo(rawBody: Buffer): ChatRequestInfo {
+export function readRequestInfo(rawBody: Buffer): RequestInfo {
   const body = parseJson(rawBody);
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw proxyErrors.invalidJson();

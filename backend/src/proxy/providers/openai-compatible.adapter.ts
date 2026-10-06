@@ -1,11 +1,12 @@
 import { IncomingHttpHeaders } from 'node:http';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 import {
-  ChatCompletionsAdapter,
-  ChatRequestInfo,
   PreparedUpstreamRequest,
+  ProviderAdapter,
+  ProxyOperation,
+  RequestInfo,
   Upstream,
-} from './chat-completions-adapter';
+} from './provider-adapter';
 import {
   injectIncludeUsage,
   readOpenAiUsage,
@@ -16,7 +17,8 @@ import {
  * Shared logic for upstreams that speak the OpenAI chat completions format.
  * Subclasses set the URL, forwarded headers and usage quirks.
  */
-export abstract class OpenAiCompatibleAdapter implements ChatCompletionsAdapter {
+export abstract class OpenAiCompatibleAdapter implements ProviderAdapter {
+  readonly api = 'openai-chat' as const;
   abstract readonly upstream: Upstream;
 
   /** Client headers passed through to this upstream (lower case). */
@@ -34,7 +36,8 @@ export abstract class OpenAiCompatibleAdapter implements ChatCompletionsAdapter 
     clientHeaders,
   }: {
     rawBody: Buffer;
-    info: ChatRequestInfo;
+    operation: ProxyOperation;
+    info: RequestInfo;
     providerKey: string;
     clientHeaders: IncomingHttpHeaders;
   }): PreparedUpstreamRequest {
@@ -61,7 +64,7 @@ export abstract class OpenAiCompatibleAdapter implements ChatCompletionsAdapter 
     return toTokenUsage(readOpenAiUsage(body), this.outputFromTotal);
   }
 
-  usageFromChunk(chunk: unknown): TokenUsage | null {
+  usageFromStreamEvent(chunk: unknown): TokenUsage | null {
     return toTokenUsage(readOpenAiUsage(chunk), this.outputFromTotal);
   }
 }

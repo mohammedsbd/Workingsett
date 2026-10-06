@@ -2,24 +2,25 @@ import { Module } from '@nestjs/common';
 import { ParsimApiKeysModule } from '../parsim-api-keys/parsim-api-keys.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { UsageRecordsModule } from '../usage-records/usage-records.module';
-import { CHAT_COMPLETIONS_ADAPTERS } from './providers/chat-completions-adapter';
+import { ChatCompletionsController } from './chat-completions.controller';
 import { GeminiOpenAiAdapter } from './providers/gemini-openai.adapter';
 import { OpenAiAdapter } from './providers/openai.adapter';
-import { ProxyController } from './proxy.controller';
+import { PROVIDER_ADAPTERS } from './providers/provider-adapter';
 import { ProxyService } from './proxy.service';
+
+const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter];
 
 @Module({
   imports: [ProjectsModule, ParsimApiKeysModule, UsageRecordsModule],
-  controllers: [ProxyController],
+  controllers: [ChatCompletionsController],
   providers: [
-    OpenAiAdapter,
-    GeminiOpenAiAdapter,
+    ...ADAPTERS,
     {
-      // Add a provider by writing an adapter and listing it here.
-      provide: CHAT_COMPLETIONS_ADAPTERS,
-      useFactory: (...adapters: [OpenAiAdapter, GeminiOpenAiAdapter]) =>
+      // Add a provider by writing an adapter and listing it in ADAPTERS.
+      provide: PROVIDER_ADAPTERS,
+      useFactory: (...adapters: InstanceType<(typeof ADAPTERS)[number]>[]) =>
         adapters,
-      inject: [OpenAiAdapter, GeminiOpenAiAdapter],
+      inject: ADAPTERS,
     },
     ProxyService,
   ],

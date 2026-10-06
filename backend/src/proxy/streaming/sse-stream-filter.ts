@@ -1,8 +1,14 @@
 import { StringDecoder } from 'node:string_decoder';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 
-/** Reads usage from one parsed chunk; the adapter decides how. */
-export type ChunkUsageReader = (chunk: unknown) => TokenUsage | null;
+/**
+ * Returns the usage after one parsed event, given the usage seen so far;
+ * the adapter decides how (Anthropic spreads usage over several events).
+ */
+export type StreamUsageReader = (
+  event: unknown,
+  previous: TokenUsage | null,
+) => TokenUsage | null;
 
 const EVENT_SEPARATOR = /\r\n\r\n|\n\n|\r\r/;
 
@@ -26,7 +32,7 @@ export class SseStreamFilter {
   private lastUsage: TokenUsage | null = null;
 
   constructor(
-    private readonly readUsage: ChunkUsageReader,
+    private readonly readUsage: StreamUsageReader,
     private readonly usageInjected: boolean,
   ) {}
 
@@ -90,8 +96,7 @@ export class SseStreamFilter {
       return null;
     }
     if (typeof parsed !== 'object' || parsed === null) return null;
-    const usage = this.readUsage(parsed);
-    if (usage) this.lastUsage = usage;
+    this.lastUsage = this.readUsage(parsed, this.lastUsage) ?? this.lastUsage;
     return parsed as Record<string, unknown>;
   }
 

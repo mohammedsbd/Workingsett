@@ -63,4 +63,43 @@ describe('parseProxyCredentials', () => {
   ])('$name', ({ headers, expected }) => {
     expect(parseProxyCredentials(headers)).toEqual(expected);
   });
+
+  describe('Anthropic format', () => {
+    it.each([
+      {
+        name: 'should accept the Parsim key as x-api-key (ANTHROPIC_API_KEY=psm_...)',
+        headers: { 'x-api-key': PARSIM },
+        expected: { parsimKey: PARSIM, providerKey: undefined },
+      },
+      {
+        name: 'should treat a non-Parsim x-api-key as the provider key',
+        headers: { 'x-parsim-key': PARSIM, 'x-api-key': 'sk-ant-real' },
+        expected: { parsimKey: PARSIM, providerKey: 'sk-ant-real' },
+      },
+      {
+        name: 'should prefer x-provider-key over x-api-key',
+        headers: {
+          'x-api-key': PARSIM,
+          'x-provider-key': 'sk-ant-header',
+        },
+        expected: { parsimKey: PARSIM, providerKey: 'sk-ant-header' },
+      },
+      {
+        name: 'should also read a bearer token (ANTHROPIC_AUTH_TOKEN)',
+        headers: { authorization: `Bearer ${PARSIM}`, 'x-api-key': 'sk-ant-1' },
+        expected: { parsimKey: PARSIM, providerKey: 'sk-ant-1' },
+      },
+    ])('$name', ({ headers, expected }) => {
+      expect(parseProxyCredentials(headers, 'anthropic-messages')).toEqual(
+        expected,
+      );
+    });
+
+    it('should ignore x-api-key for OpenAI-format requests', () => {
+      expect(parseProxyCredentials({ 'x-api-key': PARSIM })).toEqual({
+        parsimKey: undefined,
+        providerKey: undefined,
+      });
+    });
+  });
 });

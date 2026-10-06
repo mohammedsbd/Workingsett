@@ -13,6 +13,13 @@ const table: ModelPriceTable = {
     'gemini-3.8-flash': { input: 0.75, cachedInput: 0.075, output: 3.75 },
     'gpt-4o': { input: 2.5, cachedInput: 1.25, output: 10 },
     'no-cache-rate': { input: 1, output: 2 },
+    'claude-haiku-4-5': {
+      input: 1,
+      cachedInput: 0.1,
+      cacheWrite: 1.25,
+      cacheWrite1h: 2,
+      output: 5,
+    },
   },
 };
 
@@ -20,6 +27,7 @@ const usage = (inputTokens: number, outputTokens: number, cached = 0) => ({
   inputTokens,
   outputTokens,
   cachedInputTokens: cached,
+  cacheWriteInputTokens: null,
 });
 
 describe('model pricing', () => {
@@ -56,6 +64,7 @@ describe('model pricing', () => {
           inputTokens: 1e6,
           outputTokens: 0,
           cachedInputTokens: null,
+          cacheWriteInputTokens: null,
         }),
       ).toBe(2.5);
     });
@@ -77,6 +86,55 @@ describe('model pricing', () => {
 
     it('should not treat inherited object keys as models', () => {
       expect(calculateCostUsd(table, 'toString', usage(10, 10))).toBeNull();
+    });
+  });
+
+  describe('cache writes (Anthropic)', () => {
+    const anthropic = (
+      input: number,
+      read: number,
+      write: number,
+      write1h?: number,
+    ) => ({
+      inputTokens: input,
+      outputTokens: 0,
+      cachedInputTokens: read,
+      cacheWriteInputTokens: write,
+      ...(write1h !== undefined && { cacheWrite1hInputTokens: write1h }),
+    });
+
+    it('should bill cache reads, cache writes and the rest at their own rates', () => {
+      // 1M total: 200k uncached * $1 + 500k reads * $0.10 + 300k writes * $1.25
+      expect(
+        calculateCostUsd(
+          table,
+          'claude-haiku-4-5',
+          anthropic(1_000_000, 500_000, 300_000),
+        ),
+      ).toBe(0.2 + 0.05 + 0.375);
+    });
+
+    it('should bill 1-hour cache writes at the 1-hour rate', () => {
+      // 300k writes: 100k 5-minute * $1.25 + 200k 1-hour * $2
+      expect(
+        calculateCostUsd(
+          table,
+          'claude-haiku-4-5',
+          anthropic(300_000, 0, 300_000, 200_000),
+        ),
+      ).toBe(0.125 + 0.4);
+    });
+
+    it('should bill cache writes at the input rate when no write rate is set', () => {
+      expect(
+        calculateCostUsd(table, 'no-cache-rate', anthropic(1e6, 0, 1e6)),
+      ).toBe(1);
+    });
+
+    it('should match Anthropic dated snapshots', () => {
+      expect(findModelPrice(table, 'claude-haiku-4-5-20251001')).toBe(
+        table.models['claude-haiku-4-5'],
+      );
     });
   });
 

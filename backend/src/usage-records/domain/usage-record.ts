@@ -25,8 +25,13 @@ export class UsageRecord {
   @ApiProperty({ type: Number })
   outputTokens: number;
 
+  /** Prompt tokens read from the provider's cache. */
   @ApiPropertyOptional({ type: Number, nullable: true })
   cachedInputTokens: number | null;
+
+  /** Prompt tokens written to the provider's cache (Anthropic). */
+  @ApiPropertyOptional({ type: Number, nullable: true })
+  cacheWriteInputTokens: number | null;
 
   /** USD; null when the model is not in the price table. */
   @ApiPropertyOptional({ type: Number, nullable: true })

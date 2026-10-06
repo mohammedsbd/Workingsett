@@ -47,6 +47,7 @@ describe('SseStreamFilter', () => {
         inputTokens: 10,
         outputTokens: 4,
         cachedInputTokens: null,
+        cacheWriteInputTokens: null,
       });
     });
 
@@ -92,6 +93,7 @@ describe('SseStreamFilter', () => {
         inputTokens: 10,
         outputTokens: 30,
         cachedInputTokens: null,
+        cacheWriteInputTokens: null,
       });
     });
 

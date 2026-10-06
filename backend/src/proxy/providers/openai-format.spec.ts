@@ -55,6 +55,7 @@ describe('openai-format', () => {
         inputTokens: 100,
         outputTokens: 20,
         cachedInputTokens: 64,
+        cacheWriteInputTokens: null,
       });
     });
 

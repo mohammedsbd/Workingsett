@@ -50,6 +50,9 @@ export class UsageRecordEntity extends EntityRelationalHelper {
   @Column({ type: 'integer', nullable: true })
   cachedInputTokens: number | null;
 
+  @Column({ type: 'integer', nullable: true })
+  cacheWriteInputTokens: number | null;
+
   @Column({
     type: 'numeric',
     precision: 18,

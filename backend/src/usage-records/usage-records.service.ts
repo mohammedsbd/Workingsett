@@ -28,6 +28,7 @@ export class UsageRecordsService {
       inputTokens: 0,
       outputTokens: 0,
       cachedInputTokens: null,
+      cacheWriteInputTokens: null,
     };
     return this.repository.create({
       projectId: outcome.projectId,
@@ -36,6 +37,7 @@ export class UsageRecordsService {
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       cachedInputTokens: usage.cachedInputTokens,
+      cacheWriteInputTokens: usage.cacheWriteInputTokens,
       costUsd: outcome.usage
         ? this.pricing.costUsd(outcome.model, usage)
         : null,

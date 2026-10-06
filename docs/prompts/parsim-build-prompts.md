@@ -25,6 +25,7 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | Gemini API key (`GEMINI_API_KEY`) | step 06 | Google AI Studio, "Get API key". Give it to Claude when asked. Set a spending limit in Google Cloud billing. The free tier is fine for development, but never send real customer data through it |
 | Anthropic API key (`ANTHROPIC_API_KEY`), optional | step 07 | only for its live tests; skipped if missing |
 | OpenAI API key (`OPENAI_API_KEY`), optional | step 06 | only for its live tests; skipped if missing |
+| Ollama running locally, with models stored on D: | step 06 | Already installed. No key needed. Claude tells you which model to pull and how to move the model folder to D: |
 | A budget for the benchmark | step 16 | Claude asks before spending |
 | A domain and hosting | when you deploy | not needed to build |
 
@@ -112,6 +113,7 @@ These rules are permanent and apply to every step.
   3. Gemini native API (`generateContent` and `streamGenerateContent`).
 - Every provider is an adapter behind one interface. Adding a provider must not change the GC engine.
 - Parsim's own internal model calls (compression summaries, the replay judge, the demo agent, benchmarks and live tests) default to a Gemini Flash model through `GEMINI_API_KEY`. The provider and model are configurable in `.env`; never hardcode a model name in code.
+- Ollama (local, OpenAI-compatible at http://localhost:11434/v1) is a supported upstream for free local development and tests. It is never used for benchmark results or quality claims, because small local models do not represent real customer models.
 - Customers bring their own provider keys. Parsim forwards with them and never pays for customer traffic.
 - Never send real customer data through a free-tier key.
 
@@ -360,6 +362,7 @@ Step 06: build the proxy pass-through for the OpenAI API format, forwarding to O
 Follow CLAUDE.md. Branch: feat/step-06-proxy-openai from main.
 
 Before you start: ask me for GEMINI_API_KEY (required for live tests), optionally OPENAI_API_KEY, and the Gemini Flash model name to use. Write the keys into backend/.env and backend/.env.test yourself as CLAUDE.md describes. Wait for my answer.
+Also check whether Ollama is installed and running (ollama list), and which models are installed. Recommend a small model that supports tool calling and fits my GPU memory, and give me the exact ollama pull command if a new one is needed. If my C: drive is low on space, give me the steps to store Ollama models on D: (the OLLAMA_MODELS user environment variable, then restart Ollama). Write OLLAMA_MODEL into backend/.env and backend/.env.test yourself.
 
 Note: the backend already has a "session" module for login sessions. Put all Parsim code under clearly named modules (for example src/proxy, src/projects, src/usage) and never reuse the word "session" for agent sessions without a prefix (use "agent session").
 
@@ -370,7 +373,7 @@ What to build
 2. Proxy endpoint POST /v1/chat/completions (no /api prefix, so SDKs work with baseURL https://host/v1)
    - Authenticate with the Parsim key from the header x-parsim-key, or from Authorization: Bearer when it starts with the Parsim key prefix. Missing or bad key: 401 in OpenAI error format.
    - The customer's own provider key is sent in a separate header, x-provider-key, or configured per project (encrypted at rest with a key from .env). Never log it.
-   - Each project has an upstream setting: "openai" (base URL from config, default https://api.openai.com) or "gemini" (Gemini's OpenAI-compatible endpoint, base URL from config, default https://generativelanguage.googleapis.com/v1beta/openai). Forward the body unchanged to the chosen upstream and return the response unchanged. Build this as a provider adapter so more providers can be added without touching the proxy pipeline.
+   - Each project has an upstream setting: "openai" (base URL from config, default https://api.openai.com), "gemini" (Gemini's OpenAI-compatible endpoint, base URL from config, default https://generativelanguage.googleapis.com/v1beta/openai) or "ollama" (local, base URL from config, default http://localhost:11434/v1, no provider key; for development only). Forward the body unchanged to the chosen upstream and return the response unchanged. Build this as a provider adapter so more providers can be added without touching the proxy pipeline.
    - Check how Gemini's OpenAI-compatible endpoint reports usage and streams, and handle any differences in the adapter. Document what you found.
    - Streaming: when "stream": true, pipe the SSE stream through as it arrives, without buffering the whole response. Ask upstream for usage in the stream (stream_options.include_usage) only if the client did not set stream_options, and do not send that extra usage chunk to the client unless it asked for it.
    - Upstream errors and timeouts pass through with the same status and body. Client disconnects cancel the upstream request.
@@ -383,6 +386,7 @@ Tests
 - Unit: key hashing and verification, header parsing, cost calculation (including unknown models), stream usage extraction.
 - E2E (fake upstream): non-streamed request is forwarded byte-for-byte and the response returned unchanged; streamed request arrives as a stream with chunks in order; upstream 400/429/500 pass through; missing and revoked keys get 401; a usage record is written with correct token counts and no content; the provider key is never present in logs or the database in plain text; a project set to "gemini" forwards to the Gemini path of the fake upstream.
 - Live (LIVE_TESTS=true only): one real call to Gemini (Flash) through the official openai npm SDK pointed at the running proxy, streamed and not streamed. One real call to OpenAI only if OPENAI_API_KEY is set; otherwise skip it.
+- Local (OLLAMA_TESTS=true only, free): the same streamed and non-streamed calls against a running Ollama with the model in OLLAMA_MODEL, plus one tool-calling request. Skip cleanly if Ollama is not running. Add an npm script for it (e.g. npm run test:ollama).
 
 Docs: add a "Use the proxy" section to backend/README.md with a curl example and an OpenAI SDK example for both OpenAI and Gemini upstreams.
 
@@ -701,6 +705,7 @@ What to build
    - a research agent that works through a list of questions over 100+ steps, using tools: web search (behind an interface, with a recorded/cached mode so benchmark runs are repeatable and cheap), fetch page, take note, and a side-effect tool "save_report"
    - a support agent that works through 20 scripted tickets with tools: look up order, update ticket, send reply (side effect, logged only)
 2. Each task has a known expected answer or a checklist for an LLM judge.
+   - Base the tasks on public agent benchmarks where possible, so the results are credible: customer-support style tasks such as τ-bench (tau-bench) and public multi-step research tasks. Check each benchmark's license, cite its source in the report, and adapt only what the license allows. Explain which tasks you picked and why.
 3. A benchmark runner: npm run bench -- --agent research --runs 3 --model <model> that runs every task four ways: without Parsim, Parsim in shadow mode, Parsim on, and Headroom's own proxy (headroom proxy, telemetry off) as a baseline to beat. It records task success, input and output tokens, cost, wall time and number of recalls.
 4. Write the results to docs/benchmarks/<date>-<agent>-<model>.md with a table, the exact command, the model and the Parsim version. Report variance across runs. Never edit numbers by hand.
 

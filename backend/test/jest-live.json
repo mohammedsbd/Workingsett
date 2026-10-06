@@ -1,0 +1,12 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".live-spec.ts$",
+  "testPathIgnorePatterns": ["/node_modules/"],
+  "globalSetup": "<rootDir>/setup-test-db.ts",
+  "testTimeout": 120000,
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}

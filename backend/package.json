@@ -34,6 +34,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "env-cmd -f .env.test -- jest --config ./test/jest-e2e.json --runInBand",
+    "test:live": "cross-env LIVE_TESTS=true env-cmd -f .env.test -- jest --config ./test/jest-live.json --runInBand",
     "test:db:setup": "env-cmd -f .env.test -- ts-node -r tsconfig-paths/register ./test/setup-test-db.ts",
     "prepare": "is-ci || husky",
     "release": "release-it"
@@ -97,6 +98,7 @@
     "@types/supertest": "7.2.0",
     "@typescript-eslint/eslint-plugin": "8.57.1",
     "@typescript-eslint/parser": "8.57.1",
+    "cross-env": "10.1.0",
     "env-cmd": "11.0.0",
     "eslint": "10.0.3",
     "eslint-config-prettier": "10.1.8",
@@ -106,6 +108,7 @@
     "hygen": "6.2.11",
     "is-ci": "4.1.0",
     "jest": "30.3.0",
+    "openai": "7.28.0",
     "prettier": "3.8.1",
     "release-it": "19.2.4",
     "supertest": "7.2.2",

@@ -44,6 +44,7 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | 10 | GC engine v1 (drop and archive) with shadow mode |
 | 11 | Recall of archived context |
 | 12 | Prompt-cache stability |
+| 12b | Content compression with Headroom (JSON and text), recallable |
 | 13 | Dashboard: real Parsim pages |
 | 14 | Compression with background summaries |
 | 15 | Replay |
@@ -84,6 +85,7 @@ These rules are permanent and apply to every step.
   - backend (NestJS + TypeORM + PostgreSQL, relational setup): the boilerplate's module structure with `domain` / `infrastructure` / `persistence`. Use its generators (`npm run generate:resource:relational`) for new entities where they fit.
   - frontend (Next.js + shadcn/ui, no auth for now): the existing layout, sidebar, data tables, cards and charts.
 - Reuse proven libraries before writing our own (for example `js-tiktoken` for token counting, pg-boss for jobs, OpenTelemetry for tracing). The GC decision logic, recall and replay are ours and are never outsourced.
+- Headroom (https://github.com/headroomlabs-ai/headroom, Apache 2.0) may be used for content-level compression only (for example its SmartCrusher JSON compressor and Kompress text model), behind our own compressor interface so it can be swapped out. Our GC engine still makes every keep, compress, archive and drop decision, and our archive stores every original so `parsim_recall` works. Keep Headroom's license and NOTICE text in a THIRD_PARTY_NOTICES file, pin its version, and turn its telemetry off (`HEADROOM_BEACON=off`). Never run it in Docker.
 - No Docker, ever. No Dockerfiles, no docker-compose, no Docker commands in scripts, docs or instructions. Postgres runs as a local install or a hosted Postgres URL in `.env`.
 - No Redis. Background jobs use pg-boss (Postgres-backed queue).
 - Must work on Windows. Use `cross-env` in npm scripts that set env vars. No bash-only scripts.
@@ -563,6 +565,47 @@ Finish with the step summary (include test counts and the cache comparison), pus
 
 ---
 
+## Step 12b: Content compression with Headroom
+
+```text
+Step 12b: add content-level compression using Headroom, on top of our GC engine.
+
+Follow CLAUDE.md, especially the Headroom rule and the GC invariants. Branch: feat/step-12b-headroom-compression from main.
+
+Background
+Headroom (https://github.com/headroomlabs-ai/headroom, Apache 2.0) is an open-source context-compression project with a Rust core, a Python package (CLI, proxy) and a TypeScript SDK on npm (headroom-ai). Its parts include SmartCrusher (JSON compression), Kompress-v2-base (a small text-compression model that runs on CPU), ContentRouter (detects content type) and CacheAligner (flags content that would break prompt caching). We use only its compressors. Our GC engine keeps making every decision, and our archive and parsim_recall stay ours.
+
+Part A: evaluate first, then report and wait
+1. Read Headroom's README, docs and the sdk/typescript folder. Pin the latest stable version.
+2. On Windows, without Docker, check whether the npm package headroom-ai works directly in our NestJS backend: does it run SmartCrusher and Kompress in-process, or does it need native binaries, ONNX Runtime downloads or a running Python proxy? Check startup time, memory use and latency on our fixture tool results (small and large JSON, long text pages).
+3. Run Headroom's compressors on our fixture conversations and report, per content type: tokens before and after, time per call, and whether the output is deterministic (same input gives byte-identical output).
+4. Recommend one of these and wait for my answer:
+   a) use the npm package in-process (preferred if it works well on Windows)
+   b) run Headroom's Python package as a local sidecar service started by an npm script (no Docker), called over HTTP
+   c) do not use Headroom and write our own JSON compressor instead (only if a and b are not good enough)
+
+Part B: build (after I choose)
+1. A Compressor interface in src/gc (input: one content item and its type; output: compressed text plus metadata) with a Headroom implementation and a no-op implementation. Headroom is never imported outside this adapter.
+2. Integrate it into the GC engine as part of the "compress" decision for large tool results and long text that are not yet old enough to archive (thresholds in config). Every compressed item:
+   - keeps its original in our archive, so parsim_recall returns the full original
+   - gets a short marker such as [parsim compressed: <tool name> result, <n> to <m> tokens, id <archive id>]
+   - respects all GC invariants (never the system prompt, first goal, protected tail, or side-effect actions and results)
+3. Cache stability (step 12): once an item is compressed, the exact same compressed text is reused on every later request in the session. Store it; do not re-run the compressor. If Headroom's output is not deterministic, this storage is what keeps the prefix stable.
+4. Use Headroom's CacheAligner (if available from TypeScript) only as an extra warning in logs and metrics, not to make decisions.
+5. Fail open: if Headroom errors or times out (timeout in config), keep the item uncompressed and continue.
+6. Settings per project: content compression on or off (default on in shadow mode, so savings show up as estimates first).
+7. Add THIRD_PARTY_NOTICES.md with Headroom's license and NOTICE text, set HEADROOM_BEACON=off wherever Headroom runs, and document the setup on Windows in backend/README.md.
+
+Tests
+- Unit: the Compressor interface with a fake implementation; marker format; thresholds; fail open on error and timeout; invariants hold with compression on; the compressed text is reused byte-identical across requests.
+- Integration (runs Headroom for real, no network): SmartCrusher on fixture JSON reduces tokens and keeps key fields; Kompress on a long text fixture reduces tokens.
+- E2E: a long fixture session with compression on sends compressed items upstream; parsim_recall on a compressed item returns the full original; shadow mode records the estimated savings without changing the request.
+
+Finish with the step summary (include test counts, the evaluation results from Part A, and the extra token reduction per fixture), push, and stop.
+```
+
+---
+
 ## Step 13: Dashboard with real Parsim pages
 
 ```text
@@ -610,6 +653,7 @@ What to build
 4. Never compress the system prompt, the first goal, the protected tail, or side-effect actions and their results (keep the action log as compact lines in the state block AND unchanged where the invariants require).
 5. Respect cache stability from step 12: a state block, once used, is reused byte-identical.
 6. Record the summarization cost in usage, so savings are reported net of it.
+7. Where a long text item only needs shortening, not summarizing, prefer the content compressor from step 12b (cheaper, no model call). Summaries are for whole finished stretches.
 
 Tests
 - Unit: stretch detection on fixtures, the state block format, invariants still hold with compression on, savings net of summarization cost.
@@ -657,7 +701,7 @@ What to build
    - a research agent that works through a list of questions over 100+ steps, using tools: web search (behind an interface, with a recorded/cached mode so benchmark runs are repeatable and cheap), fetch page, take note, and a side-effect tool "save_report"
    - a support agent that works through 20 scripted tickets with tools: look up order, update ticket, send reply (side effect, logged only)
 2. Each task has a known expected answer or a checklist for an LLM judge.
-3. A benchmark runner: npm run bench -- --agent research --runs 3 --model <model> that runs every task three ways: without Parsim, Parsim in shadow mode, Parsim on. It records task success, input and output tokens, cost, wall time and number of recalls.
+3. A benchmark runner: npm run bench -- --agent research --runs 3 --model <model> that runs every task four ways: without Parsim, Parsim in shadow mode, Parsim on, and Headroom's own proxy (headroom proxy, telemetry off) as a baseline to beat. It records task success, input and output tokens, cost, wall time and number of recalls.
 4. Write the results to docs/benchmarks/<date>-<agent>-<model>.md with a table, the exact command, the model and the Parsim version. Report variance across runs. Never edit numbers by hand.
 
 Tests

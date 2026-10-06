@@ -10,6 +10,7 @@ These rules are permanent and apply to every step.
   - backend (NestJS + TypeORM + PostgreSQL, relational setup): the boilerplate's module structure with `domain` / `infrastructure` / `persistence`. Use its generators (`npm run generate:resource:relational`) for new entities where they fit.
   - frontend (Next.js + shadcn/ui, no auth for now): the existing layout, sidebar, data tables, cards and charts.
 - Reuse proven libraries before writing our own (for example `js-tiktoken` for token counting, pg-boss for jobs, OpenTelemetry for tracing). The GC decision logic, recall and replay are ours and are never outsourced.
+- Headroom (https://github.com/headroomlabs-ai/headroom, Apache 2.0) may be used for content-level compression only (for example its SmartCrusher JSON compressor and Kompress text model), behind our own compressor interface so it can be swapped out. Our GC engine still makes every keep, compress, archive and drop decision, and our archive stores every original so `parsim_recall` works. Keep Headroom's license and NOTICE text in a THIRD_PARTY_NOTICES file, pin its version, and turn its telemetry off (`HEADROOM_BEACON=off`). Never run it in Docker.
 - No Docker, ever. No Dockerfiles, no docker-compose, no Docker commands in scripts, docs or instructions. Postgres runs as a local install or a hosted Postgres URL in `.env`.
 - No Redis. Background jobs use pg-boss (Postgres-backed queue).
 - Must work on Windows. Use `cross-env` in npm scripts that set env vars. No bash-only scripts.

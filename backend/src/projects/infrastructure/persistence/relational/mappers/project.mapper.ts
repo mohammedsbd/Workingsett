@@ -1,4 +1,4 @@
-import { Upstream } from '../../../../../proxy/providers/chat-completions-adapter';
+import { Upstream } from '../../../../../proxy/providers/provider-adapter';
 import { UserMapper } from '../../../../../users/infrastructure/persistence/relational/mappers/user.mapper';
 import { Project } from '../../../../domain/project';
 import { ProjectEntity } from '../entities/project.entity';

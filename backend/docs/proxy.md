@@ -10,23 +10,29 @@
 - [Errors, timeouts and disconnects](#errors-timeouts-and-disconnects)
 - [Usage records and prices](#usage-records-and-prices)
 - [Gemini's OpenAI-compatible endpoint](#geminis-openai-compatible-endpoint)
+- [Anthropic Messages API](#anthropic-messages-api)
+- [Using Claude Code through Parsim](#using-claude-code-through-parsim)
 - [Configuration](#configuration)
 - [Adding a provider](#adding-a-provider)
 
 ## Overview
 
-`POST /v1/chat/completions` accepts OpenAI chat requests and forwards them to the project's upstream:
+Parsim serves two client APIs and forwards each request to the project's upstream:
 
-| Upstream | URL |
-| --- | --- |
-| `openai` | `{PROXY_OPENAI_BASE_URL}/v1/chat/completions` (default `https://api.openai.com`) |
-| `gemini` | `{PROXY_GEMINI_BASE_URL}/chat/completions` (default `https://generativelanguage.googleapis.com/v1beta/openai`) |
+| Endpoint | Project upstream | Forwarded to |
+| --- | --- | --- |
+| `POST /v1/chat/completions` (OpenAI format) | `openai` | `{PROXY_OPENAI_BASE_URL}/v1/chat/completions` (default `https://api.openai.com`) |
+| `POST /v1/chat/completions` (OpenAI format) | `gemini` | `{PROXY_GEMINI_BASE_URL}/chat/completions` (default `https://generativelanguage.googleapis.com/v1beta/openai`) |
+| `POST /v1/messages` (Anthropic format) | `anthropic` | `{PROXY_ANTHROPIC_BASE_URL}/v1/messages` (default `https://api.anthropic.com`) |
+| `POST /v1/messages/count_tokens` | `anthropic` | `{PROXY_ANTHROPIC_BASE_URL}/v1/messages/count_tokens` |
 
-The route is outside the `/api` prefix, so SDKs work with `baseURL` set to `https://<host>/v1`. The code lives in `src/proxy`, with one adapter per upstream in `src/proxy/providers`. Usage is stored by `src/usage-records`.
+The routes are outside the `/api` prefix, so OpenAI SDKs work with `baseURL` set to `https://<host>/v1` and Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=https://<host>`. Calling an endpoint that does not match the project's upstream returns a 400 that names the right endpoint.
+
+The code lives in `src/proxy`: one shared pipeline (`proxy.service.ts`) and one adapter per client API and upstream in `src/proxy/providers`. Usage is stored by `src/usage-records`.
 
 ## Projects and keys
 
-- `POST /api/v1/projects`, `GET /api/v1/projects`, `GET` and `PATCH /api/v1/projects/:id` (JWT). A project has a name, an upstream (`openai` or `gemini`) and an optional stored provider key.
+- `POST /api/v1/projects`, `GET /api/v1/projects`, `GET` and `PATCH /api/v1/projects/:id` (JWT). A project has a name, an upstream (`openai`, `gemini` or `anthropic`) and an optional stored provider key.
 - `POST /api/v1/projects/:id/api-keys`, `GET /api/v1/projects/:id/api-keys`, `POST /api/v1/projects/:id/api-keys/:keyId/revoke` (JWT).
 - Users only see their own projects. Until sign-in pages exist (step 18), use the seeded admin.
 - A Parsim key is `psm_` plus 32 random bytes (base64url). Only its SHA-256 hash and a 12-character display prefix are stored; the full key is returned once, at creation.
@@ -34,23 +40,29 @@ The route is outside the `/api` prefix, so SDKs work with `baseURL` set to `http
 
 ## Request headers
 
+Each client API has a normal API key header: `Authorization: Bearer` for OpenAI, `x-api-key` for Anthropic (Parsim also reads a bearer token on `/v1/messages`, which tools send for `ANTHROPIC_AUTH_TOKEN`).
+
 | What | Where |
 | --- | --- |
-| Parsim key | `x-parsim-key`, or `Authorization: Bearer psm_...` |
-| Provider key | `x-provider-key`, or `Authorization: Bearer <key>` when that token is not a Parsim key, or the key stored on the project |
+| Parsim key | `x-parsim-key`, or the normal API key header when it holds a `psm_...` key |
+| Provider key | `x-provider-key`, or the normal API key header when it holds anything else, or the key stored on the project (in that order) |
 
-So an SDK can either use the Parsim key as `apiKey` and send `x-provider-key`, or keep the provider key as `apiKey` and send `x-parsim-key`.
+So a client can either use the Parsim key as its API key (and send `x-provider-key`, or rely on the stored key), or keep the provider key as its API key and send `x-parsim-key`.
 
-Missing, unknown, malformed or revoked Parsim keys get a 401 in OpenAI error format:
+Missing, unknown, malformed or revoked Parsim keys get a 401, in the format of the API that was called:
 
 ```json
 { "error": { "message": "...", "type": "invalid_request_error", "param": null, "code": "invalid_parsim_key" } }
 ```
 
+```json
+{ "type": "error", "error": { "type": "authentication_error", "message": "..." } }
+```
+
 ## What is forwarded
 
 - The request body exactly as received (byte for byte). The one exception is described under streaming.
-- `Authorization: Bearer <provider key>`, `content-type` and `accept`. For OpenAI also `openai-organization` and `openai-project`. No other client header is forwarded; the Parsim key never leaves Parsim.
+- The provider key (`Authorization: Bearer` for OpenAI and Gemini, `x-api-key` for Anthropic), `content-type` and `accept`. For OpenAI also `openai-organization` and `openai-project`; for Anthropic `anthropic-version` and `anthropic-beta`. No other client header is forwarded; the Parsim key never leaves Parsim.
 - The upstream status, body and headers come back unchanged, except hop-by-hop headers (`content-length`, `transfer-encoding`, `content-encoding`, `connection` and similar).
 
 ## Streaming and usage
@@ -64,6 +76,8 @@ To record token usage for streams, Parsim needs the provider to report it. If th
 
 If the client set `stream_options` itself, the body and the stream pass through untouched.
 
+Anthropic streams always pass through untouched: Anthropic reports usage in every stream, in `message_start` (input and cache tokens) and `message_delta` (final output tokens), so Parsim reads it without changing the request.
+
 ## Errors, timeouts and disconnects
 
 - Upstream errors pass through with the same status and body.
@@ -73,9 +87,11 @@ If the client set `stream_options` itself, the body and the stream pass through 
 
 ## Usage records and prices
 
-Each forwarded request writes one `usage_record`: project, upstream, model, input tokens, output tokens, cached input tokens (if reported), cost in USD, latency in ms, status and whether it streamed. Prompt and response content are never stored or logged.
+Each forwarded generation request writes one `usage_record`: project, upstream, model, input tokens, output tokens, cache read tokens (`cachedInputTokens`), cache write tokens (`cacheWriteInputTokens`, Anthropic), cost in USD, latency in ms, status and whether it streamed. `POST /v1/messages/count_tokens` is not billed and not recorded. Prompt and response content are never stored or logged.
 
-Cost comes from [config/model-prices.json](../config/model-prices.json) (USD per 1M tokens, with a `lastUpdated` date and sources). Cached input tokens use the cached rate. Model ids match exactly, without a `models/` prefix, or without a dated suffix like `-2024-08-06`. Models not in the table get cost `null`. Edit the file and restart to change prices; a malformed file stops the app at startup.
+`inputTokens` is always the full prompt: for Anthropic it is `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`, because Anthropic reports those three separately.
+
+Cost comes from [config/model-prices.json](../config/model-prices.json) (USD per 1M tokens, with a `lastUpdated` date and sources). Cache reads use `cachedInput`, cache writes use `cacheWrite` (5-minute cache) or `cacheWrite1h` (1-hour cache, when Anthropic reports the split), and the rest uses `input`. Model ids match exactly, without a `models/` prefix, or without a dated suffix like `-2024-08-06` or `-20251001`. Models not in the table get cost `null`. Edit the file and restart to change prices; a malformed file stops the app at startup.
 
 ## Gemini's OpenAI-compatible endpoint
 
@@ -89,6 +105,66 @@ Observed against `gemini-3.8-flash` on 2026-10-06 and handled in `GeminiOpenAiAd
 
 Not observed yet (the model was overloaded): whether Gemini reports usage in a stream when `stream_options` is absent. Parsim always asks for it when the client did not, so this does not affect usage records.
 
+## Anthropic Messages API
+
+- `POST /v1/messages` forwards to Anthropic with the body unchanged, streamed or not. Text, `tool_use` and `tool_result` blocks, thinking blocks and every SSE event (`message_start`, `content_block_*`, `ping`, `message_delta`, `message_stop`) pass through exactly as sent.
+- `anthropic-version` and `anthropic-beta` are passed through from the client. Parsim does not add a default `anthropic-version`; Anthropic rejects requests without one, as it would without Parsim.
+- `POST /v1/messages/count_tokens` passes through and is not recorded as usage.
+- Anthropic errors (`{"type":"error","error":{...}}`, including `529 overloaded_error`) pass through unchanged. Errors Parsim itself returns on these endpoints use the same shape.
+
+### Tools that only let you set a base URL and an API key
+
+Many tools, Claude Code among them, only let you set `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY` (sent as `x-api-key`). Parsim supports them like this:
+
+1. Create a project with `"upstream":"anthropic"` and store the real Anthropic key on it (`"providerKey":"sk-ant-..."`). It is encrypted at rest and never returned.
+2. Create a Parsim key for the project.
+3. Set `ANTHROPIC_BASE_URL` to Parsim and `ANTHROPIC_API_KEY` to the Parsim key (`psm_...`).
+
+Parsim sees a `psm_` key in `x-api-key`, uses it to find the project, and forwards with the stored Anthropic key. The real key never leaves the server, and revoking the Parsim key cuts the tool off.
+
+Customers who do not want their Anthropic key stored can send it per request in `x-provider-key` instead (with the Parsim key in `x-api-key` or `x-parsim-key`), or keep the Anthropic key in `x-api-key` and send the Parsim key in `x-parsim-key`. A key sent with the request always wins over the stored one. In local development, `PARSIM_REQUIRE_KEY=false` also works: requests without a Parsim key use the oldest project.
+
+## Using Claude Code through Parsim
+
+A manual check that Claude Code works through the local proxy. It uses your Anthropic API key, so it costs a little (a few cents for a short session) and bills your API account, not a Claude subscription.
+
+1. Start the backend (`npm run start:dev`) and log in as the seeded admin (see "Use the proxy" in the README).
+2. Create an Anthropic project with your key stored on it, then a Parsim key:
+
+   ```bash
+   curl -s http://localhost:3001/api/v1/projects -H "authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"name":"Claude Code","upstream":"anthropic","providerKey":"sk-ant-..."}'
+   ```
+
+   ```bash
+   curl -s http://localhost:3001/api/v1/projects/<projectId>/api-keys -H "authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"name":"claude-code"}'
+   ```
+
+3. Start Claude Code pointed at Parsim. In PowerShell:
+
+   ```powershell
+   $env:ANTHROPIC_BASE_URL = "http://localhost:3001"; $env:ANTHROPIC_API_KEY = "psm_..."; claude
+   ```
+
+   In Git Bash or macOS/Linux:
+
+   ```bash
+   ANTHROPIC_BASE_URL=http://localhost:3001 ANTHROPIC_API_KEY=psm_... claude
+   ```
+
+   Claude Code may ask once whether to use this API key; accept it.
+
+4. Ask it something small (for example "list the files in this folder"), then check:
+   - the backend log shows lines like `messages project=... upstream=anthropic model=... status=200 streamed=true`;
+   - usage was recorded:
+
+     ```bash
+     psql -d api -c 'SELECT model, "inputTokens", "outputTokens", "cachedInputTokens", "cacheWriteInputTokens", "costUsd", streamed FROM usage_record ORDER BY "createdAt" DESC LIMIT 5'
+     ```
+
+     Claude Code uses prompt caching, so after the first turn `cachedInputTokens` should be well above zero.
+
+If Claude Code calls an Anthropic endpoint Parsim does not serve yet, it shows up in the backend log as a 404 for that path. This check was not run during step 07 because no Anthropic key was available; the same flow is covered by e2e tests that drive the official `@anthropic-ai/sdk` against the fake upstream.
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -96,6 +172,7 @@ Not observed yet (the model was overloaded): whether Gemini reports usage in a s
 | `PARSIM_REQUIRE_KEY` | `true` | `false` lets requests from localhost without a key use the oldest project. Ignored when `NODE_ENV=production`. |
 | `PROXY_OPENAI_BASE_URL` | `https://api.openai.com` | OpenAI base URL |
 | `PROXY_GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` | Gemini OpenAI-compatible base URL |
+| `PROXY_ANTHROPIC_BASE_URL` | `https://api.anthropic.com` | Anthropic base URL |
 | `PROXY_UPSTREAM_TIMEOUT_MS` | `600000` | Timeout for upstream headers and between chunks |
 | `PROXY_BODY_LIMIT` | `32mb` | Max request body |
 | `PARSIM_ENCRYPTION_KEY` | none | 32 bytes, base64. Needed to store provider keys on projects |
@@ -103,7 +180,7 @@ Not observed yet (the model was overloaded): whether Gemini reports usage in a s
 
 ## Adding a provider
 
-Write a class implementing `ChatCompletionsAdapter` (`src/proxy/providers/chat-completions-adapter.ts`): build the upstream URL and headers, and read usage from responses and stream chunks. Register it in `ProxyModule` under `CHAT_COMPLETIONS_ADAPTERS` and add its name to `UPSTREAMS`. The proxy pipeline does not change.
+Write a class implementing `ProviderAdapter` (`src/proxy/providers/provider-adapter.ts`) for a client API (`openai-chat` or `anthropic-messages`) and an upstream: build the upstream URL and headers, and read usage from responses and stream events. Add it to `ADAPTERS` in `ProxyModule` and its upstream name to `UPSTREAMS`. The proxy pipeline does not change. A new client API (for example Gemini's native format) also needs a `ProxyOperation` and a controller.
 
 ---
 

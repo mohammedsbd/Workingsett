@@ -22,7 +22,10 @@ export type ProxyFixture = {
 /** Logs in as the seeded admin and creates a project with one API key. */
 export async function createProjectWithKey(
   t: TestApp,
-  options: { upstream?: 'openai' | 'gemini'; providerKey?: string } = {},
+  options: {
+    upstream?: 'openai' | 'gemini' | 'anthropic';
+    providerKey?: string;
+  } = {},
 ): Promise<ProxyFixture> {
   const adminToken = (await login(t, ADMIN_EMAIL, ADMIN_PASSWORD)).token;
   const project = await request(t.server)
@@ -66,6 +69,7 @@ export type UsageRow = {
   inputTokens: number;
   outputTokens: number;
   cachedInputTokens: number | null;
+  cacheWriteInputTokens: number | null;
   costUsd: string | null;
   latencyMs: number;
   status: number;

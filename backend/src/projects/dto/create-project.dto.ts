@@ -6,10 +6,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import {
-  UPSTREAMS,
-  Upstream,
-} from '../../proxy/providers/chat-completions-adapter';
+import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 
 export class CreateProjectDto {
   @ApiProperty({ example: 'Research agent' })

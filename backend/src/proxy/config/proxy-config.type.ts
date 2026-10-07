@@ -3,6 +3,7 @@ export type ProxyConfig = {
   requireKey: boolean;
   openaiBaseUrl: string;
   geminiBaseUrl: string;
+  anthropicBaseUrl: string;
   /** Max wait for upstream headers, and max gap between streamed chunks. */
   upstreamTimeoutMs: number;
   /** Max request body size for proxy routes, in bytes or a size string. */

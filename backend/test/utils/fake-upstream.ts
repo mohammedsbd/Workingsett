@@ -14,6 +14,7 @@ import { AddressInfo } from 'node:net';
  * - POST /v1/chat/completions                       OpenAI format
  * - POST /v1beta/openai/chat/completions            Gemini's OpenAI-compatible endpoint
  * - POST /v1/messages                               Anthropic Messages API
+ * - POST /v1/messages/count_tokens                  Anthropic token counting
  * - POST /v1beta/models/{model}:generateContent       Gemini native
  * - POST /v1beta/models/{model}:streamGenerateContent Gemini native, streamed
  *
@@ -26,6 +27,7 @@ export type UpstreamFormat =
   | 'openai'
   | 'gemini-openai'
   | 'anthropic'
+  | 'anthropic-count-tokens'
   | 'gemini';
 
 export type RecordedRequest = {
@@ -83,6 +85,11 @@ const ROUTES: Route[] = [
     format: 'anthropic',
     match: /^\/v1\/messages$/,
     stream: (_path, body) => isStreamRequested(body),
+  },
+  {
+    format: 'anthropic-count-tokens',
+    match: /^\/v1\/messages\/count_tokens$/,
+    stream: () => false,
   },
   {
     format: 'gemini',
@@ -283,6 +290,12 @@ export const FAKE_USAGE = { input: 42, output: 7 } as const;
  */
 export const FAKE_GEMINI_THINKING_TOKENS = 20;
 
+/**
+ * Prompt cache tokens in canned Anthropic responses. Like the real API they
+ * are reported separately from input_tokens.
+ */
+export const FAKE_ANTHROPIC_CACHE = { read: 30, write: 10 } as const;
+
 function wantsStreamUsage(body: unknown): boolean {
   const options =
     typeof body === 'object' && body !== null
@@ -426,6 +439,10 @@ export function defaultResponse(
     };
   }
 
+  if (format === 'anthropic-count-tokens') {
+    return { kind: 'json', body: { input_tokens: FAKE_USAGE.input } };
+  }
+
   if (format === 'anthropic') {
     const model = requestedModel(body, 'fake-model');
     if (!streamed) {
@@ -442,6 +459,8 @@ export function defaultResponse(
           usage: {
             input_tokens: FAKE_USAGE.input,
             output_tokens: FAKE_USAGE.output,
+            cache_read_input_tokens: FAKE_ANTHROPIC_CACHE.read,
+            cache_creation_input_tokens: FAKE_ANTHROPIC_CACHE.write,
           },
         },
       };
@@ -461,7 +480,12 @@ export function defaultResponse(
               content: [],
               stop_reason: null,
               stop_sequence: null,
-              usage: { input_tokens: FAKE_USAGE.input, output_tokens: 1 },
+              usage: {
+                input_tokens: FAKE_USAGE.input,
+                output_tokens: 1,
+                cache_read_input_tokens: FAKE_ANTHROPIC_CACHE.read,
+                cache_creation_input_tokens: FAKE_ANTHROPIC_CACHE.write,
+              },
             },
           },
         },

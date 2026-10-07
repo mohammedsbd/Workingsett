@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import {
-  UPSTREAMS,
-  Upstream,
-} from '../../proxy/providers/chat-completions-adapter';
+import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 import { User } from '../../users/domain/user';
 
 export class Project {

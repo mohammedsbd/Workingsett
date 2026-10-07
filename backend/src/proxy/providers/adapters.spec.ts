@@ -2,6 +2,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { GeminiOpenAiAdapter } from './gemini-openai.adapter';
 import { OpenAiAdapter } from './openai.adapter';
+import { PROXY_OPERATIONS } from './provider-adapter';
 
 describe('chat completions adapters', () => {
   let openai: OpenAiAdapter;
@@ -32,6 +33,7 @@ describe('chat completions adapters', () => {
 
   it('should send OpenAI requests to /v1/chat/completions with the provider key', () => {
     const prepared = openai.prepare({
+      operation: PROXY_OPERATIONS.chatCompletions,
       rawBody,
       info: { model: 'm', stream: false, hasStreamOptions: false },
       providerKey: 'sk-test',
@@ -55,6 +57,7 @@ describe('chat completions adapters', () => {
 
   it('should send Gemini requests to the OpenAI-compatible path without OpenAI headers', () => {
     const prepared = gemini.prepare({
+      operation: PROXY_OPERATIONS.chatCompletions,
       rawBody,
       info: { model: 'm', stream: false, hasStreamOptions: false },
       providerKey: 'gemini-key',
@@ -71,12 +74,14 @@ describe('chat completions adapters', () => {
   it('should inject include_usage only for streams without stream_options', () => {
     const streamed = { model: 'm', stream: true, hasStreamOptions: false };
     const injected = openai.prepare({
+      operation: PROXY_OPERATIONS.chatCompletions,
       rawBody,
       info: streamed,
       providerKey: 'k',
       clientHeaders: {},
     });
     const clientChose = openai.prepare({
+      operation: PROXY_OPERATIONS.chatCompletions,
       rawBody,
       info: { ...streamed, hasStreamOptions: true },
       providerKey: 'k',

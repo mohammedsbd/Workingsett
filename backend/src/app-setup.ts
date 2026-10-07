@@ -46,6 +46,8 @@ export function configureApp(app: NestExpressApplication): void {
       exclude: [
         '/',
         { path: 'v1/chat/completions', method: RequestMethod.POST },
+        { path: 'v1/messages', method: RequestMethod.POST },
+        { path: 'v1/messages/count_tokens', method: RequestMethod.POST },
       ],
     },
   );

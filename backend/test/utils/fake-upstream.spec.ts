@@ -8,6 +8,7 @@ import {
 } from '@jest/globals';
 import {
   FAKE_REPLY_TEXT,
+  FAKE_ANTHROPIC_CACHE,
   FAKE_GEMINI_THINKING_TOKENS,
   FAKE_USAGE,
   FakeUpstream,
@@ -23,7 +24,12 @@ type OpenAIResponse = {
 type OpenAIChunk = { choices: { delta?: { content?: string } }[] };
 type AnthropicResponse = {
   content: { text: string }[];
-  usage: { input_tokens: number; output_tokens: number };
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
 };
 type AnthropicDelta = { delta: { text: string } };
 type GeminiResponse = {
@@ -113,6 +119,8 @@ describe('FakeUpstream', () => {
       expect(body.usage).toEqual({
         input_tokens: FAKE_USAGE.input,
         output_tokens: FAKE_USAGE.output,
+        cache_read_input_tokens: FAKE_ANTHROPIC_CACHE.read,
+        cache_creation_input_tokens: FAKE_ANTHROPIC_CACHE.write,
       });
     });
 
@@ -261,6 +269,18 @@ describe('FakeUpstream', () => {
       expect(chunks.some((c) => (c.choices as unknown[]).length === 0)).toBe(
         false,
       );
+    });
+  });
+
+  describe('Anthropic token counting', () => {
+    it('should answer POST /v1/messages/count_tokens', async () => {
+      const res = await post('/v1/messages/count_tokens', {
+        model: 'claude-test',
+        messages: [],
+      });
+
+      expect(await res.json()).toEqual({ input_tokens: FAKE_USAGE.input });
+      expect(fake.lastRequest.format).toBe('anthropic-count-tokens');
     });
   });
 

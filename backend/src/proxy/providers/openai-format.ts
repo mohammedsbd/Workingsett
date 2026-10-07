@@ -45,6 +45,7 @@ export function toTokenUsage(
     inputTokens: input,
     outputTokens: output,
     cachedInputTokens: asCount(usage.prompt_tokens_details?.cached_tokens),
+    cacheWriteInputTokens: null,
   };
 }
 

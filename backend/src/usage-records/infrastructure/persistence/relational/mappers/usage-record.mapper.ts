@@ -11,6 +11,7 @@ export class UsageRecordMapper {
     domainEntity.inputTokens = raw.inputTokens;
     domainEntity.outputTokens = raw.outputTokens;
     domainEntity.cachedInputTokens = raw.cachedInputTokens;
+    domainEntity.cacheWriteInputTokens = raw.cacheWriteInputTokens;
     domainEntity.costUsd = raw.costUsd;
     domainEntity.latencyMs = raw.latencyMs;
     domainEntity.status = raw.status;

@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '@/components/icons';
+import { ParsimMark, ParsimWordmark } from '@/components/parsim-logo';
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -52,10 +53,13 @@ export default function AppSidebar() {
               tooltip='Parsim'
               render={<Link href='/dashboard/overview' aria-label='Parsim overview' />}
             >
-              <div className='bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md font-mono text-sm font-bold'>
-                P
-              </div>
-              <span className='truncate text-base font-semibold tracking-tight'>Parsim</span>
+              {/* The menu button sizes every svg to 16px; the ! classes keep the logo at its own size */}
+              <span className='flex size-8 shrink-0 items-center justify-center'>
+                <ParsimMark title='' aria-hidden='true' className='size-7!' />
+              </span>
+              <span className='flex shrink-0 items-center'>
+                <ParsimWordmark title='' aria-hidden='true' className='h-5! w-auto!' />
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

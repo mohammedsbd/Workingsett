@@ -165,6 +165,10 @@ A manual check that Claude Code works through the local proxy. It uses your Anth
 
 If Claude Code calls an Anthropic endpoint Parsim does not serve yet, it shows up in the backend log as a 404 for that path. This check was not run during step 07 because no Anthropic key was available; the same flow is covered by e2e tests that drive the official `@anthropic-ai/sdk` against the fake upstream.
 
+## Agent sessions
+
+Every generation request is also recorded as part of an agent session, with its context items. Send `x-parsim-session-id: <your run id>` to group requests reliably; without it, Parsim derives a session from the system prompt and first user message. See [Agent sessions and context storage](agent-sessions.md).
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -186,4 +190,4 @@ Write a class implementing `ProviderAdapter` (`src/proxy/providers/provider-adap
 
 Previous: [Auth](auth.md)
 
-Next: [Serialization](serialization.md)
+Next: [Agent sessions and context storage](agent-sessions.md)

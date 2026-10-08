@@ -14,6 +14,7 @@ export class ProjectMapper {
       domainEntity.owner = UserMapper.toDomain(raw.owner);
     }
     domainEntity.providerKeyEncrypted = raw.providerKeyEncrypted;
+    domainEntity.storeContent = raw.storeContent ?? null;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -29,6 +30,7 @@ export class ProjectMapper {
     persistenceEntity.upstream = domainEntity.upstream;
     persistenceEntity.ownerId = domainEntity.ownerId;
     persistenceEntity.providerKeyEncrypted = domainEntity.providerKeyEncrypted;
+    persistenceEntity.storeContent = domainEntity.storeContent;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
 

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsIn,
   IsNotEmpty,
   IsOptional,
@@ -18,6 +19,15 @@ export class CreateProjectDto {
   @ApiProperty({ enum: UPSTREAMS, example: 'openai' })
   @IsIn(UPSTREAMS)
   upstream: Upstream;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description:
+      'Store the content of context items (on by default in development, see PARSIM_STORE_CONTENT). Hashes and token counts are always stored.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  storeContent?: boolean | null;
 
   @ApiPropertyOptional({
     description:

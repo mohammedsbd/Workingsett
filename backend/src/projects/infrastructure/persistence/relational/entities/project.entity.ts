@@ -40,6 +40,10 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ nullable: true, type: String })
   providerKeyEncrypted?: string | null;
 
+  /** Store context content; null means the PARSIM_STORE_CONTENT default. */
+  @Column({ nullable: true, type: Boolean })
+  storeContent?: boolean | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

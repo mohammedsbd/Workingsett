@@ -48,6 +48,14 @@ class EnvironmentVariablesValidator {
   @IsString()
   @ValidateIf(isSet)
   PARSIM_MODEL_PRICES_PATH: string;
+
+  @IsBooleanString()
+  @ValidateIf(isSet)
+  PARSIM_STORE_CONTENT: string;
+
+  @IsBooleanString()
+  @ValidateIf(isSet)
+  DEBUG_CONTENT: string;
 }
 
 const trimSlash = (url: string) => url.replace(/\/+$/, '');
@@ -75,5 +83,10 @@ export default registerAs<ProxyConfig>('proxy', () => {
     modelPricesPath: path.resolve(
       process.env.PARSIM_MODEL_PRICES_PATH || 'config/model-prices.json',
     ),
+    // On by default outside production, so development keeps full context.
+    storeContentDefault: process.env.PARSIM_STORE_CONTENT
+      ? process.env.PARSIM_STORE_CONTENT === 'true'
+      : process.env.NODE_ENV !== 'production',
+    debugContent: process.env.DEBUG_CONTENT === 'true',
   };
 });

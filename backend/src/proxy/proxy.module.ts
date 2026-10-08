@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ContextModule } from '../context/context.module';
 import { ParsimApiKeysModule } from '../parsim-api-keys/parsim-api-keys.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { UsageRecordsModule } from '../usage-records/usage-records.module';
@@ -13,7 +14,12 @@ import { ProxyService } from './proxy.service';
 const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
 
 @Module({
-  imports: [ProjectsModule, ParsimApiKeysModule, UsageRecordsModule],
+  imports: [
+    ProjectsModule,
+    ParsimApiKeysModule,
+    UsageRecordsModule,
+    ContextModule,
+  ],
   controllers: [ChatCompletionsController, MessagesController],
   providers: [
     ...ADAPTERS,

@@ -6,6 +6,7 @@ export class UsageRecordMapper {
     const domainEntity = new UsageRecord();
     domainEntity.id = raw.id;
     domainEntity.projectId = raw.projectId;
+    domainEntity.agentSessionId = raw.agentSessionId;
     domainEntity.upstream = raw.upstream;
     domainEntity.model = raw.model;
     domainEntity.inputTokens = raw.inputTokens;

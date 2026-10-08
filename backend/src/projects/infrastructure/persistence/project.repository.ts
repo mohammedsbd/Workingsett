@@ -3,11 +3,11 @@ import { Project } from '../../domain/project';
 
 export type NewProject = Pick<
   Project,
-  'name' | 'upstream' | 'ownerId' | 'providerKeyEncrypted'
+  'name' | 'upstream' | 'ownerId' | 'providerKeyEncrypted' | 'storeContent'
 >;
 
 export type ProjectChanges = Partial<
-  Pick<Project, 'name' | 'upstream' | 'providerKeyEncrypted'>
+  Pick<Project, 'name' | 'upstream' | 'providerKeyEncrypted' | 'storeContent'>
 >;
 
 export abstract class ProjectRepository {

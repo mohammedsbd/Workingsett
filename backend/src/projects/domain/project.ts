@@ -20,6 +20,14 @@ export class Project {
   @Exclude({ toPlainOnly: true })
   owner?: User;
 
+  /**
+   * Whether to store the content of context items (hashes, token counts
+   * and kinds are always stored). null means the PARSIM_STORE_CONTENT
+   * default.
+   */
+  @ApiProperty({ type: Boolean, nullable: true })
+  storeContent: boolean | null;
+
   /** AES-256-GCM encrypted provider key. Never serialized. */
   @Exclude({ toPlainOnly: true })
   providerKeyEncrypted?: string | null;

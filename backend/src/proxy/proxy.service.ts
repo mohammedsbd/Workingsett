@@ -7,6 +7,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { AllConfigType } from '../config/config.type';
+import { ContextCaptureService } from '../context/context-capture.service';
+import { SESSION_HEADER } from '../context/session-id';
 import { ParsimApiKeysService } from '../parsim-api-keys/parsim-api-keys.service';
 import { Project } from '../projects/domain/project';
 import { ProjectsService } from '../projects/projects.service';
@@ -57,6 +59,9 @@ type Forward = {
   adapter: ProviderAdapter;
   info: RequestInfo;
   prepared: PreparedUpstreamRequest;
+  /** The request body as received, for context storage after the response. */
+  rawBody: Buffer;
+  sessionHeader: unknown;
   startedAt: number;
 };
 
@@ -80,6 +85,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     private readonly keysService: ParsimApiKeysService,
     private readonly projectsService: ProjectsService,
     private readonly usageRecords: UsageRecordsService,
+    private readonly contextCapture: ContextCaptureService,
     private readonly configService: ConfigService<AllConfigType>,
   ) {
     this.adapters = new Map(
@@ -176,6 +182,8 @@ export class ProxyService implements BeforeApplicationShutdown {
         providerKey,
         clientHeaders: req.headers,
       }),
+      rawBody,
+      sessionHeader: req.headers[SESSION_HEADER],
       startedAt,
     };
   }
@@ -358,9 +366,11 @@ export class ProxyService implements BeforeApplicationShutdown {
       `${forward.operation.name} project=${forward.project.id} upstream=${forward.adapter.upstream} model=${forward.info.model} status=${outcome.status} streamed=${forward.info.stream} latencyMs=${latencyMs} inputTokens=${outcome.usage?.inputTokens ?? '-'} outputTokens=${outcome.usage?.outputTokens ?? '-'}`,
     );
     if (!forward.operation.recordsUsage) return;
+    const agentSessionId = await this.captureContext(forward);
     try {
       await this.usageRecords.record({
         projectId: forward.project.id,
+        agentSessionId,
         upstream: forward.adapter.upstream,
         model: forward.info.model,
         usage: outcome.usage,
@@ -372,6 +382,30 @@ export class ProxyService implements BeforeApplicationShutdown {
       this.logger.error(
         `Could not save usage record: ${(error as Error).message}`,
       );
+    }
+  }
+
+  /**
+   * Stores the agent session and context items. Runs after the response
+   * has been sent, so it adds no latency, and a failure here never affects
+   * the request. Returns the agent session id, or null if storing failed.
+   */
+  private async captureContext(forward: Forward): Promise<string | null> {
+    try {
+      const result = await this.contextCapture.capture({
+        project: forward.project,
+        upstream: forward.adapter.upstream,
+        converter: forward.adapter.converter,
+        rawBody: forward.rawBody,
+        sessionHeader: forward.sessionHeader,
+        at: new Date(),
+      });
+      return result.agentSessionId;
+    } catch (error) {
+      this.logger.error(
+        `Could not store context project=${forward.project.id}: ${(error as Error).message}`,
+      );
+      return null;
     }
   }
 }

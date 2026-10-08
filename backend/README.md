@@ -126,6 +126,8 @@ To keep your Anthropic key off the server, send it per request instead: `default
 
 For Claude Code, set `ANTHROPIC_BASE_URL=http://localhost:3001` and `ANTHROPIC_API_KEY=psm_...` before running `claude`. See [Using Claude Code through Parsim](docs/proxy.md#using-claude-code-through-parsim).
 
+To group an agent's requests into one session, send `x-parsim-session-id: <run id>` with every request. See [docs/agent-sessions.md](docs/agent-sessions.md).
+
 Every request is recorded in `usage_record` with token counts, cost from [config/model-prices.json](config/model-prices.json) and latency, never with prompt or response content. Anthropic cache reads and cache writes are recorded and priced separately.
 
 ## Features

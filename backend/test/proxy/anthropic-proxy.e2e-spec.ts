@@ -499,9 +499,13 @@ describe('Proxy: POST /v1/messages (Anthropic)', () => {
         expect(logs).not.toContain(secret);
         expect(database).not.toContain(secret);
       }
+      // Content may only live in context_content (when the project stores it).
+      const outsideContent = await dumpAllTables(t.dataSource, [
+        'context_content',
+      ]);
       for (const content of [PROMPT, FAKE_REPLY_TEXT]) {
         expect(logs).not.toContain(content);
-        expect(database).not.toContain(content);
+        expect(outsideContent).not.toContain(content);
       }
     });
   });

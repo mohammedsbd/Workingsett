@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IncomingHttpHeaders } from 'node:http';
 import { AllConfigType } from '../../config/config.type';
+import { AnthropicMessagesConverter } from '../../context/normalization/anthropic-messages.converter';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 import {
   anthropicResponseUsage,
@@ -32,6 +33,7 @@ const PATHS: Partial<Record<ProxyOperation['name'], string>> = {
 export class AnthropicAdapter implements ProviderAdapter {
   readonly api = 'anthropic-messages' as const;
   readonly upstream = 'anthropic' as const;
+  readonly converter = new AnthropicMessagesConverter();
 
   constructor(private readonly configService: ConfigService<AllConfigType>) {}
 

@@ -22,6 +22,7 @@ export class ProjectsService {
       name: dto.name,
       upstream: dto.upstream,
       ownerId,
+      storeContent: dto.storeContent ?? null,
       providerKeyEncrypted: dto.providerKey
         ? this.getCipher().encrypt(dto.providerKey)
         : null,
@@ -50,6 +51,7 @@ export class ProjectsService {
     const updated = await this.projectRepository.update(id, {
       name: dto.name,
       upstream: dto.upstream,
+      storeContent: dto.storeContent,
       ...(dto.providerKey !== undefined && {
         providerKeyEncrypted: dto.providerKey
           ? this.getCipher().encrypt(dto.providerKey)

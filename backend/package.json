@@ -46,6 +46,7 @@
     "@nestjs/config": "4.0.3",
     "@nestjs/core": "11.1.18",
     "@nestjs/jwt": "11.0.2",
+    "@nestjs/observe": "0.3.6",
     "@nestjs/passport": "11.0.5",
     "@nestjs/platform-express": "11.1.18",
     "@nestjs/swagger": "11.2.6",
@@ -133,6 +134,9 @@
       "<rootDir>/test"
     ],
     "testRegex": ".*\\.spec\\.ts$",
+    "moduleNameMapper": {
+      "^@nestjs/observe$": "<rootDir>/test/utils/observe-stub.ts"
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

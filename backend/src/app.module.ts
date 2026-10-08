@@ -29,6 +29,7 @@ import { ProxyModule } from './proxy/proxy.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ParsimApiKeysModule } from './parsim-api-keys/parsim-api-keys.module';
 import { UsageRecordsModule } from './usage-records/usage-records.module';
+import { OBSERVE_ENABLED, ObserveModule } from './observe';
 
 const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   useClass: TypeOrmConfigService,
@@ -39,6 +40,16 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
 
 @Module({
   imports: [
+    // APM, only when OBSERVE_APP_KEY and OBSERVE_APP_SECRET are set (see observe.ts).
+    ...(OBSERVE_ENABLED
+      ? [
+          ObserveModule.forRoot({
+            appKey: process.env.OBSERVE_APP_KEY ?? '',
+            appSecret: process.env.OBSERVE_APP_SECRET ?? '',
+            serviceId: 'parsim',
+          }),
+        ]
+      : []),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [

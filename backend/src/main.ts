@@ -7,12 +7,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { APP_OPTIONS, configureApp } from './app-setup';
 import { AllConfigType } from './config/config.type';
+import { OBSERVE_ENABLED, ObserveInstrument } from './observe';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(
-    AppModule,
-    APP_OPTIONS,
-  );
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    ...APP_OPTIONS,
+    ...(OBSERVE_ENABLED && { instrument: ObserveInstrument }),
+  });
   configureApp(app);
   const configService = app.get(ConfigService<AllConfigType>);
 

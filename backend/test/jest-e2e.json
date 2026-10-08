@@ -5,6 +5,9 @@
   "testRegex": ".e2e-spec.ts$",
   "testPathIgnorePatterns": ["/node_modules/"],
   "globalSetup": "<rootDir>/setup-test-db.ts",
+  "moduleNameMapper": {
+    "^@nestjs/observe$": "<rootDir>/utils/observe-stub.ts"
+  },
   "testTimeout": 30000,
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"

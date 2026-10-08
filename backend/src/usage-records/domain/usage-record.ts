@@ -11,7 +11,11 @@ export class UsageRecord {
   @ApiProperty({ type: String })
   projectId: string;
 
-  /** "openai" or "gemini". */
+  /** The agent session the request belongs to, if known. */
+  @ApiPropertyOptional({ type: String, nullable: true })
+  agentSessionId: string | null;
+
+  /** "openai", "gemini" or "anthropic". */
   @ApiProperty({ type: String })
   upstream: string;
 

@@ -12,4 +12,8 @@ export type ProxyConfig = {
   encryptionKey?: string;
   /** Path of the editable model price table. */
   modelPricesPath: string;
+  /** Default for projects that do not set storeContent. */
+  storeContentDefault: boolean;
+  /** Log prompt and response content at debug level (DEBUG_CONTENT=true). */
+  debugContent: boolean;
 };

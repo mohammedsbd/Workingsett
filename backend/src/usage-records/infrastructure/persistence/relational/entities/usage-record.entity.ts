@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { AgentSessionEntity } from '../../../../../agent-sessions/infrastructure/persistence/relational/entities/agent-session.entity';
 import { ProjectEntity } from '../../../../../projects/infrastructure/persistence/relational/entities/project.entity';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 
@@ -34,6 +35,19 @@ export class UsageRecordEntity extends EntityRelationalHelper {
   })
   @JoinColumn({ name: 'projectId' })
   project?: ProjectEntity;
+
+  /** The agent session the request belongs to, if it could be stored. */
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  agentSessionId: string | null;
+
+  @ManyToOne(() => AgentSessionEntity, {
+    eager: false,
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'agentSessionId' })
+  agentSession?: AgentSessionEntity | null;
 
   @Column({ type: String })
   upstream: string;

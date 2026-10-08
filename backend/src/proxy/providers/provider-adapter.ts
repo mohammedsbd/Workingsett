@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders } from 'node:http';
+import { MessageConverter } from '../../context/normalization/internal-model';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 
 /** Upstreams a project can forward to. */
@@ -58,6 +59,8 @@ export type PreparedUpstreamRequest = {
 export interface ProviderAdapter {
   readonly api: ProxyApi;
   readonly upstream: Upstream;
+  /** Converts this API's request bodies to Parsim's internal message model. */
+  readonly converter: MessageConverter;
   prepare(input: {
     operation: ProxyOperation;
     rawBody: Buffer;

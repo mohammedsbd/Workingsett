@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders } from 'node:http';
+import { OpenAiChatConverter } from '../../context/normalization/openai-chat.converter';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 import {
   PreparedUpstreamRequest,
@@ -19,6 +20,7 @@ import {
  */
 export abstract class OpenAiCompatibleAdapter implements ProviderAdapter {
   readonly api = 'openai-chat' as const;
+  readonly converter = new OpenAiChatConverter();
   abstract readonly upstream: Upstream;
 
   /** Client headers passed through to this upstream (lower case). */

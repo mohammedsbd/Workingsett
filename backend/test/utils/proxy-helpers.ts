@@ -64,6 +64,7 @@ export async function waitFor<T>(
 
 export type UsageRow = {
   projectId: string;
+  agentSessionId: string | null;
   upstream: string;
   model: string;
   inputTokens: number;
@@ -91,10 +92,18 @@ export function waitForUsageRecords(
   });
 }
 
-/** Every row of every entity table as JSON text, to search for secrets. */
-export async function dumpAllTables(dataSource: DataSource): Promise<string> {
+/**
+ * Every row of every entity table as JSON text, to search for secrets.
+ * Pass table names in `exclude` to leave them out (for example
+ * context_content, which holds content on purpose).
+ */
+export async function dumpAllTables(
+  dataSource: DataSource,
+  exclude: string[] = [],
+): Promise<string> {
   const dumps: string[] = [];
   for (const entity of dataSource.entityMetadatas) {
+    if (exclude.includes(entity.tableName)) continue;
     const rows: { row: string }[] = await dataSource.query(
       `SELECT row_to_json(t)::text AS row FROM "${entity.tableName}" t`,
     );

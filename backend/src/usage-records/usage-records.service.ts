@@ -6,6 +6,7 @@ import { ModelPricingService } from './pricing/model-pricing.service';
 
 export type ProxiedRequestOutcome = {
   projectId: string;
+  agentSessionId: string | null;
   upstream: string;
   model: string;
   /** Null when the upstream reported no usage (errors, aborted streams). */
@@ -32,6 +33,7 @@ export class UsageRecordsService {
     };
     return this.repository.create({
       projectId: outcome.projectId,
+      agentSessionId: outcome.agentSessionId,
       upstream: outcome.upstream,
       model: outcome.model,
       inputTokens: usage.inputTokens,

@@ -128,6 +128,8 @@ For Claude Code, set `ANTHROPIC_BASE_URL=http://localhost:3001` and `ANTHROPIC_A
 
 To group an agent's requests into one session, send `x-parsim-session-id: <run id>` with every request. See [docs/agent-sessions.md](docs/agent-sessions.md).
 
+The context GC drops duplicate and superseded tool results and archives large old ones. New projects start in shadow mode, which only records what it would have saved; set `gcMode` to `on` to forward the smaller request. See [docs/gc.md](docs/gc.md).
+
 Every request is recorded in `usage_record` with token counts, cost from [config/model-prices.json](config/model-prices.json) and latency, never with prompt or response content. Anthropic cache reads and cache writes are recorded and priced separately.
 
 ## Features

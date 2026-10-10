@@ -117,4 +117,4 @@ A pg-boss job queue was not used yet: storing runs after the response anyway, an
 
 Previous: [Proxy](proxy.md)
 
-Next: [Serialization](serialization.md)
+Next: [Context GC](gc.md)

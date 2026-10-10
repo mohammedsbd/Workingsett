@@ -15,6 +15,7 @@ import { ProjectsService } from '../projects/projects.service';
 import { TokenUsage } from '../usage-records/domain/token-usage';
 import { UsageRecordsService } from '../usage-records/usage-records.service';
 import { parseProxyCredentials } from './proxy-credentials';
+import { GcEvaluation, GcRequest, ProxyGcService } from './proxy-gc.service';
 import { ProxyError, proxyErrors } from './proxy-error';
 import {
   PreparedUpstreamRequest,
@@ -63,6 +64,8 @@ type Forward = {
   rawBody: Buffer;
   sessionHeader: unknown;
   startedAt: number;
+  /** On mode: the GC evaluation made before forwarding. */
+  gc: GcEvaluation | null;
 };
 
 type Outcome = { status: number; usage: TokenUsage | null };
@@ -86,6 +89,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     private readonly projectsService: ProjectsService,
     private readonly usageRecords: UsageRecordsService,
     private readonly contextCapture: ContextCaptureService,
+    private readonly gc: ProxyGcService,
     private readonly configService: ConfigService<AllConfigType>,
   ) {
     this.adapters = new Map(
@@ -170,6 +174,16 @@ export class ProxyService implements BeforeApplicationShutdown {
       this.projectsService.storedProviderKey(project);
     if (!providerKey) throw proxyErrors.missingProviderKey();
 
+    const sessionHeader = req.headers[SESSION_HEADER];
+    // On mode runs the GC now and forwards its result (or, if it fails, the
+    // original). Shadow mode runs after the response, adding no latency.
+    const gc =
+      operation.recordsUsage && project.gcMode === 'on'
+        ? await this.gc.beforeForward(
+            gcRequest(project, adapter, rawBody, sessionHeader),
+          )
+        : null;
+
     return {
       operation,
       project,
@@ -177,14 +191,15 @@ export class ProxyService implements BeforeApplicationShutdown {
       info,
       prepared: adapter.prepare({
         operation,
-        rawBody,
+        rawBody: gc?.body ?? rawBody,
         info,
         providerKey,
         clientHeaders: req.headers,
       }),
       rawBody,
-      sessionHeader: req.headers[SESSION_HEADER],
+      sessionHeader,
       startedAt,
+      gc,
     };
   }
 
@@ -367,8 +382,9 @@ export class ProxyService implements BeforeApplicationShutdown {
     );
     if (!forward.operation.recordsUsage) return;
     const agentSessionId = await this.captureContext(forward);
+    let usageRecordId: string | null = null;
     try {
-      await this.usageRecords.record({
+      const usageRecord = await this.usageRecords.record({
         projectId: forward.project.id,
         agentSessionId,
         upstream: forward.adapter.upstream,
@@ -378,11 +394,43 @@ export class ProxyService implements BeforeApplicationShutdown {
         status: outcome.status,
         streamed: forward.info.stream,
       });
+      usageRecordId = usageRecord.id;
     } catch (error) {
       this.logger.error(
         `Could not save usage record: ${(error as Error).message}`,
       );
     }
+    await this.recordGc(forward, agentSessionId, usageRecordId);
+  }
+
+  /**
+   * Records the GC run of an on-mode request, or runs the GC in shadow
+   * mode now that the response has been sent. Never throws.
+   */
+  private async recordGc(
+    forward: Forward,
+    agentSessionId: string | null,
+    usageRecordId: string | null,
+  ): Promise<void> {
+    const { project } = forward;
+    const evaluation =
+      forward.gc ??
+      (project.gcMode === 'shadow'
+        ? await this.gc.shadow(
+            gcRequest(
+              project,
+              forward.adapter,
+              forward.rawBody,
+              forward.sessionHeader,
+            ),
+          )
+        : null);
+    if (!evaluation) return;
+    await this.gc.record(evaluation, {
+      projectId: project.id,
+      agentSessionId,
+      usageRecordId,
+    });
   }
 
   /**
@@ -408,6 +456,21 @@ export class ProxyService implements BeforeApplicationShutdown {
       return null;
     }
   }
+}
+
+function gcRequest(
+  project: Project,
+  adapter: ProviderAdapter,
+  rawBody: Buffer,
+  sessionHeader: unknown,
+): GcRequest {
+  return {
+    project,
+    upstream: adapter.upstream,
+    converter: adapter.converter,
+    rawBody,
+    sessionHeader,
+  };
 }
 
 function adapterKey(api: ProxyApi, upstream: string): string {

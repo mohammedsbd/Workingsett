@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
+import { RelationalAgentSessionPersistenceModule } from '../agent-sessions/infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalArchivedItemPersistenceModule } from '../archived-items/infrastructure/persistence/relational/relational-persistence.module';
 import { ContextModule } from '../context/context.module';
+import { RelationalGcDecisionPersistenceModule } from '../gc-decisions/infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalGcRunPersistenceModule } from '../gc-runs/infrastructure/persistence/relational/relational-persistence.module';
 import { ParsimApiKeysModule } from '../parsim-api-keys/parsim-api-keys.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { UsageRecordsModule } from '../usage-records/usage-records.module';
@@ -9,6 +13,7 @@ import { AnthropicAdapter } from './providers/anthropic.adapter';
 import { GeminiOpenAiAdapter } from './providers/gemini-openai.adapter';
 import { OpenAiAdapter } from './providers/openai.adapter';
 import { PROVIDER_ADAPTERS } from './providers/provider-adapter';
+import { ProxyGcService } from './proxy-gc.service';
 import { ProxyService } from './proxy.service';
 
 const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
@@ -19,6 +24,10 @@ const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
     ParsimApiKeysModule,
     UsageRecordsModule,
     ContextModule,
+    RelationalAgentSessionPersistenceModule,
+    RelationalGcRunPersistenceModule,
+    RelationalGcDecisionPersistenceModule,
+    RelationalArchivedItemPersistenceModule,
   ],
   controllers: [ChatCompletionsController, MessagesController],
   providers: [
@@ -31,6 +40,7 @@ const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
       inject: ADAPTERS,
     },
     ProxyService,
+    ProxyGcService,
   ],
 })
 export class ProxyModule {}

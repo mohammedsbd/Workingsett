@@ -7,6 +7,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { GC_MODES, GcMode } from '../../gc/gc-config';
 import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 
 export class CreateProjectDto {
@@ -28,6 +29,16 @@ export class CreateProjectDto {
   @IsOptional()
   @IsBoolean()
   storeContent?: boolean | null;
+
+  @ApiPropertyOptional({
+    enum: GC_MODES,
+    default: 'shadow',
+    description:
+      'off: no GC. shadow: run the GC but forward the original request and record what it would have saved. on: forward the request after GC.',
+  })
+  @IsOptional()
+  @IsIn(GC_MODES)
+  gcMode?: GcMode;
 
   @ApiPropertyOptional({
     description:

@@ -44,6 +44,10 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ nullable: true, type: Boolean })
   storeContent?: boolean | null;
 
+  /** off, shadow or on. */
+  @Column({ type: 'varchar', length: 8, default: 'shadow' })
+  gcMode: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

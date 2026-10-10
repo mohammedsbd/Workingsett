@@ -23,6 +23,7 @@ export class ProjectsService {
       upstream: dto.upstream,
       ownerId,
       storeContent: dto.storeContent ?? null,
+      gcMode: dto.gcMode ?? 'shadow',
       providerKeyEncrypted: dto.providerKey
         ? this.getCipher().encrypt(dto.providerKey)
         : null,
@@ -52,6 +53,7 @@ export class ProjectsService {
       name: dto.name,
       upstream: dto.upstream,
       storeContent: dto.storeContent,
+      gcMode: dto.gcMode,
       ...(dto.providerKey !== undefined && {
         providerKeyEncrypted: dto.providerKey
           ? this.getCipher().encrypt(dto.providerKey)

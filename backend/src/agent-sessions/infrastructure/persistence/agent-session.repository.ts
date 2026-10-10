@@ -1,3 +1,4 @@
+import { NullableType } from '../../../utils/types/nullable.type';
 import { AgentSession } from '../../domain/agent-session';
 
 export type SessionSighting = Pick<
@@ -12,6 +13,12 @@ export abstract class AgentSessionRepository {
    * Returns the session after the update.
    */
   abstract recordRequest(sighting: SessionSighting): Promise<AgentSession>;
+
+  /** The session with this external id, if the project has seen it. */
+  abstract findByExternalId(
+    projectId: string,
+    externalId: string,
+  ): Promise<NullableType<AgentSession>>;
 
   /** Sessions of a project, most recently seen first. */
   abstract findByProject(projectId: string): Promise<AgentSession[]>;

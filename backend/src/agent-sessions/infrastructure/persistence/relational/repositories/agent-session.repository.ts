@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { NullableType } from '../../../../../utils/types/nullable.type';
 import { AgentSession } from '../../../../domain/agent-session';
 import {
   AgentSessionRepository,
@@ -39,6 +40,16 @@ export class AgentSessionRelationalRepository implements AgentSessionRepository 
       ],
     );
     return AgentSessionMapper.toDomain(rows[0]);
+  }
+
+  async findByExternalId(
+    projectId: string,
+    externalId: string,
+  ): Promise<NullableType<AgentSession>> {
+    const entity = await this.repository.findOne({
+      where: { projectId, externalId },
+    });
+    return entity ? AgentSessionMapper.toDomain(entity) : null;
   }
 
   async findByProject(projectId: string): Promise<AgentSession[]> {

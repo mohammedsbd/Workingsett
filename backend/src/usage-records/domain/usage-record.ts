@@ -52,6 +52,14 @@ export class UsageRecord {
   @ApiProperty({ type: Boolean })
   streamed: boolean;
 
+  /**
+   * Upstream calls made for this request: 1, plus one per follow-up when
+   * Parsim answered parsim_recall calls itself. Tokens and cost are the
+   * sum over all of them.
+   */
+  @ApiProperty({ type: Number })
+  upstreamCalls: number;
+
   @ApiProperty()
   createdAt: Date;
 }

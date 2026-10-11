@@ -17,6 +17,7 @@ export class UsageRecordMapper {
     domainEntity.latencyMs = raw.latencyMs;
     domainEntity.status = raw.status;
     domainEntity.streamed = raw.streamed;
+    domainEntity.upstreamCalls = raw.upstreamCalls;
     domainEntity.createdAt = raw.createdAt;
     return domainEntity;
   }

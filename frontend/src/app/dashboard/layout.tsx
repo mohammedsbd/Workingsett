@@ -6,6 +6,9 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { NoProject, NotSignedIn } from '@/components/layout/not-signed-in';
+import { currentProject, NotSignedInError } from '@/lib/parsim/server-api';
+import type { Project } from '@/lib/parsim/types';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -20,6 +23,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
+
+  let projects: Project[] = [];
+  let project: Project | null = null;
+  let signedIn = true;
+  try {
+    ({ projects, project } = await currentProject());
+  } catch (error) {
+    if (!(error instanceof NotSignedInError)) throw error;
+    signedIn = false;
+  }
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
@@ -29,11 +42,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
         >
           Skip to content
         </a>
-        <AppSidebar />
+        <AppSidebar
+          projects={projects.map(({ id, name, gcMode, upstream }) => ({
+            id,
+            name,
+            gcMode,
+            upstream
+          }))}
+          currentProjectId={project?.id ?? null}
+        />
         <SidebarInset id='main-content' tabIndex={-1} className='scroll-mt-16'>
           <Header />
           <InfobarProvider defaultOpen={false}>
-            {children}
+            {!signedIn ? <NotSignedIn /> : !project ? <NoProject /> : children}
             <InfoSidebar side='right' />
           </InfobarProvider>
         </SidebarInset>

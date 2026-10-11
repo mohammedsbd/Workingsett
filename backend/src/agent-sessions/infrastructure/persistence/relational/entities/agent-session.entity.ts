@@ -49,4 +49,7 @@ export class AgentSessionEntity extends EntityRelationalHelper {
 
   @Column({ type: 'integer', default: 0 })
   requestCount: number;
+
+  @Column({ type: 'integer', default: 0 })
+  gcProcessedPosition: number;
 }

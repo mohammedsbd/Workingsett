@@ -20,6 +20,9 @@ export abstract class AgentSessionRepository {
     externalId: string,
   ): Promise<NullableType<AgentSession>>;
 
+  /** Stores where the session's last GC pass ended. */
+  abstract markGcProcessed(id: string, position: number): Promise<void>;
+
   /** Sessions of a project, most recently seen first. */
   abstract findByProject(projectId: string): Promise<AgentSession[]>;
 }

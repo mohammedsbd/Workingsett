@@ -13,6 +13,7 @@ export class AgentSessionMapper {
     domainEntity.firstSeenAt = raw.firstSeenAt;
     domainEntity.lastSeenAt = raw.lastSeenAt;
     domainEntity.requestCount = raw.requestCount;
+    domainEntity.gcProcessedPosition = raw.gcProcessedPosition ?? 0;
     return domainEntity;
   }
 }

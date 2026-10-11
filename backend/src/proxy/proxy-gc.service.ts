@@ -143,6 +143,12 @@ export class ProxyGcService {
         durationMs: evaluation.durationMs,
       });
       const agentSessionId = ids.agentSessionId;
+      if (agentSessionId && result?.ran) {
+        await this.sessions.markGcProcessed(
+          agentSessionId,
+          result.processedPosition,
+        );
+      }
       if (agentSessionId && fresh.length) {
         await this.decisions.insertMissing(
           fresh.map((d) => ({
@@ -190,6 +196,9 @@ export class ProxyGcService {
       identity.externalId,
     );
     const prior = session ? await this.decisions.findBySession(session.id) : [];
+    // Archived content must stay recallable, and a request that uses an
+    // explicit Gemini cachedContent cannot be given parsim_recall.
+    const allowArchive = !usesCachedContent(body);
     const target = { upstream: input.upstream, model: request.model };
     const result = runGc({
       request,
@@ -197,6 +206,8 @@ export class ProxyGcService {
       countTokens: (text, images) =>
         this.tokens.count(text, images, target).tokens,
       prior,
+      processedPosition: session?.gcProcessedPosition ?? 0,
+      allowArchive,
     });
     return { result, converter: input.converter };
   }
@@ -237,4 +248,14 @@ export class ProxyGcService {
       durationMs: Math.round(performance.now() - started),
     };
   }
+}
+
+/**
+ * Whether a request references an explicit Gemini context cache. Its
+ * cached contents live with Google and are never in the request, so the
+ * GC cannot touch them; Gemini also rejects such requests if they add a
+ * system instruction or tools.
+ */
+export function usesCachedContent(body: Record<string, unknown>): boolean {
+  return typeof body.cachedContent === 'string' && body.cachedContent !== '';
 }

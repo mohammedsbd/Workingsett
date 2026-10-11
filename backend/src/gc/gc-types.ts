@@ -55,6 +55,19 @@ export type GcInput = {
   countTokens: (text: string, images: number) => number;
   /** Decisions stored for this session by earlier requests. */
   prior?: readonly PriorDecision[];
+  /**
+   * Items before this position were seen by the session's last pass
+   * (0 or absent: no pass yet). Only what comes after counts toward
+   * `batchTokens`.
+   */
+  processedPosition?: number;
+  /**
+   * False when archived content could not be recalled (Gemini requests
+   * with an explicit cachedContent, which cannot carry parsim_recall):
+   * nothing is archived and earlier archive decisions are not reapplied.
+   * Drops still apply. Default true.
+   */
+  allowArchive?: boolean;
 };
 
 export type GcResult = {
@@ -62,8 +75,16 @@ export type GcResult = {
   request: InternalRequest;
   /** Every rewrite applied, sticky and new, in conversation order. */
   decisions: GcDecision[];
-  /** Whether the context was above the threshold, so new decisions could be made. */
+  /**
+   * Whether a pass ran (new decisions could be made): the context is above
+   * `minContextTokens` and the part added since the last pass is above
+   * `batchTokens`.
+   */
   ran: boolean;
+  /** Where the next pass starts counting: the item count if a pass ran. */
+  processedPosition: number;
+  /** Tokens of the items after the previous processed position. */
+  unprocessedTokens: number;
   tokensBefore: number;
   tokensAfter: number;
 };

@@ -30,8 +30,16 @@ class Store {
   failArchive = false;
   failRuns = false;
 
-  sessions: Pick<AgentSessionRepository, 'findByExternalId'> = {
+  processed: [string, number][] = [];
+  sessions: Pick<
+    AgentSessionRepository,
+    'findByExternalId' | 'markGcProcessed'
+  > = {
     findByExternalId: () => Promise.resolve(this.session),
+    markGcProcessed: (id: string, position: number) => {
+      this.processed.push([id, position]);
+      return Promise.resolve();
+    },
   };
   decisionRepo: GcDecisionRepository = {
     insertMissing: (rows: NewGcDecision[]) => {
@@ -174,6 +182,52 @@ describe('ProxyGcService', () => {
 
     expect(second.result!.decisions.every((d) => d.sticky)).toBe(true);
     expect(second.result!.decisions).toHaveLength(store.decisions.length);
+  });
+
+  it('should store where a pass ended and run no new pass until context grows', async () => {
+    const { service, store } = await setup();
+    const raw = research();
+    const first = await service.shadow(input(raw));
+    await service.record(first, {
+      projectId: 'p1',
+      agentSessionId: 'sess1',
+      usageRecordId: null,
+    });
+    expect(first.result!.ran).toBe(true);
+    expect(store.processed).toEqual([
+      ['sess1', first.result!.processedPosition],
+    ]);
+
+    store.session = {
+      id: 'sess1',
+      gcProcessedPosition: first.result!.processedPosition,
+    } as AgentSession;
+    const second = await service.shadow(input(raw));
+    await service.record(second, {
+      projectId: 'p1',
+      agentSessionId: 'sess1',
+      usageRecordId: null,
+    });
+
+    expect(second.result!.ran).toBe(false);
+    expect(second.result!.decisions.every((d) => d.sticky)).toBe(true);
+    expect(second.result!.request).toEqual(first.result!.request);
+    expect(store.processed).toHaveLength(1);
+  });
+
+  it('should not archive requests that use a Gemini cachedContent', async () => {
+    const { service, store } = await setup();
+    const body = JSON.parse(research().toString()) as Record<string, unknown>;
+    const raw = Buffer.from(
+      JSON.stringify({ ...body, cachedContent: 'cachedContents/abc' }),
+    );
+
+    const evaluation = await service.beforeForward(input(raw));
+
+    const decisions = evaluation.result!.decisions;
+    expect(decisions.length).toBeGreaterThan(0);
+    expect(decisions.every((d) => d.decision === 'drop')).toBe(true);
+    expect(store.archived).toEqual([]);
   });
 
   it.each([

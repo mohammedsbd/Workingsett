@@ -34,4 +34,11 @@ export class AgentSession {
 
   @ApiProperty({ type: Number })
   requestCount: number;
+
+  /**
+   * Context items before this position were seen by the session's last GC
+   * pass; the next pass runs once enough context is added after it.
+   */
+  @ApiProperty({ type: Number })
+  gcProcessedPosition: number;
 }

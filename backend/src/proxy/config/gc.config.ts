@@ -20,6 +20,10 @@ class EnvironmentVariablesValidator {
   @ValidateIf(isSet)
   GC_MIN_CONTEXT_TOKENS: string;
 
+  @Matches(WHOLE_NUMBER)
+  @ValidateIf(isSet)
+  GC_BATCH_TOKENS: string;
+
   @Matches(POSITIVE_NUMBER)
   @ValidateIf(isSet)
   GC_PROTECTED_TURNS: string;
@@ -58,6 +62,10 @@ export default registerAs<GcConfig>('gc', () => {
     minContextTokens: intOr(
       process.env.GC_MIN_CONTEXT_TOKENS,
       DEFAULT_GC_CONFIG.minContextTokens,
+    ),
+    batchTokens: intOr(
+      process.env.GC_BATCH_TOKENS,
+      DEFAULT_GC_CONFIG.batchTokens,
     ),
     protectedTurns: intOr(
       process.env.GC_PROTECTED_TURNS,

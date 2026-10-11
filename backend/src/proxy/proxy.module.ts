@@ -15,6 +15,8 @@ import { GeminiNativeAdapter } from './providers/gemini-native.adapter';
 import { GeminiOpenAiAdapter } from './providers/gemini-openai.adapter';
 import { OpenAiAdapter } from './providers/openai.adapter';
 import { PROVIDER_ADAPTERS } from './providers/provider-adapter';
+import { RelationalRecallPersistenceModule } from '../recalls/infrastructure/persistence/relational/relational-persistence.module';
+import { RecallService } from '../recall/recall.service';
 import { ProxyGcService } from './proxy-gc.service';
 import { ProxyService } from './proxy.service';
 
@@ -35,6 +37,7 @@ const ADAPTERS = [
     RelationalGcRunPersistenceModule,
     RelationalGcDecisionPersistenceModule,
     RelationalArchivedItemPersistenceModule,
+    RelationalRecallPersistenceModule,
   ],
   controllers: [
     ChatCompletionsController,
@@ -52,6 +55,7 @@ const ADAPTERS = [
     },
     ProxyService,
     ProxyGcService,
+    RecallService,
   ],
 })
 export class ProxyModule {}

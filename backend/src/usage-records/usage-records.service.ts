@@ -14,6 +14,8 @@ export type ProxiedRequestOutcome = {
   latencyMs: number;
   status: number;
   streamed: boolean;
+  /** Upstream calls behind this request (more than 1 after recalls). */
+  upstreamCalls?: number;
 };
 
 @Injectable()
@@ -46,6 +48,7 @@ export class UsageRecordsService {
       latencyMs: outcome.latencyMs,
       status: outcome.status,
       streamed: outcome.streamed,
+      upstreamCalls: outcome.upstreamCalls ?? 1,
     });
   }
 

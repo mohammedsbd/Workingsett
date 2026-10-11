@@ -85,6 +85,9 @@ export class UsageRecordEntity extends EntityRelationalHelper {
   @Column({ type: Boolean })
   streamed: boolean;
 
+  @Column({ type: 'integer', default: 1 })
+  upstreamCalls: number;
+
   @CreateDateColumn()
   createdAt: Date;
 }

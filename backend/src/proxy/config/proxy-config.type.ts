@@ -14,6 +14,8 @@ export type ProxyConfig = {
   encryptionKey?: string;
   /** Path of the editable model price table. */
   modelPricesPath: string;
+  /** Most parsim_recall calls Parsim answers per client request; 0 turns recall off. */
+  recallMaxPerRequest: number;
   /** Default for projects that do not set storeContent. */
   storeContentDefault: boolean;
   /** Log prompt and response content at debug level (DEBUG_CONTENT=true). */

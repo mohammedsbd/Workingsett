@@ -5,6 +5,7 @@ import {
   IsInt,
   IsString,
   IsUrl,
+  Matches,
   Min,
   ValidateIf,
 } from 'class-validator';
@@ -53,6 +54,10 @@ class EnvironmentVariablesValidator {
   @ValidateIf(isSet)
   PARSIM_MODEL_PRICES_PATH: string;
 
+  @Matches(/^\d+$/)
+  @ValidateIf(isSet)
+  PARSIM_RECALL_MAX_PER_REQUEST: string;
+
   @IsBooleanString()
   @ValidateIf(isSet)
   PARSIM_STORE_CONTENT: string;
@@ -91,6 +96,9 @@ export default registerAs<ProxyConfig>('proxy', () => {
     modelPricesPath: path.resolve(
       process.env.PARSIM_MODEL_PRICES_PATH || 'config/model-prices.json',
     ),
+    recallMaxPerRequest: process.env.PARSIM_RECALL_MAX_PER_REQUEST
+      ? parseInt(process.env.PARSIM_RECALL_MAX_PER_REQUEST, 10)
+      : 3,
     // On by default outside production, so development keeps full context.
     storeContentDefault: process.env.PARSIM_STORE_CONTENT
       ? process.env.PARSIM_STORE_CONTENT === 'true'

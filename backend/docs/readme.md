@@ -13,6 +13,7 @@
 - [Proxy](proxy.md)
 - [Agent sessions and context storage](agent-sessions.md)
 - [Context GC](gc.md)
+- [Recall](recall.md)
 - [Serialization](serialization.md)
 - [File uploading](file-uploading.md)
 - [Tests](tests.md)

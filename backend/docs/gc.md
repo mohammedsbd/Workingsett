@@ -67,7 +67,7 @@ A turn starts at each assistant message and includes the tool results and user m
 | Duplicate | `[parsim dropped: <tool name> result, duplicate of a later tool result]` |
 | Superseded | `[parsim dropped: <tool name> result, superseded by a later <tool name> call with the same arguments]` |
 
-The archive id is `arc_` plus the first 16 hex characters of the content hash, so the same content always gets the same id. Recall (step 11) fetches the original by this id.
+The archive id is `arc_` plus the first 16 hex characters of the content hash, so the same content always gets the same id. The model can get the original back with the `parsim_recall` tool; see [Recall](recall.md).
 
 If a block inside an Anthropic tool result carried a `cache_control` breakpoint, the stub carries it instead.
 
@@ -122,4 +122,4 @@ The Gemini native format counts a little more, because each function response is
 
 Previous: [Agent sessions and context storage](agent-sessions.md)
 
-Next: [Serialization](serialization.md)
+Next: [Recall](recall.md)

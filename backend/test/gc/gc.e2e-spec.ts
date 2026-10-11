@@ -12,6 +12,7 @@ import request from 'supertest';
 import { ArchivedItemRepository } from '../../src/archived-items/infrastructure/persistence/archived-item.repository';
 import { contentHash } from '../../src/context/canonical-json';
 import * as gcEngine from '../../src/gc/gc-engine';
+import { RECALL_SYSTEM_LINE } from '../../src/recall/recall-tool';
 import { ProxyService } from '../../src/proxy/proxy.service';
 import { FAKE_REPLY_TEXT, FakeUpstream } from '../utils/fake-upstream';
 import {
@@ -240,8 +241,12 @@ describe('Context GC in the proxy', () => {
 
         const original = JSON.parse(body) as { messages: unknown[] };
         const sent = forwarded.body as { messages: unknown[] };
-        // Same messages and tool pairs; only tool result content changed.
-        expect(sent.messages).toHaveLength(original.messages.length);
+        // Same messages and tool pairs; only tool result content changed
+        // (plus, for OpenAI, the parsim_recall system message).
+        const clientMessages = sent.messages.filter(
+          (m) => (m as { content?: unknown }).content !== RECALL_SYSTEM_LINE,
+        );
+        expect(clientMessages).toHaveLength(original.messages.length);
         const before = toolResults(api, original);
         const after = toolResults(api, sent);
         expect(after).toHaveLength(before.length);

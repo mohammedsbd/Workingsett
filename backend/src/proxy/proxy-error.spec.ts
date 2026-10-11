@@ -36,4 +36,21 @@ describe('ProxyError', () => {
       'This project forwards to anthropic. Send its requests to /v1/messages.',
     );
   });
+
+  it.each([
+    [401, 'UNAUTHENTICATED'],
+    [400, 'INVALID_ARGUMENT'],
+    [404, 'NOT_FOUND'],
+    [429, 'RESOURCE_EXHAUSTED'],
+    [502, 'UNAVAILABLE'],
+    [504, 'DEADLINE_EXCEEDED'],
+    [500, 'INTERNAL'],
+  ])(
+    'should use the Google API error format with status %i as %s',
+    (code, status) => {
+      expect(
+        new ProxyError(code, 'Something', 'x').toBody('gemini-native'),
+      ).toEqual({ error: { code, message: 'Something', status } });
+    },
+  );
 });

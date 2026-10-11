@@ -26,6 +26,23 @@ const ANTHROPIC_ERROR_TYPES: Record<number, string> = {
   429: 'rate_limit_error',
 };
 
+/** Error body in the Gemini (Google API) format. */
+export type GeminiErrorBody = {
+  error: { code: number; message: string; status: string };
+};
+
+/** Google API status names by HTTP status. */
+const GEMINI_STATUSES: Record<number, string> = {
+  400: 'INVALID_ARGUMENT',
+  401: 'UNAUTHENTICATED',
+  403: 'PERMISSION_DENIED',
+  404: 'NOT_FOUND',
+  413: 'INVALID_ARGUMENT',
+  429: 'RESOURCE_EXHAUSTED',
+  502: 'UNAVAILABLE',
+  504: 'DEADLINE_EXCEEDED',
+};
+
 /** An error Parsim itself returns (not one passed through from upstream). */
 export class ProxyError extends Error {
   constructor(
@@ -38,7 +55,18 @@ export class ProxyError extends Error {
   }
 
   /** The error body in the format of the API the client called. */
-  toBody(api: ProxyApi = 'openai-chat'): OpenAiErrorBody | AnthropicErrorBody {
+  toBody(
+    api: ProxyApi = 'openai-chat',
+  ): OpenAiErrorBody | AnthropicErrorBody | GeminiErrorBody {
+    if (api === 'gemini-native') {
+      return {
+        error: {
+          code: this.status,
+          message: this.message,
+          status: GEMINI_STATUSES[this.status] ?? 'INTERNAL',
+        },
+      };
+    }
     if (api === 'anthropic-messages') {
       return {
         type: 'error',
@@ -63,7 +91,7 @@ export const proxyErrors = {
   missingParsimKey: () =>
     new ProxyError(
       401,
-      'Missing Parsim API key. Send it in the x-parsim-key header, as "Authorization: Bearer psm_...", or (Anthropic format) as the x-api-key.',
+      'Missing Parsim API key. Send it in the x-parsim-key header, as "Authorization: Bearer psm_...", (Anthropic format) as the x-api-key, or (Gemini format) as the x-goog-api-key or key parameter.',
       'invalid_request_error',
       'missing_parsim_key',
     ),
@@ -77,7 +105,7 @@ export const proxyErrors = {
   missingProviderKey: () =>
     new ProxyError(
       401,
-      'Missing provider API key. Send it in the x-provider-key header, as the provider auth header (Authorization bearer or x-api-key), or store one on the project.',
+      'Missing provider API key. Send it in the x-provider-key header, as the provider auth header (Authorization bearer, x-api-key or x-goog-api-key), or store one on the project.',
       'invalid_request_error',
       'missing_provider_key',
     ),
@@ -94,6 +122,13 @@ export const proxyErrors = {
       `This project forwards to ${upstream}. Send its requests to ${endpoint}.`,
       'invalid_request_error',
       'wrong_endpoint',
+    ),
+  unknownGeminiMethod: () =>
+    new ProxyError(
+      404,
+      'Unknown Gemini method. Parsim serves models/{model}:generateContent, :streamGenerateContent and :countTokens.',
+      'invalid_request_error',
+      'not_found',
     ),
   invalidJson: () =>
     new ProxyError(

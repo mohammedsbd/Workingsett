@@ -8,15 +8,22 @@ import { ParsimApiKeysModule } from '../parsim-api-keys/parsim-api-keys.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { UsageRecordsModule } from '../usage-records/usage-records.module';
 import { ChatCompletionsController } from './chat-completions.controller';
+import { GeminiController } from './gemini.controller';
 import { MessagesController } from './messages.controller';
 import { AnthropicAdapter } from './providers/anthropic.adapter';
+import { GeminiNativeAdapter } from './providers/gemini-native.adapter';
 import { GeminiOpenAiAdapter } from './providers/gemini-openai.adapter';
 import { OpenAiAdapter } from './providers/openai.adapter';
 import { PROVIDER_ADAPTERS } from './providers/provider-adapter';
 import { ProxyGcService } from './proxy-gc.service';
 import { ProxyService } from './proxy.service';
 
-const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
+const ADAPTERS = [
+  OpenAiAdapter,
+  GeminiOpenAiAdapter,
+  AnthropicAdapter,
+  GeminiNativeAdapter,
+];
 
 @Module({
   imports: [
@@ -29,7 +36,11 @@ const ADAPTERS = [OpenAiAdapter, GeminiOpenAiAdapter, AnthropicAdapter];
     RelationalGcDecisionPersistenceModule,
     RelationalArchivedItemPersistenceModule,
   ],
-  controllers: [ChatCompletionsController, MessagesController],
+  controllers: [
+    ChatCompletionsController,
+    MessagesController,
+    GeminiController,
+  ],
   providers: [
     ...ADAPTERS,
     {

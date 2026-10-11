@@ -3,6 +3,8 @@ export type ProxyConfig = {
   requireKey: boolean;
   openaiBaseUrl: string;
   geminiBaseUrl: string;
+  /** Gemini native API host; paths start with /v1beta/models. */
+  geminiNativeBaseUrl: string;
   anthropicBaseUrl: string;
   /** Max wait for upstream headers, and max gap between streamed chunks. */
   upstreamTimeoutMs: number;

@@ -18,8 +18,8 @@ import validationOptions from './utils/validation-options';
 /** Body parsing is set up in configureApp, per route group. */
 export const APP_OPTIONS: NestApplicationOptions = { bodyParser: false };
 
-/** Routes served outside the /api prefix for OpenAI-compatible clients. */
-const PROXY_PATH = '/v1';
+/** Routes served outside the /api prefix for provider SDKs. */
+const PROXY_PATHS = ['/v1', '/v1beta'];
 
 /**
  * Global setup shared by main.ts and the e2e tests, so tests run the app
@@ -30,7 +30,7 @@ export function configureApp(app: NestExpressApplication): void {
 
   // The proxy gets the exact request bytes so it can forward them unchanged.
   app.use(
-    PROXY_PATH,
+    PROXY_PATHS,
     raw({
       type: () => true,
       limit: configService.getOrThrow('proxy.bodyLimit', { infer: true }),
@@ -48,6 +48,7 @@ export function configureApp(app: NestExpressApplication): void {
         { path: 'v1/chat/completions', method: RequestMethod.POST },
         { path: 'v1/messages', method: RequestMethod.POST },
         { path: 'v1/messages/count_tokens', method: RequestMethod.POST },
+        { path: 'v1beta/models/:modelMethod', method: RequestMethod.POST },
       ],
     },
   );

@@ -14,7 +14,11 @@ import { Project } from '../projects/domain/project';
 import { ProjectsService } from '../projects/projects.service';
 import { TokenUsage } from '../usage-records/domain/token-usage';
 import { UsageRecordsService } from '../usage-records/usage-records.service';
-import { parseProxyCredentials } from './proxy-credentials';
+import {
+  parseProxyCredentials,
+  omitKey,
+  QueryParams,
+} from './proxy-credentials';
 import { GcEvaluation, GcRequest, ProxyGcService } from './proxy-gc.service';
 import { ProxyError, proxyErrors } from './proxy-error';
 import {
@@ -50,7 +54,7 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 /** The endpoint each upstream is served on, for wrong-endpoint errors. */
 const ENDPOINT_FOR_UPSTREAM: Record<Upstream, string> = {
   openai: '/v1/chat/completions',
-  gemini: '/v1/chat/completions',
+  gemini: '/v1/chat/completions or /v1beta/models/{model}:generateContent',
   anthropic: '/v1/messages',
 };
 
@@ -97,13 +101,17 @@ export class ProxyService implements BeforeApplicationShutdown {
     );
   }
 
-  /** Proxies one request for the given endpoint. */
+  /**
+   * Proxies one request for the given endpoint. `model` is for APIs that
+   * put the model in the URL (Gemini native).
+   */
   handle(
     operation: ProxyOperation,
     req: Request,
     res: Response,
+    model?: string,
   ): Promise<void> {
-    const handling = this.run(operation, req, res);
+    const handling = this.run(operation, req, res, model);
     this.inFlight.add(handling);
     void handling.finally(() => this.inFlight.delete(handling));
     return handling;
@@ -125,11 +133,12 @@ export class ProxyService implements BeforeApplicationShutdown {
     operation: ProxyOperation,
     req: Request,
     res: Response,
+    model: string | undefined,
   ): Promise<void> {
     const startedAt = performance.now();
     let forward: Forward;
     try {
-      forward = await this.prepare(operation, req, startedAt);
+      forward = await this.prepare(operation, req, startedAt, model);
     } catch (error) {
       this.sendError(res, error, operation.api);
       return;
@@ -152,8 +161,14 @@ export class ProxyService implements BeforeApplicationShutdown {
     operation: ProxyOperation,
     req: Request,
     startedAt: number,
+    model: string | undefined,
   ): Promise<Forward> {
-    const credentials = parseProxyCredentials(req.headers, operation.api);
+    const query = (req.query ?? {}) as QueryParams;
+    const credentials = parseProxyCredentials(
+      req.headers,
+      operation.api,
+      query,
+    );
     const project = await this.resolveProject(req, credentials.parsimKey);
 
     const adapter = this.adapters.get(
@@ -167,7 +182,11 @@ export class ProxyService implements BeforeApplicationShutdown {
     }
 
     const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
-    const info = readRequestInfo(rawBody);
+    const info: RequestInfo = {
+      ...readRequestInfo(rawBody),
+      ...(model !== undefined && { model }),
+      ...(operation.stream !== undefined && { stream: operation.stream }),
+    };
 
     const providerKey =
       credentials.providerKey ??
@@ -180,7 +199,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     const gc =
       operation.recordsUsage && project.gcMode === 'on'
         ? await this.gc.beforeForward(
-            gcRequest(project, adapter, rawBody, sessionHeader),
+            gcRequest(project, adapter, rawBody, info.model, sessionHeader),
           )
         : null;
 
@@ -195,6 +214,7 @@ export class ProxyService implements BeforeApplicationShutdown {
         info,
         providerKey,
         clientHeaders: req.headers,
+        query: omitKey(query),
       }),
       rawBody,
       sessionHeader,
@@ -421,6 +441,7 @@ export class ProxyService implements BeforeApplicationShutdown {
               project,
               forward.adapter,
               forward.rawBody,
+              forward.info.model,
               forward.sessionHeader,
             ),
           )
@@ -445,6 +466,7 @@ export class ProxyService implements BeforeApplicationShutdown {
         upstream: forward.adapter.upstream,
         converter: forward.adapter.converter,
         rawBody: forward.rawBody,
+        model: forward.info.model,
         sessionHeader: forward.sessionHeader,
         at: new Date(),
       });
@@ -462,6 +484,7 @@ function gcRequest(
   project: Project,
   adapter: ProviderAdapter,
   rawBody: Buffer,
+  model: string,
   sessionHeader: unknown,
 ): GcRequest {
   return {
@@ -469,6 +492,7 @@ function gcRequest(
     upstream: adapter.upstream,
     converter: adapter.converter,
     rawBody,
+    model,
     sessionHeader,
   };
 }

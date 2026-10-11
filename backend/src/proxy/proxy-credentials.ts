@@ -59,14 +59,20 @@ function authTokens(
   return tokens.filter((token): token is string => token !== undefined);
 }
 
+/** The query parameters without the API key. */
+export function omitKey(query: QueryParams): QueryParams {
+  return Object.fromEntries(
+    Object.entries(query).filter(([name]) => name !== GEMINI_KEY_PARAM),
+  );
+}
+
 /**
  * The query string without the API key, for the upstream URL and anything
  * that could be logged or stored. Returns "" or "?a=b&...".
  */
 export function queryWithoutKey(query: QueryParams): string {
   const params = new URLSearchParams();
-  for (const [name, value] of Object.entries(query)) {
-    if (name === GEMINI_KEY_PARAM) continue;
+  for (const [name, value] of Object.entries(omitKey(query))) {
     for (const item of Array.isArray(value) ? value : [value]) {
       if (typeof item === 'string') params.append(name, item);
     }

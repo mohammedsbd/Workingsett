@@ -17,6 +17,7 @@ import { AddressInfo } from 'node:net';
  * - POST /v1/messages/count_tokens                  Anthropic token counting
  * - POST /v1beta/models/{model}:generateContent       Gemini native
  * - POST /v1beta/models/{model}:streamGenerateContent Gemini native, streamed
+ * - POST /v1beta/models/{model}:countTokens           Gemini native token count
  *
  * Responses are canned JSON, or canned SSE streams when streaming is requested
  * (`"stream": true` for OpenAI/Anthropic, `:streamGenerateContent` for Gemini).
@@ -28,7 +29,8 @@ export type UpstreamFormat =
   | 'gemini-openai'
   | 'anthropic'
   | 'anthropic-count-tokens'
-  | 'gemini';
+  | 'gemini'
+  | 'gemini-count-tokens';
 
 export type RecordedRequest = {
   format: UpstreamFormat;
@@ -96,6 +98,11 @@ const ROUTES: Route[] = [
     match:
       /^\/v1beta\/models\/([^/:]+):(generateContent|streamGenerateContent)$/,
     stream: (path) => path.endsWith(':streamGenerateContent'),
+  },
+  {
+    format: 'gemini-count-tokens',
+    match: /^\/v1beta\/models\/([^/:]+):countTokens$/,
+    stream: () => false,
   },
 ];
 
@@ -188,7 +195,7 @@ export class FakeUpstream {
     const body = parseJson(rawBody);
     const streamed = route.stream(url.pathname, body);
     const model =
-      route.format === 'gemini'
+      route.format === 'gemini' || route.format === 'gemini-count-tokens'
         ? route.match.exec(url.pathname)?.[1]
         : undefined;
 
@@ -441,6 +448,10 @@ export function defaultResponse(
 
   if (format === 'anthropic-count-tokens') {
     return { kind: 'json', body: { input_tokens: FAKE_USAGE.input } };
+  }
+
+  if (format === 'gemini-count-tokens') {
+    return { kind: 'json', body: { totalTokens: FAKE_USAGE.input } };
   }
 
   if (format === 'anthropic') {

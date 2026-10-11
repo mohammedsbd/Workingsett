@@ -52,6 +52,10 @@ export class AgentSessionRelationalRepository implements AgentSessionRepository 
     return entity ? AgentSessionMapper.toDomain(entity) : null;
   }
 
+  async markGcProcessed(id: string, position: number): Promise<void> {
+    await this.repository.update({ id }, { gcProcessedPosition: position });
+  }
+
   async findByProject(projectId: string): Promise<AgentSession[]> {
     const entities = await this.repository.find({
       where: { projectId },

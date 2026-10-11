@@ -27,6 +27,7 @@ import { MailerModule } from './mailer/mailer.module';
 import proxyConfig from './proxy/config/proxy.config';
 import gcConfig from './proxy/config/gc.config';
 import { ProxyModule } from './proxy/proxy.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ParsimApiKeysModule } from './parsim-api-keys/parsim-api-keys.module';
 import { UsageRecordsModule } from './usage-records/usage-records.module';
@@ -105,6 +106,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
     ParsimApiKeysModule,
     UsageRecordsModule,
     ProxyModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

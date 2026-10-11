@@ -17,6 +17,7 @@ import { GcMode } from '../gc/gc-config';
 import { runGc } from '../gc/gc-engine';
 import { GcResult } from '../gc/gc-types';
 import { Project } from '../projects/domain/project';
+import { projectGcConfig } from '../projects/project-gc-config';
 import { Upstream } from './providers/provider-adapter';
 
 export type GcRequest = {
@@ -202,7 +203,10 @@ export class ProxyGcService {
     const target = { upstream: input.upstream, model: request.model };
     const result = runGc({
       request,
-      config: this.configService.getOrThrow('gc', { infer: true }),
+      config: projectGcConfig(
+        input.project,
+        this.configService.getOrThrow('gc', { infer: true }),
+      ),
       countTokens: (text, images) =>
         this.tokens.count(text, images, target).tokens,
       prior,

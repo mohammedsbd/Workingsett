@@ -14,19 +14,27 @@ import {
   useInfobar
 } from '@/components/ui/infobar';
 
-// Default/fallback data when no content is set
-const defaultData = {
-  title: 'Documentation',
+// Shown when a page sets no help content of its own.
+const defaultData: {
+  title: string;
+  sections: { title: string; description: string; links?: { title: string; url: string }[] }[];
+} = {
+  title: 'How Parsim works',
   sections: [
     {
-      title: 'Getting Started',
-      description: 'Learn how to get started with this application.',
-      links: [
-        {
-          title: 'Installation Guide',
-          url: '#'
-        }
-      ]
+      title: 'Context GC',
+      description:
+        'On every request Parsim drops duplicate and superseded tool results and archives large old ones, leaving a short stub. The system prompt, the goal, the latest turns and tools with side effects are never touched.'
+    },
+    {
+      title: 'Modes',
+      description:
+        'Shadow forwards the original request and records what the GC would have saved. On forwards the smaller request. Off turns the GC off.'
+    },
+    {
+      title: 'Recall',
+      description:
+        'When an archived result is needed again, the model calls parsim_recall and Parsim sends the original back upstream itself. Your agent never sees the round trip.'
     }
   ]
 };

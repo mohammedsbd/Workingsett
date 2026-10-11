@@ -48,6 +48,24 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ type: 'varchar', length: 8, default: 'shadow' })
   gcMode: string;
 
+  @Column({ type: 'integer', nullable: true })
+  gcMinContextTokens?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
+  gcBatchTokens?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
+  gcProtectedTurns?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
+  gcArchiveMinTokens?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
+  gcArchiveAfterTurns?: number | null;
+
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+  gcSideEffectTools: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 

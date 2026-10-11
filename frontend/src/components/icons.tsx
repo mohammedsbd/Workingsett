@@ -1,4 +1,8 @@
 import {
+  IconCopy,
+  IconPlugConnected,
+  IconTimeline,
+  IconKey,
   IconAdjustmentsHorizontal,
   IconAlertCircle,
   IconAlertTriangle,
@@ -123,8 +127,13 @@ export const Icons = {
   chevronsRight: IconChevronsRight,
   chevronsUpDown: IconSelector,
 
+  copy: IconCopy,
+
   // Layout
   dashboard: IconLayoutDashboard,
+  sessions: IconTimeline,
+  key: IconKey,
+  setup: IconPlugConnected,
   kanban: IconLayoutKanban,
   panelLeft: IconLayoutSidebar,
 

@@ -3,40 +3,34 @@
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
-type BreadcrumbItem = {
-  title: string;
-  link: string;
+/** Readable titles for route segments; anything else is title-cased. */
+const SEGMENT_TITLES: Record<string, string> = {
+  dashboard: 'Dashboard',
+  overview: 'Overview',
+  sessions: 'Agent sessions',
+  'api-keys': 'API keys',
+  settings: 'Settings',
+  setup: 'Setup'
 };
 
-// This allows to add custom title as well
-const routeMapping: Record<string, BreadcrumbItem[]> = {
-  '/dashboard': [{ title: 'Dashboard', link: '/dashboard' }],
-  '/dashboard/employee': [
-    { title: 'Dashboard', link: '/dashboard' },
-    { title: 'Employee', link: '/dashboard/employee' }
-  ],
-  '/dashboard/product': [
-    { title: 'Dashboard', link: '/dashboard' },
-    { title: 'Product', link: '/dashboard/product' }
-  ]
-  // Add more custom mappings as needed
-};
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function segmentTitle(segment: string): string {
+  if (SEGMENT_TITLES[segment]) return SEGMENT_TITLES[segment];
+  // Ids (an agent session) are shortened; the page title has the full name.
+  if (UUID.test(segment)) return segment.slice(0, 8);
+  return segment.charAt(0).toUpperCase() + segment.slice(1);
+}
 
 export function useBreadcrumbs() {
   const pathname = usePathname();
 
   const breadcrumbs = useMemo(() => {
-    // Check if we have a custom mapping for this exact path
-    if (routeMapping[pathname]) {
-      return routeMapping[pathname];
-    }
-
-    // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split('/').filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join('/')}`;
       return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
+        title: segmentTitle(segment),
         link: path
       };
     });

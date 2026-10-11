@@ -9,12 +9,28 @@ export type NewProject = Pick<
   | 'providerKeyEncrypted'
   | 'storeContent'
   | 'gcMode'
+  | 'gcMinContextTokens'
+  | 'gcBatchTokens'
+  | 'gcProtectedTurns'
+  | 'gcArchiveMinTokens'
+  | 'gcArchiveAfterTurns'
+  | 'gcSideEffectTools'
 >;
 
 export type ProjectChanges = Partial<
   Pick<
     Project,
-    'name' | 'upstream' | 'providerKeyEncrypted' | 'storeContent' | 'gcMode'
+    | 'name'
+    | 'upstream'
+    | 'providerKeyEncrypted'
+    | 'storeContent'
+    | 'gcMode'
+    | 'gcMinContextTokens'
+    | 'gcBatchTokens'
+    | 'gcProtectedTurns'
+    | 'gcArchiveMinTokens'
+    | 'gcArchiveAfterTurns'
+    | 'gcSideEffectTools'
   >
 >;
 

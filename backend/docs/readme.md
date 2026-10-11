@@ -14,6 +14,7 @@
 - [Agent sessions and context storage](agent-sessions.md)
 - [Context GC](gc.md)
 - [Recall](recall.md)
+- [Dashboard API](dashboard.md)
 - [Serialization](serialization.md)
 - [File uploading](file-uploading.md)
 - [Tests](tests.md)

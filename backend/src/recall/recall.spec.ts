@@ -613,13 +613,14 @@ describe('parsim_recall', () => {
                 { type: 'image', image: { source: 'url', url: 'u' } },
                 { type: 'other', value: { output: { total: 1 } } },
                 { type: 'other', value: 'plain' },
+                { type: 'other', value: { output: ' unwrapped' } },
                 { type: 'thinking', text: '!' },
                 { type: 'tool_call', name: 'f', input: { a: 1 } },
               ],
             },
           ],
         }),
-      ).toBe('Page text. [image]{"output":{"total":1}}plain!{"a":1}');
+      ).toBe('Page text. [image]{"output":{"total":1}}plain unwrapped!{"a":1}');
     });
 
     it('should explain a missing archive id', () => {

@@ -58,6 +58,24 @@ export function archivedText(content: CanonicalContent): string {
   return content.parts.map(partText).join('');
 }
 
+/**
+ * Gemini function responses are objects; one holding only an "output"
+ * string gives that string, so the text is not wrapped twice when it goes
+ * back as {"output": ...}.
+ */
+function otherText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.keys(value).length === 1 &&
+    typeof (value as { output?: unknown }).output === 'string'
+  ) {
+    return (value as { output: string }).output;
+  }
+  return JSON.stringify(value ?? null);
+}
+
 function partText(part: CanonicalPart): string {
   switch (part.type) {
     case 'text':
@@ -70,8 +88,6 @@ function partText(part: CanonicalPart): string {
     case 'tool_result':
       return part.content.map(partText).join('');
     case 'other':
-      return typeof part.value === 'string'
-        ? part.value
-        : JSON.stringify(part.value ?? null);
+      return otherText(part.value);
   }
 }

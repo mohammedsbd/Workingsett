@@ -131,7 +131,7 @@ If anything in the GC fails (an engine error, a body it cannot parse, or the arc
 
 ## Configuration
 
-Shared by every project, in `.env` (empty means the default):
+Server defaults, in `.env` (empty means the built-in default). Each project can override the thresholds and add side-effect tools; see [Per-project GC settings](dashboard.md#per-project-gc-settings).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |

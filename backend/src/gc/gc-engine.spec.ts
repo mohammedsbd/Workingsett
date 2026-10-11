@@ -3,11 +3,13 @@ import {
   ConversationId,
   loadConversation,
   toAnthropicBody,
+  toGeminiBody,
   toOpenAiBody,
 } from '../../test/utils/fixtures';
 import { canonicalJson, contentHash } from '../context/canonical-json';
 import { extractContextItems } from '../context/context-items';
 import { AnthropicMessagesConverter } from '../context/normalization/anthropic-messages.converter';
+import { GeminiNativeConverter } from '../context/normalization/gemini-native.converter';
 import {
   InternalRequest,
   MessageConverter,
@@ -30,10 +32,25 @@ const counter = new TokenCounter();
 const countTokens = (text: string, images: number) =>
   counter.count(text, images, { upstream: 'openai', model: 'gpt-4o' }).tokens;
 
-type Format = 'openai' | 'anthropic';
-const FORMATS: Format[] = ['openai', 'anthropic'];
-const converterFor = (format: Format): MessageConverter =>
-  format === 'openai' ? openAi : anthropic;
+const gemini = new GeminiNativeConverter();
+
+type Format = 'openai' | 'anthropic' | 'gemini';
+const FORMATS: Format[] = ['openai', 'anthropic', 'gemini'];
+const CONVERTERS: Record<Format, MessageConverter> = {
+  openai: openAi,
+  anthropic,
+  gemini,
+};
+const converterFor = (format: Format): MessageConverter => CONVERTERS[format];
+const FORMAT_OF_API: Record<InternalRequest['api'], Format> = {
+  'openai-chat': 'openai',
+  'anthropic-messages': 'anthropic',
+  'gemini-native': 'gemini',
+};
+
+/** The message list of a rebuilt body (Gemini calls it contents). */
+const messagesOf = (body: Record<string, unknown>) =>
+  (body.messages ?? body.contents) as Record<string, unknown>[];
 
 /** save_note writes to a shared notebook, but matches no default pattern. */
 const RESEARCH_SIDE_EFFECTS = ['save_note'];
@@ -45,7 +62,9 @@ function body(id: ConversationId, format: Format, messages?: number) {
   }
   return format === 'openai'
     ? toOpenAiBody(conversation)
-    : toAnthropicBody(conversation);
+    : format === 'anthropic'
+      ? toAnthropicBody(conversation)
+      : toGeminiBody(conversation);
 }
 
 function request(
@@ -74,11 +93,7 @@ function gc(
 }
 
 const json = (req: InternalRequest) =>
-  JSON.stringify(
-    converterFor(
-      req.api === 'openai-chat' ? 'openai' : 'anthropic',
-    ).fromInternal(req),
-  );
+  JSON.stringify(converterFor(FORMAT_OF_API[req.api]).fromInternal(req));
 
 const reasons = (result: GcResult) =>
   new Set(result.decisions.map((d) => d.reason));
@@ -295,8 +310,9 @@ describe('runGc', () => {
         const before = converterFor(format).fromInternal(req);
         const after = converterFor(format).fromInternal(out);
         expect(after.system).toEqual(before.system);
+        expect(after.systemInstruction).toEqual(before.systemInstruction);
         const systems = (b: Record<string, unknown>) =>
-          (b.messages as { role: string }[]).filter((m) => m.role === 'system');
+          messagesOf(b).filter((m) => m.role === 'system');
         expect(systems(after)).toEqual(systems(before));
       });
 
@@ -319,9 +335,9 @@ describe('runGc', () => {
           );
           const before = converterFor(format).fromInternal(req);
           const after = converterFor(format).fromInternal(result.request);
-          expect(
-            JSON.stringify((after.messages as unknown[]).slice(from)),
-          ).toBe(JSON.stringify((before.messages as unknown[]).slice(from)));
+          expect(JSON.stringify(messagesOf(after).slice(from))).toBe(
+            JSON.stringify(messagesOf(before).slice(from)),
+          );
         },
       );
 
@@ -463,10 +479,12 @@ describe('runGc', () => {
       (format) => {
         const runs = replay(format, assistantCuts());
         for (let i = 1; i < runs.length; i++) {
-          const before = converterFor(format).fromInternal(runs[i - 1].request)
-            .messages as unknown[];
-          const after = converterFor(format).fromInternal(runs[i].request)
-            .messages as unknown[];
+          const before = messagesOf(
+            converterFor(format).fromInternal(runs[i - 1].request),
+          );
+          const after = messagesOf(
+            converterFor(format).fromInternal(runs[i].request),
+          );
           const rewritten = new Set(
             runs[i - 1].decisions.map(
               (d) =>
@@ -499,9 +517,10 @@ describe('runGc', () => {
         const newOnes = second.decisions.filter((d) => !d.sticky);
         const prefix = (r: GcResult) =>
           JSON.stringify(
-            (
-              converterFor(format).fromInternal(r.request).messages as unknown[]
-            ).slice(0, first.request.messages.length),
+            messagesOf(converterFor(format).fromInternal(r.request)).slice(
+              0,
+              first.request.messages.length,
+            ),
           );
         if (newOnes.length === 0) {
           expect(prefix(second)).toBe(prefix(first));
@@ -779,12 +798,22 @@ describe('runGc', () => {
 
 type Pairing = { calls: string[]; results: string[] };
 
+/** Function call and response names of a Gemini content, in order. */
+function geminiNames(content: Record<string, unknown>, key: string): string[] {
+  return ((content.parts as Record<string, unknown>[] | undefined) ?? [])
+    .map((p) => (p[key] as { name?: string } | undefined)?.name)
+    .filter((name): name is string => name !== undefined);
+}
+
 function pairing(format: Format, body: Record<string, unknown>): Pairing {
-  const messages = body.messages as Record<string, unknown>[];
+  const messages = messagesOf(body);
   const calls: string[] = [];
   const results: string[] = [];
   for (const m of messages) {
-    if (format === 'openai') {
+    if (format === 'gemini') {
+      calls.push(...geminiNames(m, 'functionCall'));
+      results.push(...geminiNames(m, 'functionResponse'));
+    } else if (format === 'openai') {
       for (const c of (m.tool_calls as { id: string }[] | undefined) ?? []) {
         calls.push(c.id);
       }
@@ -801,9 +830,22 @@ function pairing(format: Format, body: Record<string, unknown>): Pairing {
 
 /** Each call is answered exactly once, in the next message(s), in order. */
 function expectValidPairs(format: Format, body: Record<string, unknown>) {
-  const messages = body.messages as Record<string, unknown>[];
+  const messages = messagesOf(body);
   messages.forEach((m, i) => {
-    if (format === 'openai') {
+    if (format === 'gemini') {
+      const calls = geminiNames(m, 'functionCall');
+      if (!calls.length) return;
+      const next = messages[i + 1];
+      expect(next.role).toBe('user');
+      expect(geminiNames(next, 'functionResponse')).toEqual(calls);
+      // Every response is still a JSON object, as Gemini requires.
+      for (const part of next.parts as Record<string, unknown>[]) {
+        const response = part.functionResponse as
+          | { response: unknown }
+          | undefined;
+        if (response) expect(typeof response.response).toBe('object');
+      }
+    } else if (format === 'openai') {
       const calls = (m.tool_calls as { id: string }[] | undefined) ?? [];
       const answers = messages
         .slice(i + 1, i + 1 + calls.length)

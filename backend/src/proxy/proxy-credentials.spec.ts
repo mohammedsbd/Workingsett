@@ -1,4 +1,8 @@
-import { parseProxyCredentials } from './proxy-credentials';
+import {
+  parseProxyCredentials,
+  queryWithoutKey,
+  urlWithoutKey,
+} from './proxy-credentials';
 
 const PARSIM = 'psm_' + 'a'.repeat(43);
 
@@ -100,6 +104,81 @@ describe('parseProxyCredentials', () => {
         parsimKey: undefined,
         providerKey: undefined,
       });
+    });
+  });
+
+  describe('Gemini format', () => {
+    it.each([
+      {
+        name: 'should read a Google key from x-goog-api-key as the provider key',
+        headers: { 'x-parsim-key': PARSIM, 'x-goog-api-key': 'AIza-header' },
+        query: {},
+        expected: { parsimKey: PARSIM, providerKey: 'AIza-header' },
+      },
+      {
+        name: 'should read a Google key from the key query parameter',
+        headers: { 'x-parsim-key': PARSIM },
+        query: { key: 'AIza-query' },
+        expected: { parsimKey: PARSIM, providerKey: 'AIza-query' },
+      },
+      {
+        name: 'should read a Parsim key sent as x-goog-api-key (SDK base URL setup)',
+        headers: { 'x-goog-api-key': PARSIM },
+        query: {},
+        expected: { parsimKey: PARSIM, providerKey: undefined },
+      },
+      {
+        name: 'should read a Parsim key sent as the key parameter',
+        headers: { 'x-goog-api-key': 'AIza-header' },
+        query: { key: PARSIM },
+        expected: { parsimKey: PARSIM, providerKey: 'AIza-header' },
+      },
+      {
+        name: 'should prefer x-goog-api-key over the key parameter',
+        headers: { 'x-parsim-key': PARSIM, 'x-goog-api-key': 'AIza-header' },
+        query: { key: ['AIza-query', 'other'] },
+        expected: { parsimKey: PARSIM, providerKey: 'AIza-header' },
+      },
+      {
+        name: 'should prefer x-provider-key over the Google key',
+        headers: { 'x-goog-api-key': PARSIM, 'x-provider-key': 'AIza-x' },
+        query: { key: 'AIza-query' },
+        expected: { parsimKey: PARSIM, providerKey: 'AIza-x' },
+      },
+    ])('$name', ({ headers, query, expected }) => {
+      expect(parseProxyCredentials(headers, 'gemini-native', query)).toEqual(
+        expected,
+      );
+    });
+
+    it('should ignore x-goog-api-key and the key parameter for other formats', () => {
+      expect(
+        parseProxyCredentials({ 'x-goog-api-key': PARSIM }, 'openai-chat', {
+          key: PARSIM,
+        }),
+      ).toEqual({ parsimKey: undefined, providerKey: undefined });
+    });
+  });
+
+  describe('key stripping', () => {
+    it.each([
+      [{}, ''],
+      [{ key: 'AIza-secret' }, ''],
+      [{ alt: 'sse', key: 'AIza-secret' }, '?alt=sse'],
+      [{ alt: 'sse', $fields: ['a', 'b'] }, '?alt=sse&%24fields=a&%24fields=b'],
+    ])('should drop the key from query %j', (query, expected) => {
+      expect(queryWithoutKey(query)).toBe(expected);
+    });
+
+    it('should drop the key from a URL and keep everything else', () => {
+      expect(
+        urlWithoutKey(
+          '/v1beta/models/gemini-3.8-flash:streamGenerateContent?key=AIza-secret&alt=sse',
+        ),
+      ).toBe('/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse');
+      expect(urlWithoutKey('/v1beta/models/m:generateContent')).toBe(
+        '/v1beta/models/m:generateContent',
+      );
     });
   });
 });

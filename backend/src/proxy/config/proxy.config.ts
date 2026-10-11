@@ -30,6 +30,10 @@ class EnvironmentVariablesValidator {
 
   @IsUrl({ require_tld: false, require_protocol: true })
   @ValidateIf(isSet)
+  PROXY_GEMINI_NATIVE_BASE_URL: string;
+
+  @IsUrl({ require_tld: false, require_protocol: true })
+  @ValidateIf(isSet)
   PROXY_ANTHROPIC_BASE_URL: string;
 
   @IsInt()
@@ -71,6 +75,10 @@ export default registerAs<ProxyConfig>('proxy', () => {
     geminiBaseUrl: trimSlash(
       process.env.PROXY_GEMINI_BASE_URL ||
         'https://generativelanguage.googleapis.com/v1beta/openai',
+    ),
+    geminiNativeBaseUrl: trimSlash(
+      process.env.PROXY_GEMINI_NATIVE_BASE_URL ||
+        'https://generativelanguage.googleapis.com',
     ),
     anthropicBaseUrl: trimSlash(
       process.env.PROXY_ANTHROPIC_BASE_URL || 'https://api.anthropic.com',

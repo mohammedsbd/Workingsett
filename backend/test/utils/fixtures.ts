@@ -112,3 +112,67 @@ export function toOpenAiBody(
     messages: conversation.messages,
   };
 }
+
+/**
+ * A Gemini native request body for a fixture conversation. Function calls
+ * carry no ids, as most Gemini clients send them: responses are paired
+ * with calls by name and order.
+ */
+export function toGeminiBody(
+  conversation: FixtureConversation,
+): Record<string, unknown> {
+  const [system, ...rest] = conversation.messages;
+  const names = new Map<string, string>();
+  const contents: { role: 'user' | 'model'; parts: unknown[] }[] = [];
+  for (const message of rest) {
+    if (message.role === 'assistant') {
+      contents.push({
+        role: 'model',
+        parts: [
+          ...(message.content ? [{ text: message.content }] : []),
+          ...(message.tool_calls ?? []).map((call) => {
+            names.set(call.id, call.function.name);
+            return {
+              functionCall: {
+                name: call.function.name,
+                args: JSON.parse(call.function.arguments) as unknown,
+              },
+            };
+          }),
+        ],
+      });
+      continue;
+    }
+    const part =
+      message.role === 'tool'
+        ? {
+            functionResponse: {
+              name: names.get(message.tool_call_id) ?? '',
+              response: { output: message.content },
+            },
+          }
+        : { text: message.content };
+    const last = contents[contents.length - 1];
+    // Function responses of one model turn go back in a single user turn.
+    if (message.role === 'tool' && last?.role === 'user') {
+      last.parts.push(part);
+    } else {
+      contents.push({ role: 'user', parts: [part] });
+    }
+  }
+  return {
+    systemInstruction: { parts: [{ text: system.content }] },
+    contents,
+    ...(conversation.tools && {
+      tools: [
+        {
+          functionDeclarations: conversation.tools.map((tool) => ({
+            name: tool.function.name,
+            description: tool.function.description,
+            parameters: tool.function.parameters,
+          })),
+        },
+      ],
+    }),
+  };
+}

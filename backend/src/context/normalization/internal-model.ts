@@ -86,10 +86,18 @@ export type InternalRequest = {
   raw: Record<string, unknown>;
 };
 
+export type ToInternalOptions = {
+  /** The model, when the API puts it in the URL instead of the body (Gemini). */
+  model?: string;
+};
+
 /** Converts one client API's request body to the internal model and back. */
 export interface MessageConverter {
   readonly api: ProxyApi;
-  toInternal(body: Record<string, unknown>): InternalRequest;
+  toInternal(
+    body: Record<string, unknown>,
+    options?: ToInternalOptions,
+  ): InternalRequest;
   fromInternal(request: InternalRequest): Record<string, unknown>;
 }
 

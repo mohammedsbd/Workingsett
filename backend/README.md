@@ -33,7 +33,7 @@ Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
 
 ## Use the proxy
 
-Parsim serves an OpenAI-compatible endpoint at `POST /v1/chat/completions` and the Anthropic Messages API at `POST /v1/messages` (no `/api` prefix). OpenAI SDKs work with `baseURL` set to `http://localhost:3001/v1`, Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=http://localhost:3001`. Each project forwards to OpenAI, Gemini (through its OpenAI-compatible endpoint) or Anthropic. See [docs/proxy.md](docs/proxy.md) for details.
+Parsim serves an OpenAI-compatible endpoint at `POST /v1/chat/completions`, the Anthropic Messages API at `POST /v1/messages` and Gemini's native API at `POST /v1beta/models/{model}:generateContent` (no `/api` prefix). OpenAI SDKs work with `baseURL` set to `http://localhost:3001/v1`, Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=http://localhost:3001`, and the Google GenAI SDK with `httpOptions.baseUrl` set to `http://localhost:3001`. Each project forwards to OpenAI, Gemini (native, or through its OpenAI-compatible endpoint) or Anthropic. See [docs/proxy.md](docs/proxy.md) for details.
 
 ### 1. Create a project and a Parsim key
 
@@ -125,6 +125,26 @@ const message = await client.messages.create({
 To keep your Anthropic key off the server, send it per request instead: `defaultHeaders: { 'x-provider-key': process.env.ANTHROPIC_API_KEY! }`.
 
 For Claude Code, set `ANTHROPIC_BASE_URL=http://localhost:3001` and `ANTHROPIC_API_KEY=psm_...` before running `claude`. See [Using Claude Code through Parsim](docs/proxy.md#using-claude-code-through-parsim).
+
+### 5. Use the Google GenAI SDK
+
+Create a project with `"upstream":"gemini"` and store your Google key on it, then use the Parsim key as the SDK's API key:
+
+```ts
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.PARSIM_KEY, // psm_...; the Google key is stored on the project
+  httpOptions: { baseUrl: 'http://localhost:3001' },
+});
+
+const response = await ai.models.generateContent({
+  model: 'gemini-3.8-flash',
+  contents: 'Hello',
+});
+```
+
+See [Gemini native API](docs/proxy.md#gemini-native-api).
 
 To group an agent's requests into one session, send `x-parsim-session-id: <run id>` with every request. See [docs/agent-sessions.md](docs/agent-sessions.md).
 

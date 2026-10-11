@@ -8,6 +8,7 @@ import {
   InternalRequest,
   isObject,
   MessageConverter,
+  ToInternalOptions,
 } from './internal-model';
 
 function contentForm(content: unknown, hasKey: boolean): ContentForm {
@@ -160,11 +161,14 @@ function rebuildContent(parts: InternalPart[], form: ContentForm): unknown {
 export class AnthropicMessagesConverter implements MessageConverter {
   readonly api = 'anthropic-messages' as const;
 
-  toInternal(body: Record<string, unknown>): InternalRequest {
+  toInternal(
+    body: Record<string, unknown>,
+    options: ToInternalOptions = {},
+  ): InternalRequest {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     return {
       api: this.api,
-      model: asString(body.model),
+      model: options.model ?? asString(body.model),
       system:
         'system' in body
           ? {

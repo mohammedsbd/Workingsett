@@ -11,13 +11,14 @@
 - [Usage records and prices](#usage-records-and-prices)
 - [Gemini's OpenAI-compatible endpoint](#geminis-openai-compatible-endpoint)
 - [Anthropic Messages API](#anthropic-messages-api)
+- [Gemini native API](#gemini-native-api)
 - [Using Claude Code through Parsim](#using-claude-code-through-parsim)
 - [Configuration](#configuration)
 - [Adding a provider](#adding-a-provider)
 
 ## Overview
 
-Parsim serves two client APIs and forwards each request to the project's upstream:
+Parsim serves three client APIs and forwards each request to the project's upstream:
 
 | Endpoint | Project upstream | Forwarded to |
 | --- | --- | --- |
@@ -25,8 +26,11 @@ Parsim serves two client APIs and forwards each request to the project's upstrea
 | `POST /v1/chat/completions` (OpenAI format) | `gemini` | `{PROXY_GEMINI_BASE_URL}/chat/completions` (default `https://generativelanguage.googleapis.com/v1beta/openai`) |
 | `POST /v1/messages` (Anthropic format) | `anthropic` | `{PROXY_ANTHROPIC_BASE_URL}/v1/messages` (default `https://api.anthropic.com`) |
 | `POST /v1/messages/count_tokens` | `anthropic` | `{PROXY_ANTHROPIC_BASE_URL}/v1/messages/count_tokens` |
+| `POST /v1beta/models/{model}:generateContent` (Gemini native) | `gemini` | `{PROXY_GEMINI_NATIVE_BASE_URL}/v1beta/models/{model}:generateContent` (default `https://generativelanguage.googleapis.com`) |
+| `POST /v1beta/models/{model}:streamGenerateContent` | `gemini` | the same, `:streamGenerateContent` |
+| `POST /v1beta/models/{model}:countTokens` | `gemini` | the same, `:countTokens` |
 
-The routes are outside the `/api` prefix, so OpenAI SDKs work with `baseURL` set to `https://<host>/v1` and Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=https://<host>`. Calling an endpoint that does not match the project's upstream returns a 400 that names the right endpoint.
+The routes are outside the `/api` prefix, so OpenAI SDKs work with `baseURL` set to `https://<host>/v1`, Anthropic SDKs and tools with `ANTHROPIC_BASE_URL=https://<host>`, and the Google GenAI SDK with `httpOptions.baseUrl` set to `https://<host>`. Calling an endpoint that does not match the project's upstream returns a 400 that names the right endpoint.
 
 The code lives in `src/proxy`: one shared pipeline (`proxy.service.ts`) and one adapter per client API and upstream in `src/proxy/providers`. Usage is stored by `src/usage-records`.
 
@@ -40,7 +44,7 @@ The code lives in `src/proxy`: one shared pipeline (`proxy.service.ts`) and one 
 
 ## Request headers
 
-Each client API has a normal API key header: `Authorization: Bearer` for OpenAI, `x-api-key` for Anthropic (Parsim also reads a bearer token on `/v1/messages`, which tools send for `ANTHROPIC_AUTH_TOKEN`).
+Each client API has a normal API key header: `Authorization: Bearer` for OpenAI, `x-api-key` for Anthropic (Parsim also reads a bearer token on `/v1/messages`, which tools send for `ANTHROPIC_AUTH_TOKEN`), and `x-goog-api-key` or the `key` query parameter for Gemini native.
 
 | What | Where |
 | --- | --- |
@@ -59,10 +63,14 @@ Missing, unknown, malformed or revoked Parsim keys get a 401, in the format of t
 { "type": "error", "error": { "type": "authentication_error", "message": "..." } }
 ```
 
+```json
+{ "error": { "code": 401, "message": "...", "status": "UNAUTHENTICATED" } }
+```
+
 ## What is forwarded
 
 - The request body exactly as received (byte for byte). The one exception is described under streaming.
-- The provider key (`Authorization: Bearer` for OpenAI and Gemini, `x-api-key` for Anthropic), `content-type` and `accept`. For OpenAI also `openai-organization` and `openai-project`; for Anthropic `anthropic-version` and `anthropic-beta`. No other client header is forwarded; the Parsim key never leaves Parsim.
+- The provider key (`Authorization: Bearer` for OpenAI and Gemini's OpenAI-compatible endpoint, `x-api-key` for Anthropic, `x-goog-api-key` for Gemini native), `content-type` and `accept`. For OpenAI also `openai-organization` and `openai-project`; for Anthropic `anthropic-version` and `anthropic-beta`. No other client header is forwarded; the Parsim key never leaves Parsim.
 - The upstream status, body and headers come back unchanged, except hop-by-hop headers (`content-length`, `transfer-encoding`, `content-encoding`, `connection` and similar).
 
 ## Streaming and usage
@@ -124,6 +132,37 @@ Parsim sees a `psm_` key in `x-api-key`, uses it to find the project, and forwar
 
 Customers who do not want their Anthropic key stored can send it per request in `x-provider-key` instead (with the Parsim key in `x-api-key` or `x-parsim-key`), or keep the Anthropic key in `x-api-key` and send the Parsim key in `x-parsim-key`. A key sent with the request always wins over the stored one. In local development, `PARSIM_REQUIRE_KEY=false` also works: requests without a Parsim key use the oldest project.
 
+## Gemini native API
+
+- `POST /v1beta/models/{model}:generateContent`, `:streamGenerateContent` and `:countTokens`, with Google's paths. Projects with `"upstream":"gemini"` can use these and the OpenAI-compatible endpoint side by side.
+- The body passes through byte for byte: `contents` and their parts, `systemInstruction`, `tools` with `functionDeclarations`, `functionCall` and `functionResponse` parts (with their `thoughtSignature`), `toolConfig`, `generationConfig`, `safetySettings` and `cachedContent` references.
+- The model is read from the URL and recorded on the usage record.
+- **Keys.** The Google key is accepted from `x-goog-api-key` or the `key` query parameter, and always sent upstream in `x-goog-api-key`. The `key` parameter is removed from the upstream URL, and URLs are never logged or stored, so a key in the query string goes nowhere else. A `psm_` key in either place is the Parsim key, as with Anthropic.
+- **Streaming.** With `alt=sse` (what the SDK sends), the SSE stream is relayed as it arrives and usage is read from the `usageMetadata` of the chunks; the latest running totals win. Without `alt=sse`, Gemini answers with one JSON array of chunks, which Parsim relays as a normal response, reading the usage from its last chunk. Other query parameters are passed on.
+- **Usage.** Input is `promptTokenCount` (which already includes cached tokens) plus `toolUsePromptTokenCount`. Output is `candidatesTokenCount` plus `thoughtsTokenCount`, because thinking is billed as output. `cachedContentTokenCount` is recorded as cache reads. Gemini models are priced from the same table as the OpenAI-compatible endpoint.
+- `countTokens` passes through and is not recorded as usage.
+- Upstream errors pass through unchanged. Errors Parsim itself returns use Google's format (`{"error":{"code","message","status"}}`), and an unknown method (for example `:embedContent`) gets a 404 in that format.
+
+### Using the Google GenAI SDK
+
+Create a project with `"upstream":"gemini"`, store the Google key on it (`"providerKey":"AIza..."`), create a Parsim key, and point the SDK at Parsim:
+
+```ts
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.PARSIM_KEY, // psm_...; the Google key is stored on the project
+  httpOptions: { baseUrl: 'http://localhost:3001' },
+});
+
+const response = await ai.models.generateContent({
+  model: 'gemini-3.8-flash',
+  contents: 'Hello',
+});
+```
+
+`httpOptions.baseUrl` is the host only; the SDK adds `/v1beta/models/...`. When `httpOptions.baseUrl` is not set, the SDK reads the `GOOGLE_GEMINI_BASE_URL` environment variable instead. To keep the Google key off the server, use it as `apiKey` and send the Parsim key with `httpOptions: { baseUrl, headers: { 'x-parsim-key': 'psm_...' } }`.
+
 ## Using Claude Code through Parsim
 
 A manual check that Claude Code works through the local proxy. It uses your Anthropic API key, so it costs a little (a few cents for a short session) and bills your API account, not a Claude subscription.
@@ -180,6 +219,7 @@ Each project has a GC mode: `shadow` (the default) forwards the original request
 | `PARSIM_REQUIRE_KEY` | `true` | `false` lets requests from localhost without a key use the oldest project. Ignored when `NODE_ENV=production`. |
 | `PROXY_OPENAI_BASE_URL` | `https://api.openai.com` | OpenAI base URL |
 | `PROXY_GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` | Gemini OpenAI-compatible base URL |
+| `PROXY_GEMINI_NATIVE_BASE_URL` | `https://generativelanguage.googleapis.com` | Gemini native API host |
 | `PROXY_ANTHROPIC_BASE_URL` | `https://api.anthropic.com` | Anthropic base URL |
 | `PROXY_UPSTREAM_TIMEOUT_MS` | `600000` | Timeout for upstream headers and between chunks |
 | `PROXY_BODY_LIMIT` | `32mb` | Max request body |
@@ -188,7 +228,7 @@ Each project has a GC mode: `shadow` (the default) forwards the original request
 
 ## Adding a provider
 
-Write a class implementing `ProviderAdapter` (`src/proxy/providers/provider-adapter.ts`) for a client API (`openai-chat` or `anthropic-messages`) and an upstream: build the upstream URL and headers, and read usage from responses and stream events. Add it to `ADAPTERS` in `ProxyModule` and its upstream name to `UPSTREAMS`. The proxy pipeline does not change. A new client API (for example Gemini's native format) also needs a `ProxyOperation` and a controller.
+Write a class implementing `ProviderAdapter` (`src/proxy/providers/provider-adapter.ts`) for a client API (`openai-chat`, `anthropic-messages` or `gemini-native`) and an upstream: build the upstream URL and headers, and read usage from responses and stream events. Add it to `ADAPTERS` in `ProxyModule` and its upstream name to `UPSTREAMS`. The proxy pipeline does not change. A new client API also needs a `ProxyOperation`, a controller and a `MessageConverter` for the internal message model.
 
 ---
 

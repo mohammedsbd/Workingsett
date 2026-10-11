@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders } from 'node:http';
+import type { QueryParams } from '../proxy-credentials';
 import { MessageConverter } from '../../context/normalization/internal-model';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 
@@ -7,15 +8,23 @@ export const UPSTREAMS = ['openai', 'gemini', 'anthropic'] as const;
 export type Upstream = (typeof UPSTREAMS)[number];
 
 /** Client-facing API formats the proxy serves. */
-export type ProxyApi = 'openai-chat' | 'anthropic-messages';
+export type ProxyApi = 'openai-chat' | 'anthropic-messages' | 'gemini-native';
 
 /** One proxied endpoint. */
 export type ProxyOperation = {
   api: ProxyApi;
   /** Name used in logs, for example "chat.completions". */
-  name: 'chat.completions' | 'messages' | 'messages.count_tokens';
+  name:
+    | 'chat.completions'
+    | 'messages'
+    | 'messages.count_tokens'
+    | 'gemini.generateContent'
+    | 'gemini.streamGenerateContent'
+    | 'gemini.countTokens';
   /** Generation calls are billed and recorded; token counting is not. */
   recordsUsage: boolean;
+  /** Set when the endpoint decides streaming (Gemini), not the body. */
+  stream?: boolean;
 };
 
 export const PROXY_OPERATIONS = {
@@ -29,6 +38,24 @@ export const PROXY_OPERATIONS = {
     api: 'anthropic-messages',
     name: 'messages.count_tokens',
     recordsUsage: false,
+  },
+  generateContent: {
+    api: 'gemini-native',
+    name: 'gemini.generateContent',
+    recordsUsage: true,
+    stream: false,
+  },
+  streamGenerateContent: {
+    api: 'gemini-native',
+    name: 'gemini.streamGenerateContent',
+    recordsUsage: true,
+    stream: true,
+  },
+  geminiCountTokens: {
+    api: 'gemini-native',
+    name: 'gemini.countTokens',
+    recordsUsage: false,
+    stream: false,
   },
 } as const satisfies Record<string, ProxyOperation>;
 
@@ -67,6 +94,8 @@ export interface ProviderAdapter {
     info: RequestInfo;
     providerKey: string;
     clientHeaders: IncomingHttpHeaders;
+    /** The client's query parameters (Gemini), without any API key. */
+    query: QueryParams;
   }): PreparedUpstreamRequest;
   /** Usage from a non-streamed JSON response body. */
   usageFromResponse(body: unknown): TokenUsage | null;

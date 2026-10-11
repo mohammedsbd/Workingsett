@@ -8,6 +8,7 @@ import {
   InternalRole,
   isObject,
   MessageConverter,
+  ToInternalOptions,
   ToolCallPart,
   ToolResultPart,
 } from './internal-model';
@@ -84,11 +85,14 @@ function rebuildToolCall(part: ToolCallPart): unknown {
 export class OpenAiChatConverter implements MessageConverter {
   readonly api = 'openai-chat' as const;
 
-  toInternal(body: Record<string, unknown>): InternalRequest {
+  toInternal(
+    body: Record<string, unknown>,
+    options: ToInternalOptions = {},
+  ): InternalRequest {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     return {
       api: this.api,
-      model: asString(body.model),
+      model: options.model ?? asString(body.model),
       system: null,
       messages: messages.filter(isObject).map((m) => this.message(m)),
       raw: body,

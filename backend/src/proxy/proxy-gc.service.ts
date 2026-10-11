@@ -25,6 +25,8 @@ export type GcRequest = {
   converter: MessageConverter;
   /** The request body as the client sent it. */
   rawBody: Buffer;
+  /** The model, for APIs that put it in the URL (Gemini native). */
+  model?: string;
   sessionHeader: unknown;
 };
 
@@ -176,7 +178,7 @@ export class ProxyGcService {
   ): Promise<{ result: GcResult; converter: MessageConverter }> {
     const body: unknown = JSON.parse(input.rawBody.toString('utf8'));
     if (!isObject(body)) throw new TypeError('Request body is not an object');
-    const request = input.converter.toInternal(body);
+    const request = input.converter.toInternal(body, { model: input.model });
     const identity = resolveSessionId({
       header: input.sessionHeader,
       upstream: input.upstream,

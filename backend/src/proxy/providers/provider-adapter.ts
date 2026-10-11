@@ -7,7 +7,7 @@ export const UPSTREAMS = ['openai', 'gemini', 'anthropic'] as const;
 export type Upstream = (typeof UPSTREAMS)[number];
 
 /** Client-facing API formats the proxy serves. */
-export type ProxyApi = 'openai-chat' | 'anthropic-messages';
+export type ProxyApi = 'openai-chat' | 'anthropic-messages' | 'gemini-native';
 
 /** One proxied endpoint. */
 export type ProxyOperation = {

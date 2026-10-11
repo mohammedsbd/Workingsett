@@ -17,6 +17,8 @@ export type CaptureInput = {
   upstream: Upstream;
   converter: MessageConverter;
   rawBody: Buffer;
+  /** The model, for APIs that put it in the URL (Gemini native). */
+  model?: string;
   /** Value of the x-parsim-session-id header, if any. */
   sessionHeader: unknown;
   at: Date;
@@ -54,7 +56,7 @@ export class ContextCaptureService {
     const body: unknown = JSON.parse(input.rawBody.toString('utf8'));
     if (!isObject(body)) throw new Error('Request body is not a JSON object');
 
-    const request = input.converter.toInternal(body);
+    const request = input.converter.toInternal(body, { model: input.model });
     const extracted = extractContextItems(request);
     const identity = resolveSessionId({
       header: input.sessionHeader,

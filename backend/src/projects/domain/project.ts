@@ -37,6 +37,33 @@ export class Project {
   @ApiProperty({ enum: GC_MODES })
   gcMode: GcMode;
 
+  /** New GC decisions only above this many context tokens. Null uses the server default. */
+  @ApiProperty({ type: Number, nullable: true })
+  gcMinContextTokens: number | null;
+
+  /** A new GC pass only after this many tokens were added since the last one. Null uses the server default. */
+  @ApiProperty({ type: Number, nullable: true })
+  gcBatchTokens: number | null;
+
+  /** The last N turns are never changed. Null uses the server default. */
+  @ApiProperty({ type: Number, nullable: true })
+  gcProtectedTurns: number | null;
+
+  /** Tool results above this many tokens can be archived. Null uses the server default. */
+  @ApiProperty({ type: Number, nullable: true })
+  gcArchiveMinTokens: number | null;
+
+  /** Archive them once they are more than this many turns old. Null uses the server default. */
+  @ApiProperty({ type: Number, nullable: true })
+  gcArchiveAfterTurns: number | null;
+
+  /**
+   * Tool names with side effects for this project, on top of the server's
+   * GC_SIDE_EFFECT_TOOLS and the default patterns. Never dropped or archived.
+   */
+  @ApiProperty({ type: String, isArray: true })
+  gcSideEffectTools: string[];
+
   /** AES-256-GCM encrypted provider key. Never serialized. */
   @Exclude({ toPlainOnly: true })
   providerKeyEncrypted?: string | null;

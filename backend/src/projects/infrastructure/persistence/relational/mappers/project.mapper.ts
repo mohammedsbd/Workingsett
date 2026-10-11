@@ -17,6 +17,12 @@ export class ProjectMapper {
     domainEntity.providerKeyEncrypted = raw.providerKeyEncrypted;
     domainEntity.storeContent = raw.storeContent ?? null;
     domainEntity.gcMode = raw.gcMode as GcMode;
+    domainEntity.gcMinContextTokens = raw.gcMinContextTokens ?? null;
+    domainEntity.gcBatchTokens = raw.gcBatchTokens ?? null;
+    domainEntity.gcProtectedTurns = raw.gcProtectedTurns ?? null;
+    domainEntity.gcArchiveMinTokens = raw.gcArchiveMinTokens ?? null;
+    domainEntity.gcArchiveAfterTurns = raw.gcArchiveAfterTurns ?? null;
+    domainEntity.gcSideEffectTools = raw.gcSideEffectTools ?? [];
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -34,6 +40,12 @@ export class ProjectMapper {
     persistenceEntity.providerKeyEncrypted = domainEntity.providerKeyEncrypted;
     persistenceEntity.storeContent = domainEntity.storeContent;
     persistenceEntity.gcMode = domainEntity.gcMode;
+    persistenceEntity.gcMinContextTokens = domainEntity.gcMinContextTokens;
+    persistenceEntity.gcBatchTokens = domainEntity.gcBatchTokens;
+    persistenceEntity.gcProtectedTurns = domainEntity.gcProtectedTurns;
+    persistenceEntity.gcArchiveMinTokens = domainEntity.gcArchiveMinTokens;
+    persistenceEntity.gcArchiveAfterTurns = domainEntity.gcArchiveAfterTurns;
+    persistenceEntity.gcSideEffectTools = domainEntity.gcSideEffectTools;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
 

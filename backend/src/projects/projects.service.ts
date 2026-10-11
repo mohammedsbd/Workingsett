@@ -24,6 +24,12 @@ export class ProjectsService {
       ownerId,
       storeContent: dto.storeContent ?? null,
       gcMode: dto.gcMode ?? 'shadow',
+      gcMinContextTokens: dto.gcMinContextTokens ?? null,
+      gcBatchTokens: dto.gcBatchTokens ?? null,
+      gcProtectedTurns: dto.gcProtectedTurns ?? null,
+      gcArchiveMinTokens: dto.gcArchiveMinTokens ?? null,
+      gcArchiveAfterTurns: dto.gcArchiveAfterTurns ?? null,
+      gcSideEffectTools: dto.gcSideEffectTools ?? [],
       providerKeyEncrypted: dto.providerKey
         ? this.getCipher().encrypt(dto.providerKey)
         : null,
@@ -54,6 +60,12 @@ export class ProjectsService {
       upstream: dto.upstream,
       storeContent: dto.storeContent,
       gcMode: dto.gcMode,
+      gcMinContextTokens: dto.gcMinContextTokens,
+      gcBatchTokens: dto.gcBatchTokens,
+      gcProtectedTurns: dto.gcProtectedTurns,
+      gcArchiveMinTokens: dto.gcArchiveMinTokens,
+      gcArchiveAfterTurns: dto.gcArchiveAfterTurns,
+      gcSideEffectTools: dto.gcSideEffectTools,
       ...(dto.providerKey !== undefined && {
         providerKeyEncrypted: dto.providerKey
           ? this.getCipher().encrypt(dto.providerKey)

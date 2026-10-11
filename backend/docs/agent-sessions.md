@@ -63,14 +63,14 @@ On each request, items whose position and hash are already stored for the sessio
 
 ## The internal message model
 
-`src/context/normalization` defines one provider-neutral model (`InternalRequest`, messages made of text, image, tool call, tool result, thinking and other parts). Each adapter has a converter to and from it: `OpenAiChatConverter` (OpenAI and Gemini through its OpenAI-compatible endpoint) and `AnthropicMessagesConverter`.
+`src/context/normalization` defines one provider-neutral model (`InternalRequest`, messages made of text, image, tool call, tool result, thinking and other parts). Each adapter has a converter to and from it: `OpenAiChatConverter` (OpenAI and Gemini through its OpenAI-compatible endpoint), `AnthropicMessagesConverter` and `GeminiNativeConverter`.
 
 - Converting a request to the model and back gives an identical request: the same keys, key order and values (`JSON.stringify` output is byte for byte the same). This is tested on all fixture conversations and on requests with images, audio, documents, thinking and tool use.
 - Every part keeps the provider JSON it came from. Rebuilding starts from it and only writes the fields the model owns, so fields Parsim does not model are never lost, and edits to a part (what the GC will do) show up in the rebuilt request.
 - Images are references: a URL, or the SHA-256, media type and size of inline base64 data. Image data itself is not copied into stored content.
 - `cache_control` markers are kept on each part.
 
-Gemini's native format is not supported yet (step 08 comes after step 10).
+In Gemini's native format, `functionCall` and `functionResponse` parts are tool calls and results, and `contents` with role `model` are assistant messages. Gemini call ids are optional: a response without one is paired with the oldest unanswered call of the same name. Calls without an id get an internal id from their position (`gemini-call:<message>:<part>`), which is never written back to the request. The model comes from the URL. A GC'd function response keeps its name and is rewritten as `{"output": "<stub>"}`.
 
 ## Token counts
 

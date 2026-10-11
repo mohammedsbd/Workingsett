@@ -18,7 +18,7 @@
 
 On every generation request (`/v1/chat/completions` and `/v1/messages`), Parsim's garbage collector looks at the tool results in the conversation and decides whether to keep each one, drop it (a duplicate or superseded result) or archive it (store the original and leave a short stub). Everything else in the request is left alone.
 
-The engine is a pure function, `runGc` in `src/gc/gc-engine.ts`: it takes the request in the internal message model, the config, a token counter and the decisions made by earlier requests of the session, and returns the new request plus a list of decisions (item, decision, reason, tokens before and after). Same input, same output, byte for byte. It knows nothing about providers: the converters in `src/context/normalization` turn OpenAI and Anthropic requests into the internal model and back.
+The engine is a pure function, `runGc` in `src/gc/gc-engine.ts`: it takes the request in the internal message model, the config, a token counter and the decisions made by earlier requests of the session, and returns the new request plus a list of decisions (item, decision, reason, tokens before and after). Same input, same output, byte for byte. It knows nothing about providers: the converters in `src/context/normalization` turn OpenAI, Anthropic and Gemini native requests into the internal model and back.
 
 `ProxyGcService` (`src/proxy/proxy-gc.service.ts`) runs the engine for the proxy and stores what it decided.
 
@@ -44,7 +44,7 @@ Rules apply to tool results only, in this order (the first match wins):
 
 New decisions are made only when the whole context is over `minContextTokens` (8,000). A rewrite is only made if its stub is smaller than the original.
 
-A dropped or archived result stays in place with its tool call id; only its content is replaced. Every tool call keeps exactly one answer, so the request stays valid for OpenAI and Anthropic.
+A dropped or archived result stays in place with its tool call id; only its content is replaced. Every tool call keeps exactly one answer, so the request stays valid for OpenAI, Anthropic and Gemini. In Gemini's format the function response keeps its name and its `response` becomes `{"output": "<stub>"}`.
 
 ## What is never touched
 
@@ -106,7 +106,7 @@ Token counts use the same counter as context items (exact for OpenAI models, app
 
 ## Token reduction on the fixtures
 
-Counted with the GC's own token counter (OpenAI and Anthropic formats give the same numbers):
+Counted with the GC's own token counter. The OpenAI and Anthropic formats give the same numbers:
 
 | Fixture | Config | Tokens before | After | Saved |
 | --- | --- | --- | --- | --- |
@@ -115,6 +115,8 @@ Counted with the GC's own token counter (OpenAI and Anthropic formats give the s
 | support-agent-session | threshold 0 | 1,647 | 1,107 | 32.8% (3 duplicate policy articles) |
 | research-agent-session | defaults | 27,301 | 7,061 | 74.1% (16 duplicates, 12 superseded) |
 | research-agent-session | archive above 500 tokens | 27,301 | 5,481 | 79.9% (plus 2 archived) |
+
+The Gemini native format counts a little more, because each function response is a JSON object (`{"output": ...}`): research-agent-session 28,166 to 7,262 (74.2%) with the defaults and to 5,632 (80.0%) when archiving above 500 tokens; support-agent-session 1,725 to 1,173 (32.0%) with threshold 0. The decisions are the same.
 
 ---
 

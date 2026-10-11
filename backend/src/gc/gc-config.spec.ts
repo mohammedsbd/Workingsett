@@ -10,6 +10,7 @@ describe('gc config', () => {
   it('should have the documented defaults', () => {
     expect(DEFAULT_GC_CONFIG).toEqual({
       minContextTokens: 8000,
+      batchTokens: 4000,
       protectedTurns: 6,
       archiveMinTokens: 1500,
       archiveAfterTurns: 6,

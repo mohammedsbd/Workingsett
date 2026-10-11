@@ -84,6 +84,8 @@ function gc(
     request: input,
     config: {
       ...DEFAULT_GC_CONFIG,
+      // Every call is a pass unless a test sets a batch size.
+      batchTokens: 0,
       sideEffectTools: RESEARCH_SIDE_EFFECTS,
       ...config,
     },

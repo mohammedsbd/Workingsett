@@ -77,7 +77,10 @@ type Rewrite = Omit<GcDecision, 'tokensBefore' | 'tokensAfter' | 'original'>;
  * answer and the request stays valid for the provider. Rewrites from
  * earlier requests (`prior`) are applied again byte for byte, so a prefix
  * that was sent once is sent the same way again. New rewrites are made
- * only when the context is above `minContextTokens`.
+ * only in a pass: when the context is above `minContextTokens` and the
+ * part added since the last pass (`processedPosition`) is above
+ * `batchTokens`. Between passes the request is only rewritten with prior
+ * decisions, so the prefix changes in batches.
  *
  * Never touched: the system prompt, the first user message, the last
  * `protectedTurns` turns, and tools with side effects (call and result).
@@ -136,9 +139,24 @@ export function runGc(input: GcInput): GcResult {
     result.call === null ||
     hasSideEffects(result.call.name, config);
 
-  const ran = tokensBefore > config.minContextTokens;
+  // A marker past the end means the client trimmed its history: start over.
+  const since =
+    (input.processedPosition ?? 0) > items.length
+      ? 0
+      : (input.processedPosition ?? 0);
+  let unprocessedTokens = 0;
+  for (const item of items) {
+    if (item.position >= since) unprocessedTokens += tokens.get(item)!;
+  }
+  const ran =
+    tokensBefore > config.minContextTokens &&
+    unprocessedTokens > config.batchTokens;
+  const processedPosition = ran ? items.length : since;
+  const allowArchive = input.allowArchive ?? true;
+
   const prior = new Map<string, PriorDecision>();
   for (const decision of input.prior ?? []) {
+    if (!allowArchive && decision.decision === 'archive') continue;
     if (!prior.has(decision.itemKey)) prior.set(decision.itemKey, decision);
   }
   const latestWithHash = latestPositionByHash(results);
@@ -152,7 +170,14 @@ export function runGc(input: GcInput): GcResult {
     const rewrite: Rewrite | null = earlier
       ? { ...fromPrior(earlier, result), sticky: true }
       : ran
-        ? decide(result, config, latestWithHash, callsInOrder, answered)
+        ? decide(
+            result,
+            config,
+            latestWithHash,
+            callsInOrder,
+            answered,
+            allowArchive,
+          )
         : null;
     if (!rewrite) continue;
     const tokensAfter = countTokens(rewrite.replacement, 0);
@@ -166,8 +191,15 @@ export function runGc(input: GcInput): GcResult {
     });
   }
 
+  const pass = { ran, processedPosition, unprocessedTokens };
   if (!decisions.length) {
-    return { request, decisions, ran, tokensBefore, tokensAfter: tokensBefore };
+    return {
+      request,
+      decisions,
+      ...pass,
+      tokensBefore,
+      tokensAfter: tokensBefore,
+    };
   }
   const saved = decisions.reduce(
     (sum, d) => sum + d.tokensBefore - d.tokensAfter,
@@ -176,7 +208,7 @@ export function runGc(input: GcInput): GcResult {
   return {
     request: rewriteRequest(request, results, decisions),
     decisions,
-    ran,
+    ...pass,
     tokensBefore,
     tokensAfter: tokensBefore - saved,
   };
@@ -188,6 +220,7 @@ function decide(
   latestWithHash: Map<string, number>,
   callsInOrder: CallInfo[],
   answered: Map<string, ResultInfo>,
+  allowArchive: boolean,
 ): Rewrite | null {
   const { item, call } = result;
   const toolName = call!.name;
@@ -243,6 +276,7 @@ function decide(
   }
 
   if (
+    allowArchive &&
     result.tokens > config.archiveMinTokens &&
     result.age > config.archiveAfterTurns
   ) {

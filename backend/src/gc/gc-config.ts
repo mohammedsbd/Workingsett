@@ -22,6 +22,11 @@ export const DEFAULT_SIDE_EFFECT_PATTERNS: readonly string[] = [
 export type GcConfig = {
   /** New decisions are made only when the context is above this many tokens. */
   minContextTokens: number;
+  /**
+   * ...and only when the context added since the last pass is above this
+   * many tokens, so the prompt prefix changes in batches, not every call.
+   */
+  batchTokens: number;
   /** The last N turns are never changed. */
   protectedTurns: number;
   /** Tool results above this many tokens can be archived... */
@@ -36,6 +41,7 @@ export type GcConfig = {
 
 export const DEFAULT_GC_CONFIG: GcConfig = {
   minContextTokens: 8000,
+  batchTokens: 4000,
   protectedTurns: 6,
   archiveMinTokens: 1500,
   archiveAfterTurns: 6,

@@ -19,7 +19,12 @@ import {
   omitKey,
   QueryParams,
 } from './proxy-credentials';
-import { GcEvaluation, GcRequest, ProxyGcService } from './proxy-gc.service';
+import {
+  GcEvaluation,
+  GcRequest,
+  ProxyGcService,
+  usesCachedContent,
+} from './proxy-gc.service';
 import { ProxyError, proxyErrors } from './proxy-error';
 import {
   PreparedUpstreamRequest,
@@ -298,11 +303,11 @@ export class ProxyService implements BeforeApplicationShutdown {
     try {
       const text = body.toString('utf8');
       if (!archiveStubIds(text).length) return null;
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      // Gemini rejects tools or a system instruction next to cachedContent.
+      if (usesCachedContent(parsed)) return null;
       const format = RECALL_FORMATS[adapter.api];
-      return {
-        format,
-        body: format.inject(JSON.parse(text) as Record<string, unknown>),
-      };
+      return { format, body: format.inject(parsed) };
     } catch (error) {
       this.logger.error(
         `Could not add parsim_recall, forwarding without it project=${project.id}: ${(error as Error)?.name ?? 'Error'}`,

@@ -4,6 +4,7 @@ import { AuthConfig } from '../auth/config/auth-config.type';
 import { DatabaseConfig } from '../database/config/database-config.type';
 import { FacebookConfig } from '../auth-facebook/config/facebook-config.type';
 import { FileConfig } from '../files/config/file-config.type';
+import { GcConfig } from '../gc/gc-config';
 import { GoogleConfig } from '../auth-google/config/google-config.type';
 import { MailConfig } from '../mail/config/mail-config.type';
 import { ProxyConfig } from '../proxy/config/proxy-config.type';
@@ -15,6 +16,7 @@ export type AllConfigType = {
   database: DatabaseConfig;
   facebook: FacebookConfig;
   file: FileConfig;
+  gc: GcConfig;
   google: GoogleConfig;
   mail: MailConfig;
   proxy: ProxyConfig;

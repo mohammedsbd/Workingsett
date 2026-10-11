@@ -80,6 +80,40 @@ describe('extractContextItems', () => {
     ]);
   });
 
+  it('should point every item at its message and part', () => {
+    const items = extractContextItems(
+      anthropic.toInternal({
+        system: 'S',
+        messages: [
+          { role: 'user', content: 'Q' },
+          {
+            role: 'assistant',
+            content: [
+              { type: 'text', text: 'Looking.' },
+              { type: 'tool_use', id: 't1', name: 'f', input: {} },
+            ],
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'tool_result', tool_use_id: 't1', content: 'ok' },
+              { type: 'text', text: 'And now?' },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(items.map((i) => [i.kind, i.messageIndex, i.partIndex])).toEqual([
+      ['system', null, null],
+      ['user', 0, null],
+      ['assistant', 1, null],
+      ['tool_call', 1, 1],
+      ['tool_result', 2, 0],
+      ['user', 2, null],
+    ]);
+  });
+
   it('should give identical tool output the same hash, whatever the call id', () => {
     const items = extractContextItems(
       openai.toInternal({

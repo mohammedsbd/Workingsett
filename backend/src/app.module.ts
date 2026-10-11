@@ -25,6 +25,7 @@ import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import proxyConfig from './proxy/config/proxy.config';
+import gcConfig from './proxy/config/gc.config';
 import { ProxyModule } from './proxy/proxy.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ParsimApiKeysModule } from './parsim-api-keys/parsim-api-keys.module';
@@ -62,6 +63,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
         googleConfig,
         appleConfig,
         proxyConfig,
+        gcConfig,
       ],
       envFilePath: ['.env'],
     }),

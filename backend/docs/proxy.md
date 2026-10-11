@@ -169,6 +169,10 @@ If Claude Code calls an Anthropic endpoint Parsim does not serve yet, it shows u
 
 Every generation request is also recorded as part of an agent session, with its context items. Send `x-parsim-session-id: <your run id>` to group requests reliably; without it, Parsim derives a session from the system prompt and first user message. See [Agent sessions and context storage](agent-sessions.md).
 
+## Context GC
+
+Each project has a GC mode: `shadow` (the default) forwards the original request and records what the GC would have saved, `on` forwards the smaller request, `off` turns it off. Set it with `PATCH /api/v1/projects/:id` and `{ "gcMode": "on" }`. List your tools with side effects in `GC_SIDE_EFFECT_TOOLS` so they are never dropped or archived. See [Context GC](gc.md).
+
 ## Configuration
 
 | Variable | Default | Purpose |

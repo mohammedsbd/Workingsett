@@ -1,3 +1,4 @@
+import { GcMode } from '../../../../../gc/gc-config';
 import { Upstream } from '../../../../../proxy/providers/provider-adapter';
 import { UserMapper } from '../../../../../users/infrastructure/persistence/relational/mappers/user.mapper';
 import { Project } from '../../../../domain/project';
@@ -15,6 +16,7 @@ export class ProjectMapper {
     }
     domainEntity.providerKeyEncrypted = raw.providerKeyEncrypted;
     domainEntity.storeContent = raw.storeContent ?? null;
+    domainEntity.gcMode = raw.gcMode as GcMode;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -31,6 +33,7 @@ export class ProjectMapper {
     persistenceEntity.ownerId = domainEntity.ownerId;
     persistenceEntity.providerKeyEncrypted = domainEntity.providerKeyEncrypted;
     persistenceEntity.storeContent = domainEntity.storeContent;
+    persistenceEntity.gcMode = domainEntity.gcMode;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
 

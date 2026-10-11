@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
+import { GC_MODES, GcMode } from '../../gc/gc-config';
 import { User } from '../../users/domain/user';
 
 export class Project {
@@ -27,6 +28,14 @@ export class Project {
    */
   @ApiProperty({ type: Boolean, nullable: true })
   storeContent: boolean | null;
+
+  /**
+   * off: no GC. shadow (default): run the GC but forward the original
+   * request, recording what it would have saved. on: forward the GC'd
+   * request.
+   */
+  @ApiProperty({ enum: GC_MODES })
+  gcMode: GcMode;
 
   /** AES-256-GCM encrypted provider key. Never serialized. */
   @Exclude({ toPlainOnly: true })

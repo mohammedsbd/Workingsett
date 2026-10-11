@@ -39,6 +39,10 @@ export type ExtractedItem = {
   /** Text used to count tokens (images are counted separately). */
   tokenText: string;
   imageCount: number;
+  /** Index in request.messages, or null for a top-level system prompt. */
+  messageIndex: number | null;
+  /** Index in the message's parts, for tool_call and tool_result items. */
+  partIndex: number | null;
 };
 
 function withoutCacheControl(value: unknown): unknown {
@@ -76,7 +80,10 @@ export function canonicalPart(part: InternalPart): CanonicalPart {
   }
 }
 
-function tokenText(parts: CanonicalPart[]): { text: string; images: number } {
+export function tokenText(parts: CanonicalPart[]): {
+  text: string;
+  images: number;
+} {
   let text = '';
   let images = 0;
   for (const part of parts) {
@@ -123,6 +130,8 @@ export function extractContextItems(request: InternalRequest): ExtractedItem[] {
     role: InternalRole,
     kind: ContextItemKind,
     parts: InternalPart[],
+    messageIndex: number | null,
+    partIndex: number | null = null,
     toolCallId: string | null = null,
   ) => {
     const canonical = parts.map(canonicalPart);
@@ -136,35 +145,51 @@ export function extractContextItems(request: InternalRequest): ExtractedItem[] {
       contentHash: contentHash(content),
       tokenText: text,
       imageCount: images,
+      messageIndex,
+      partIndex,
     });
   };
 
   if (request.system?.parts.length) {
-    push('system', 'system', request.system.parts);
+    push('system', 'system', request.system.parts, null);
   }
 
-  for (const message of request.messages) {
+  request.messages.forEach((message, messageIndex) => {
     let group: InternalPart[] = [];
     const flush = () => {
       if (!group.length) return;
       const kind: ContextItemKind =
         message.role === 'tool' ? 'tool_result' : message.role;
-      push(message.role, kind, group);
+      push(message.role, kind, group, messageIndex);
       group = [];
     };
-    for (const part of message.parts) {
+    message.parts.forEach((part, partIndex) => {
       if (part.type === 'tool_call') {
         flush();
-        push(message.role, 'tool_call', [part], part.id || null);
+        push(
+          message.role,
+          'tool_call',
+          [part],
+          messageIndex,
+          partIndex,
+          part.id || null,
+        );
       } else if (part.type === 'tool_result') {
         flush();
-        push(message.role, 'tool_result', [part], part.toolCallId || null);
+        push(
+          message.role,
+          'tool_result',
+          [part],
+          messageIndex,
+          partIndex,
+          part.toolCallId || null,
+        );
       } else {
         group.push(part);
       }
-    }
+    });
     flush();
-  }
+  });
 
   return items.map((item, position) => ({ ...item, position }));
 }

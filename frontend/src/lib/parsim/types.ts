@@ -15,8 +15,13 @@ export type Project = {
   gcArchiveMinTokens: number | null;
   gcArchiveAfterTurns: number | null;
   gcSideEffectTools: string[];
+  compressionEnabled: boolean;
+  compressionKeySource: CompressionKeySource;
+  compressionModel: string | null;
   createdAt: string;
 };
+
+export type CompressionKeySource = 'parsim' | 'project';
 
 export type Savings = { tokensSaved: number; dollarsSaved: number };
 
@@ -38,6 +43,10 @@ export type SavingsSummary = {
     applied: Savings;
     estimated: Savings;
   };
+  /** State blocks: summaries made, tokens they removed, and their cost. */
+  compression: { summaries: number; tokensSaved: number; costUsd: number };
+  /** Applied dollars saved minus what the summaries cost. */
+  netDollarsSaved: number;
   recalls: { count: number; found: number; tokensRestored: number };
   decisionsByReason: { duplicate: number; superseded: number; stale_large: number };
 };
@@ -46,6 +55,7 @@ export type DailySavings = {
   date: string;
   requests: number;
   costUsd: number;
+  compressionCostUsd: number;
   tokensBefore: number;
   tokensAfter: number;
   applied: Savings;
@@ -115,6 +125,21 @@ export type TimelineDecision = {
   content?: { kind: string; parts: ContentPart[] } | null;
 };
 
+export type TimelineCompression = {
+  id: string;
+  status: 'pending' | 'ready' | 'failed';
+  firstTurn: number;
+  lastTurn: number;
+  tokensBefore: number;
+  tokensAfter: number | null;
+  costUsd: number | null;
+  error: string | null;
+  createdAt: string;
+  readyAt: string | null;
+  /** Only when the project stores content. */
+  stateBlock?: string | null;
+};
+
 export type SessionDetail = {
   session: Omit<SessionRow, 'tokensSaved' | 'decisions' | 'recalls'>;
   contentAllowed: boolean;
@@ -127,6 +152,7 @@ export type SessionDetail = {
     tokensRestored: number;
     createdAt: string;
   }[];
+  compressions: TimelineCompression[];
 };
 
 export type ThresholdKey =
@@ -143,6 +169,13 @@ export type ProjectSettings = {
   thresholds: Record<ThresholdKey, { value: number | null; default: number }>;
   sideEffectTools: { project: string[]; server: string[]; patterns: string[] };
   recallMaxPerRequest: number;
+  compression: {
+    enabled: boolean;
+    keySource: CompressionKeySource;
+    model: string | null;
+    minTokens: number;
+    internalModelConfigured: boolean;
+  };
 };
 
 export type ApiKey = {

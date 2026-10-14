@@ -91,7 +91,11 @@ export function OverviewView({ projectId }: { projectId: string }) {
         <Kpi
           title={savings.estimated ? 'Dollars saved (estimated)' : 'Dollars saved'}
           value={formatUsd(savings.dollarsSaved)}
-          footer={`spent ${formatUsd(summary.costUsd)} in total`}
+          footer={
+            summary.compression.costUsd > 0
+              ? `net of ${formatUsd(summary.compression.costUsd)} for ${summary.compression.summaries} summaries`
+              : `spent ${formatUsd(summary.costUsd)} in total`
+          }
         />
         <Kpi
           title='Context reduction'

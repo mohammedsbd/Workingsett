@@ -74,6 +74,16 @@ const gc = (applied: number, estimated: number) => ({
 });
 
 describe('headlineSavings', () => {
+  it('should report dollars saved net of what the summaries cost', () => {
+    expect(
+      headlineSavings({
+        mode: 'on',
+        gc: gc(30_000, 0),
+        compression: { summaries: 2, tokensSaved: 20_000, costUsd: 0.01 }
+      }).dollarsSaved
+    ).toBeCloseTo(headlineSavings({ mode: 'on', gc: gc(30_000, 0) }).dollarsSaved - 0.01, 10);
+  });
+
   it('shows estimates in shadow mode', () => {
     expect(headlineSavings({ mode: 'shadow', gc: gc(0, 40_000) })).toEqual({
       tokensSaved: 40_000,
@@ -111,6 +121,7 @@ describe('chartSeries', () => {
       date: '2026-10-03',
       requests: 12,
       costUsd: 0.5,
+      compressionCostUsd: 0,
       tokensBefore: 10_000,
       tokensAfter: 4_000,
       applied: { tokensSaved: 5_000, dollarsSaved: 0.0037 },

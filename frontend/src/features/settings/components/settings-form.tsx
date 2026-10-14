@@ -153,6 +153,67 @@ export function SettingsForm({ projectId }: { projectId: string }) {
 
       <Card>
         <CardHeader>
+          <CardTitle>Compression</CardTitle>
+          <CardDescription>
+            In On mode, finished stretches of long sessions (above{' '}
+            {settings.compression.minTokens.toLocaleString('en-US')} tokens, before the protected
+            turns) are summarized in the background into a state block that later requests send
+            instead. The originals stay recallable, and side-effect calls stay in place. Each
+            summary is a paid model call; the dashboard reports savings net of it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='flex flex-col gap-4'>
+          <form.AppField
+            name='compressionEnabled'
+            children={(field) => (
+              <field.SwitchField
+                label='Compress finished stretches'
+                description='Only runs while the GC mode is On.'
+              />
+            )}
+          />
+          <form.AppField
+            name='compressionKeySource'
+            children={(field) => (
+              <field.RadioGroupField
+                label='Who pays for summaries'
+                options={[
+                  {
+                    value: 'parsim',
+                    label: settings.compression.internalModelConfigured
+                      ? "Parsim's internal model"
+                      : "Parsim's internal model (not configured on this server)"
+                  },
+                  {
+                    value: 'project',
+                    label: "This project's stored provider key, with the model below"
+                  }
+                ]}
+              />
+            )}
+          />
+          <form.Subscribe
+            selector={(state) => state.values.compressionKeySource}
+            children={(source) =>
+              source === 'project' ? (
+                <form.AppField
+                  name='compressionModel'
+                  children={(field) => (
+                    <field.TextField
+                      label='Summary model'
+                      placeholder='A small, cheap model of your provider'
+                      description='Required when the project pays. Summaries fail without a stored provider key.'
+                    />
+                  )}
+                />
+              ) : null
+            }
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Content storage</CardTitle>
           <CardDescription>
             Whether Parsim stores prompt and tool content for this project. Hashes and token counts

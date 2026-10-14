@@ -1,5 +1,11 @@
 import { parsimFetch } from '@/lib/parsim/client-api';
-import type { GcMode, Project, ProjectSettings, ThresholdKey } from '@/lib/parsim/types';
+import type {
+  CompressionKeySource,
+  GcMode,
+  Project,
+  ProjectSettings,
+  ThresholdKey
+} from '@/lib/parsim/types';
 
 export const settingsPath = (projectId: string) => `/projects/${projectId}/settings`;
 
@@ -10,6 +16,9 @@ export type SettingsUpdate = {
   gcMode: GcMode;
   storeContent: boolean | null;
   gcSideEffectTools: string[];
+  compressionEnabled: boolean;
+  compressionKeySource: CompressionKeySource;
+  compressionModel: string | null;
 } & Record<ThresholdKey, number | null>;
 
 export const updateSettings = (projectId: string, update: SettingsUpdate) =>

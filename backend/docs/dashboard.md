@@ -19,11 +19,11 @@ All paths start with `/api/v1/projects/:projectId`.
 
 | Endpoint | What it returns |
 | --- | --- |
-| `GET dashboard/summary?from&to` | Requests, input, output and cached tokens, cost, upstream calls, GC runs with tokens before and after and the reduction, savings (applied and estimated), recalls, and decisions by reason |
-| `GET dashboard/daily?from&to` | One entry per UTC day of the range with requests, cost, tokens before and after, and savings |
+| `GET dashboard/summary?from&to` | Requests, input, output and cached tokens, cost, upstream calls, GC runs with tokens before and after and the reduction, savings (applied and estimated), compression (summaries, tokens saved, cost), `netDollarsSaved` (applied savings minus summary cost), recalls, and decisions by reason. Requests and tokens count proxied requests only; summary calls are reported under compression |
+| `GET dashboard/daily?from&to` | One entry per UTC day of the range with requests, cost, compression cost, tokens before and after, and savings |
 | `GET sessions?page&limit&sort&order&search` | Agent sessions, paged (limit up to 100), sortable by `lastSeenAt` (default), `firstSeenAt`, `requestCount` or `tokensSaved`, searchable by session id or model (wildcards are literal) |
-| `GET sessions/:sessionId` | The session, its requests with their GC run, its decisions with reasons, and its recalls |
-| `GET settings` | GC mode, content storage, each threshold with the project's value and the server default, side-effect tools (project, server and patterns), and the recall limit |
+| `GET sessions/:sessionId` | The session, its requests with their GC run, its decisions with reasons, its recalls, and its compressions (with the state block when the project stores content) |
+| `GET settings` | GC mode, content storage, each threshold with the project's value and the server default, side-effect tools (project, server and patterns), the recall limit, and the compression settings |
 
 `from` and `to` are ISO 8601 dates; `to` is exclusive. The default range is the 30 days before now, and a range can be at most 366 days.
 
@@ -65,6 +65,6 @@ This creates two projects for the seeded admin with 30 days of fake traffic and 
 
 ---
 
-Previous: [Recall](recall.md)
+Previous: [Compression](compression.md)
 
 Next: [Serialization](serialization.md)

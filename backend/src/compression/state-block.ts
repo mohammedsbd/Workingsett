@@ -71,12 +71,18 @@ export function parseSummary(text: string): StateSummary {
 const bullets = (items: string[]) =>
   items.length ? items.map((item) => `- ${item}`).join('\n') : '- none';
 
-/** "turn 3: arc_a, arc_b" lines, one per turn, in order. */
+/**
+ * "turn 3: arc_a, arc_b" lines, one per turn, in order. Repeated content
+ * (the same id) is listed only where it first appears.
+ */
 function originalLines(messages: StretchMessage[]): string {
   const byTurn = new Map<number, string[]>();
+  const seen = new Set<string>();
   for (const message of messages) {
+    if (seen.has(message.archiveId)) continue;
+    seen.add(message.archiveId);
     const ids = byTurn.get(message.turn) ?? [];
-    if (!ids.includes(message.archiveId)) ids.push(message.archiveId);
+    ids.push(message.archiveId);
     byTurn.set(message.turn, ids);
   }
   return [...byTurn.entries()]

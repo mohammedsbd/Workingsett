@@ -191,7 +191,11 @@ describe('compression', () => {
     });
 
     it('should only compress when the block would at least halve the stretch as sent', () => {
-      const worth = (req: InternalRequest, sent: InternalRequest) => {
+      const worth = (
+        req: InternalRequest,
+        sent: InternalRequest,
+        sideEffect = isSideEffect,
+      ) => {
         const sentItems = extractContextItems(sent);
         const stretch = findStretch(
           req,
@@ -206,8 +210,8 @@ describe('compression', () => {
             sent,
             sentItems,
             stretch,
-            stretchInput: stretchInput(req, stretch, isSideEffect),
-            isSideEffect,
+            stretchInput: stretchInput(req, stretch, sideEffect),
+            isSideEffect: sideEffect,
             count: tokens,
             tokensOf: tokensOfItem,
           })
@@ -216,17 +220,19 @@ describe('compression', () => {
       const research = request('openai', 'research-agent-session');
       expect(worth(research, research)?.worth).toBe(true);
 
-      // After GC, a long session's stretch is mostly stubs and kept
-      // save_note calls: a block would not halve it.
+      // When every call has side effects, they all stay next to the
+      // block: it would not halve the stretch.
+      expect(worth(research, research, () => true)?.worth).toBe(false);
+
+      // After GC a long session's stretch is mostly stubs, yet repeated
+      // content is listed once, so a block still halves it.
       const long = request('openai', buildLongSession(200));
       const gc = runGc({
         request: long,
         config: GC_CONFIG,
         countTokens: tokens,
       }).request;
-      const check = worth(long, gc)!;
-      expect(check.worth).toBe(false);
-      expect(worth(long, long)?.worth).toBe(true);
+      expect(worth(long, gc)?.worth).toBe(true);
     });
 
     it('should list every original with its archive id and the side-effect actions', () => {
@@ -315,6 +321,13 @@ describe('compression', () => {
             role: 'assistant',
             content: { kind: 'assistant', parts: [] },
             archiveId: 'arc_cccccccccccccccc',
+          },
+          {
+            index: 5,
+            turn: 3,
+            role: 'user',
+            content: { kind: 'user', parts: [] },
+            archiveId: 'arc_aaaaaaaaaaaaaaaa',
           },
         ],
       });

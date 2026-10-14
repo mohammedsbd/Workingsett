@@ -50,7 +50,10 @@ export const settingsSchema = z.object({
   gcBatchTokens: optionalInt(0),
   gcProtectedTurns: optionalInt(1),
   gcArchiveMinTokens: optionalInt(0),
-  gcArchiveAfterTurns: optionalInt(1)
+  gcArchiveAfterTurns: optionalInt(1),
+  compressionEnabled: z.boolean(),
+  compressionKeySource: z.enum(['parsim', 'project']),
+  compressionModel: z.string().trim().max(100)
 });
 
 export type SettingsValues = z.input<typeof settingsSchema>;
@@ -61,6 +64,9 @@ export function toForm(settings: ProjectSettings): SettingsValues {
     storeContent:
       settings.storeContent === null ? 'default' : settings.storeContent ? 'true' : 'false',
     gcSideEffectTools: settings.sideEffectTools.project,
+    compressionEnabled: settings.compression.enabled,
+    compressionKeySource: settings.compression.keySource,
+    compressionModel: settings.compression.model ?? '',
     ...(Object.fromEntries(
       THRESHOLDS.map((t) => [t.key, settings.thresholds[t.key].value ?? undefined])
     ) as Partial<Record<ThresholdKey, number>>)
@@ -72,6 +78,9 @@ export function toUpdate(values: SettingsValues): SettingsUpdate {
     gcMode: values.gcMode,
     storeContent: values.storeContent === 'default' ? null : values.storeContent === 'true',
     gcSideEffectTools: [...new Set(values.gcSideEffectTools.map((t) => t.trim()).filter(Boolean))],
+    compressionEnabled: values.compressionEnabled,
+    compressionKeySource: values.compressionKeySource,
+    compressionModel: values.compressionModel.trim() || null,
     ...(Object.fromEntries(THRESHOLDS.map((t) => [t.key, values[t.key] ?? null])) as Record<
       ThresholdKey,
       number | null

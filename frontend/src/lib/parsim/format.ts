@@ -59,17 +59,21 @@ export function reduction(tokensBefore: number, tokensAfter: number): number {
  * have saved (estimates), otherwise what it saved. When a project was
  * switched during the range, both are added.
  */
-export function headlineSavings(summary: Pick<SavingsSummary, 'mode' | 'gc'>): Savings & {
+export function headlineSavings(
+  summary: Pick<SavingsSummary, 'mode' | 'gc'> & Partial<Pick<SavingsSummary, 'compression'>>
+): Savings & {
   estimated: boolean;
 } {
   const { applied, estimated } = summary.gc;
+  // Summaries are paid model calls: dollars saved are net of their cost.
+  const summaryCost = summary.compression?.costUsd ?? 0;
   if (summary.mode === 'shadow') {
     return { ...estimated, estimated: true };
   }
   if (summary.mode === 'on') {
     return {
       tokensSaved: applied.tokensSaved + estimated.tokensSaved,
-      dollarsSaved: applied.dollarsSaved + estimated.dollarsSaved,
+      dollarsSaved: applied.dollarsSaved + estimated.dollarsSaved - summaryCost,
       estimated: applied.tokensSaved === 0 && estimated.tokensSaved > 0
     };
   }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RelationalAgentSessionPersistenceModule } from '../agent-sessions/infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalArchivedItemPersistenceModule } from '../archived-items/infrastructure/persistence/relational/relational-persistence.module';
+import { CompressionModule } from '../compression/compression.module';
 import { ContextModule } from '../context/context.module';
 import { RelationalGcDecisionPersistenceModule } from '../gc-decisions/infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalGcRunPersistenceModule } from '../gc-runs/infrastructure/persistence/relational/relational-persistence.module';
@@ -33,6 +34,7 @@ const ADAPTERS = [
     ParsimApiKeysModule,
     UsageRecordsModule,
     ContextModule,
+    CompressionModule,
     RelationalAgentSessionPersistenceModule,
     RelationalGcRunPersistenceModule,
     RelationalGcDecisionPersistenceModule,

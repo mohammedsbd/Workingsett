@@ -1,5 +1,6 @@
 import { AppConfig } from './app-config.type';
 import { AppleConfig } from '../auth-apple/config/apple-config.type';
+import { CompressionConfig } from '../compression/config/compression-config.type';
 import { AuthConfig } from '../auth/config/auth-config.type';
 import { DatabaseConfig } from '../database/config/database-config.type';
 import { FacebookConfig } from '../auth-facebook/config/facebook-config.type';
@@ -13,6 +14,7 @@ export type AllConfigType = {
   app: AppConfig;
   apple: AppleConfig;
   auth: AuthConfig;
+  compression: CompressionConfig;
   database: DatabaseConfig;
   facebook: FacebookConfig;
   file: FileConfig;

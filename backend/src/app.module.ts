@@ -26,6 +26,7 @@ import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import proxyConfig from './proxy/config/proxy.config';
 import gcConfig from './proxy/config/gc.config';
+import compressionConfig from './compression/config/compression.config';
 import { ProxyModule } from './proxy/proxy.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -65,6 +66,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
         appleConfig,
         proxyConfig,
         gcConfig,
+        compressionConfig,
       ],
       envFilePath: ['.env'],
     }),

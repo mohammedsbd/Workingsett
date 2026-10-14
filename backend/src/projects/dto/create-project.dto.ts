@@ -13,6 +13,10 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { GC_MODES, GcMode } from '../../gc/gc-config';
+import {
+  COMPRESSION_KEY_SOURCES,
+  CompressionKeySource,
+} from '../domain/project';
 import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 
 export class CreateProjectDto {
@@ -118,6 +122,35 @@ export class CreateProjectDto {
   @IsNotEmpty({ each: true })
   @MaxLength(200, { each: true })
   gcSideEffectTools?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      'Compress finished stretches of long sessions into state blocks (GC on mode only). Each summary is a paid model call.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  compressionEnabled?: boolean;
+
+  @ApiPropertyOptional({
+    enum: COMPRESSION_KEY_SOURCES,
+    description:
+      "Who pays for summaries: Parsim's internal model, or the project's own provider key with compressionModel.",
+  })
+  @IsOptional()
+  @IsIn(COMPRESSION_KEY_SOURCES)
+  compressionKeySource?: CompressionKeySource;
+
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description: "Model for summaries when the project's own key is used.",
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  compressionModel?: string | null;
 
   @ApiPropertyOptional({
     description:

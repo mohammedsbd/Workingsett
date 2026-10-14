@@ -70,7 +70,14 @@ describe('settings form values', () => {
       gcArchiveAfterTurns: { value: null, default: 6 }
     },
     sideEffectTools: { project: ['save_note'], server: [], patterns: ['send_'] },
-    recallMaxPerRequest: 3
+    recallMaxPerRequest: 3,
+    compression: {
+      enabled: false,
+      keySource: 'parsim',
+      model: null,
+      minTokens: 6000,
+      internalModelConfigured: true
+    }
   };
 
   it('round-trips the project settings, empty meaning the default', () => {
@@ -90,8 +97,26 @@ describe('settings form values', () => {
       gcBatchTokens: 2000,
       gcProtectedTurns: null,
       gcArchiveMinTokens: 0,
-      gcArchiveAfterTurns: null
+      gcArchiveAfterTurns: null,
+      compressionEnabled: false,
+      compressionKeySource: 'parsim',
+      compressionModel: null
     });
+  });
+
+  it('maps the compression settings, an empty model meaning none', () => {
+    const update = toUpdate({
+      ...toForm(settings),
+      compressionEnabled: true,
+      compressionKeySource: 'project',
+      compressionModel: '  small-model  '
+    });
+    expect(update).toMatchObject({
+      compressionEnabled: true,
+      compressionKeySource: 'project',
+      compressionModel: 'small-model'
+    });
+    expect(toUpdate({ ...toForm(settings), compressionModel: ' ' }).compressionModel).toBeNull();
   });
 
   it('cleans up tool names and maps content storage', () => {

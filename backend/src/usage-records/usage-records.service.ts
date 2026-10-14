@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TokenUsage } from './domain/token-usage';
-import { UsageRecord } from './domain/usage-record';
+import { UsageKind, UsageRecord } from './domain/usage-record';
 import { UsageRecordRepository } from './infrastructure/persistence/usage-record.repository';
 import { ModelPricingService } from './pricing/model-pricing.service';
 
@@ -16,6 +16,8 @@ export type ProxiedRequestOutcome = {
   streamed: boolean;
   /** Upstream calls behind this request (more than 1 after recalls). */
   upstreamCalls?: number;
+  /** Defaults to a proxied client request. */
+  kind?: UsageKind;
 };
 
 @Injectable()
@@ -49,6 +51,7 @@ export class UsageRecordsService {
       status: outcome.status,
       streamed: outcome.streamed,
       upstreamCalls: outcome.upstreamCalls ?? 1,
+      kind: outcome.kind ?? 'proxy',
     });
   }
 

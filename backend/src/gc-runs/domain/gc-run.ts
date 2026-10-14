@@ -23,6 +23,8 @@ export class GcRun {
   error: string | null;
   tokensBefore: number | null;
   tokensAfter: number | null;
+  /** Tokens removed by state blocks (included in tokensAfter). */
+  compressionSavedTokens: number;
   /** Rewrites applied, sticky and new. */
   decisionCount: number;
   /** Rewrites first made by this request. */

@@ -21,7 +21,12 @@ import {
   reduction,
   REASON_LABELS
 } from '@/lib/parsim/format';
-import type { ContentPart, TimelineDecision, TimelineRequest } from '@/lib/parsim/types';
+import type {
+  ContentPart,
+  TimelineCompression,
+  TimelineDecision,
+  TimelineRequest
+} from '@/lib/parsim/types';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { sessionQueryOptions } from '../api/queries';
 
@@ -59,7 +64,11 @@ export function SessionDetailView({
           <TabsTrigger value='requests'>Requests</TabsTrigger>
           <TabsTrigger value='decisions'>Decisions</TabsTrigger>
           <TabsTrigger value='recalls'>Recalls</TabsTrigger>
+          <TabsTrigger value='compressions'>Compressions</TabsTrigger>
         </TabsList>
+        <TabsContent value='compressions'>
+          <CompressionsList compressions={data.compressions} contentAllowed={data.contentAllowed} />
+        </TabsContent>
         <TabsContent value='requests'>
           <RequestsTable requests={data.requests} />
         </TabsContent>
@@ -298,4 +307,70 @@ export function contentText(parts: ContentPart[]): string {
       }
     })
     .join('\n');
+}
+
+const COMPRESSION_STATUS = {
+  pending: 'Summarizing',
+  ready: 'In use',
+  failed: 'Failed'
+} as const;
+
+/** Finished stretches summarized into state blocks. */
+function CompressionsList({
+  compressions,
+  contentAllowed
+}: {
+  compressions: TimelineCompression[];
+  contentAllowed: boolean;
+}) {
+  if (compressions.length === 0) {
+    return (
+      <p className='text-muted-foreground rounded-lg border p-6 text-center text-sm'>
+        No stretch of this session was compressed. Compression runs in On mode for projects that
+        turn it on.
+      </p>
+    );
+  }
+  return (
+    <div className='flex flex-col gap-2'>
+      {compressions.map((c) => (
+        <Collapsible key={c.id} className='rounded-lg border'>
+          <CollapsibleTrigger className='flex w-full flex-wrap items-center gap-3 p-3 text-left text-sm'>
+            <Badge variant={c.status === 'failed' ? 'destructive' : 'outline'}>
+              {COMPRESSION_STATUS[c.status]}
+            </Badge>
+            <span className='font-medium'>
+              Turns {c.firstTurn} to {c.lastTurn}
+            </span>
+            <span className='text-muted-foreground tabular-nums'>
+              {formatTokens(c.tokensBefore)}
+              {c.tokensAfter !== null && ` to ${formatTokens(c.tokensAfter)}`} tokens
+            </span>
+            {c.costUsd !== null && (
+              <span className='text-muted-foreground tabular-nums'>
+                summary cost {formatUsd(c.costUsd)}
+              </span>
+            )}
+            <span className='text-muted-foreground ml-auto text-xs'>
+              <LocalTime date={c.createdAt} />
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent className='border-t p-3 text-sm'>
+            {c.error && <p className='text-destructive mb-2'>Error: {c.error}</p>}
+            {!contentAllowed ? (
+              <p className='text-muted-foreground'>
+                The state block is hidden because this project does not store content.
+              </p>
+            ) : c.stateBlock ? (
+              <pre className='bg-muted max-h-96 overflow-auto rounded p-3 text-xs whitespace-pre-wrap'>
+                {c.stateBlock}
+              </pre>
+            ) : (
+              <p className='text-muted-foreground'>No state block yet.</p>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      ))}
+    </div>
+  );
 }

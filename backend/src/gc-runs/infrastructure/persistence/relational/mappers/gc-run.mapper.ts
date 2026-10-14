@@ -15,6 +15,7 @@ export class GcRunMapper {
     domainEntity.error = raw.error;
     domainEntity.tokensBefore = raw.tokensBefore;
     domainEntity.tokensAfter = raw.tokensAfter;
+    domainEntity.compressionSavedTokens = raw.compressionSavedTokens ?? 0;
     domainEntity.decisionCount = raw.decisionCount;
     domainEntity.newDecisionCount = raw.newDecisionCount;
     domainEntity.durationMs = raw.durationMs;

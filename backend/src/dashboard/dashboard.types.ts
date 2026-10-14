@@ -1,5 +1,6 @@
 import { CanonicalContent } from '../context/context-items';
 import { GcMode } from '../gc/gc-config';
+import { CompressionKeySource } from '../projects/domain/project';
 
 /** Tokens and dollars the GC removed (or would have, in shadow mode). */
 export type Savings = { tokensSaved: number; dollarsSaved: number };
@@ -27,6 +28,10 @@ export type SavingsSummary = {
     /** What shadow mode would have saved (estimates). */
     estimated: Savings;
   };
+  /** State blocks: summaries made, tokens they removed, and their cost. */
+  compression: { summaries: number; tokensSaved: number; costUsd: number };
+  /** Applied dollars saved minus what the summaries cost. */
+  netDollarsSaved: number;
   recalls: { count: number; found: number; tokensRestored: number };
   decisionsByReason: {
     duplicate: number;
@@ -40,6 +45,8 @@ export type DailySavings = {
   date: string;
   requests: number;
   costUsd: number;
+  /** What summaries cost that day (not in costUsd). */
+  compressionCostUsd: number;
   tokensBefore: number;
   tokensAfter: number;
   applied: Savings;
@@ -108,6 +115,22 @@ export type TimelineDecision = {
   content?: CanonicalContent | null;
 };
 
+export type TimelineCompression = {
+  id: string;
+  status: string;
+  firstTurn: number;
+  lastTurn: number;
+  tokensBefore: number;
+  tokensAfter: number | null;
+  /** What the summary cost. */
+  costUsd: number | null;
+  error: string | null;
+  createdAt: string;
+  readyAt: string | null;
+  /** The state block, only when the project stores content. */
+  stateBlock?: string | null;
+};
+
 export type SessionDetail = {
   session: Omit<SessionRow, 'tokensSaved' | 'decisions' | 'recalls'>;
   /** Whether content may be shown (the project's storeContent setting). */
@@ -121,6 +144,7 @@ export type SessionDetail = {
     tokensRestored: number;
     createdAt: string;
   }[];
+  compressions: TimelineCompression[];
 };
 
 export type ThresholdSetting = {
@@ -147,4 +171,13 @@ export type ProjectSettings = {
     patterns: string[];
   };
   recallMaxPerRequest: number;
+  compression: {
+    enabled: boolean;
+    keySource: CompressionKeySource;
+    model: string | null;
+    /** COMPRESSION_MIN_TOKENS. */
+    minTokens: number;
+    /** Whether PARSIM_INTERNAL_MODEL and its key are set. */
+    internalModelConfigured: boolean;
+  };
 };

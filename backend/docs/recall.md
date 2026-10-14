@@ -88,4 +88,4 @@ Streamed requests are supported, with these trade-offs:
 
 Previous: [Context GC](gc.md)
 
-Next: [Dashboard API](dashboard.md)
+Next: [Compression](compression.md)

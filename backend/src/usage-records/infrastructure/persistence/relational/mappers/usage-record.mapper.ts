@@ -18,6 +18,7 @@ export class UsageRecordMapper {
     domainEntity.status = raw.status;
     domainEntity.streamed = raw.streamed;
     domainEntity.upstreamCalls = raw.upstreamCalls;
+    domainEntity.kind = (raw.kind ?? 'proxy') as UsageRecord['kind'];
     domainEntity.createdAt = raw.createdAt;
     return domainEntity;
   }

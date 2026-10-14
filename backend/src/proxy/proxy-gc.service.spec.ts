@@ -121,8 +121,8 @@ const compressing = {
   ...project,
   compressionEnabled: true,
   gcSideEffectTools: [] as string[],
-  // Archive nothing, so the state block is what shrinks the stretch.
-  gcArchiveMinTokens: 1_000_000,
+  // No new GC decisions, so the state block is what shrinks the stretch.
+  gcMinContextTokens: 1_000_000,
 } as Project;
 const converter = new OpenAiChatConverter();
 
@@ -168,6 +168,16 @@ const research = () =>
   Buffer.from(
     JSON.stringify(toOpenAiBody(loadConversation('research-agent-session'))),
   );
+
+/** A request in on mode, then what happens after its response. */
+async function respond(
+  service: ProxyGcService,
+  request: GcRequest,
+  agentSessionId: string | null,
+): Promise<void> {
+  const evaluation = await service.beforeForward(request);
+  await service.afterResponse(request, agentSessionId, evaluation);
+}
 
 describe('ProxyGcService', () => {
   it('should forward a smaller request in on mode and store archives first', async () => {
@@ -373,7 +383,7 @@ describe('ProxyGcService', () => {
     it('should queue a summary of the next finished stretch after the response', async () => {
       const { service, store } = await setup();
 
-      await service.afterResponse(input(research(), compressing), 'sess1');
+      await respond(service, input(research(), compressing), 'sess1');
 
       expect(store.compressions).toHaveLength(1);
       expect(store.compressions[0]).toMatchObject({
@@ -385,31 +395,46 @@ describe('ProxyGcService', () => {
       expect(store.jobs).toEqual([{ compressionId: 'c0' }]);
 
       // One pending summary per session at a time.
-      await service.afterResponse(input(research(), compressing), 'sess1');
+      await respond(service, input(research(), compressing), 'sess1');
       expect(store.compressions).toHaveLength(1);
     });
 
     it('should not queue without compression enabled, in shadow mode or without a session', async () => {
       const { service, store } = await setup();
-      await service.afterResponse(input(research()), 'sess1');
-      await service.afterResponse(
+      await respond(service, input(research()), 'sess1');
+      await respond(
+        service,
         input(research(), { ...compressing, gcMode: 'shadow' } as Project),
         'sess1',
       );
-      await service.afterResponse(input(research(), compressing), null);
+      await respond(service, input(research(), compressing), null);
+      expect(store.compressions).toEqual([]);
+    });
+
+    it('should not queue when the GC already shrank the stretch below the minimum', async () => {
+      const { service, store } = await setup();
+      // The GC drops duplicates and archives the large tool results.
+      await respond(
+        service,
+        input(research(), {
+          ...compressing,
+          gcMinContextTokens: null,
+        } as Project),
+        'sess1',
+      );
       expect(store.compressions).toEqual([]);
     });
 
     it('should send the original turns until the block is ready, then the block', async () => {
       const { service, store } = await setup();
       store.session = { id: 'sess1' } as AgentSession;
-      await service.afterResponse(input(research(), compressing), 'sess1');
+      await respond(service, input(research(), compressing), 'sess1');
 
       const pending = await service.beforeForward(
         input(research(), compressing),
       );
       expect(pending.body.toString()).not.toContain(STATE_BLOCK_START);
-      expect(pending.compressionSavedTokens).toBe(0);
+      expect(pending.compressionSavedTokens ?? 0).toBe(0);
 
       const c = store.compressions[0];
       Object.assign(c, {
@@ -442,7 +467,10 @@ describe('ProxyGcService', () => {
       store.failCompressions = true;
 
       const evaluation = await service.beforeForward(
-        input(research(), compressing),
+        input(research(), {
+          ...compressing,
+          gcMinContextTokens: null,
+        } as Project),
       );
 
       expect(evaluation).toMatchObject({ applied: true, error: null });

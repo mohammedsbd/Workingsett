@@ -27,7 +27,13 @@ import {
   renderStateBlock,
   STATE_BLOCK_START,
 } from './state-block';
-import { findStretch, stretchInput, turnsOf } from './stretch';
+import {
+  findStretch,
+  stretchInput,
+  tokensInRange,
+  turnsOf,
+  worthCompressing,
+} from './stretch';
 import { SUMMARY_INSTRUCTIONS, summaryPrompt } from './summary-prompt';
 
 type Format = 'openai' | 'anthropic' | 'gemini';
@@ -47,6 +53,8 @@ const GC_CONFIG = { ...DEFAULT_GC_CONFIG, sideEffectTools: ['save_note'] };
 const isSideEffect = (name: string) => hasSideEffects(name, GC_CONFIG);
 const tokens = (text: string) => Math.ceil(text.length / 4);
 const STRETCH = { minTokens: 6000, protectedTurns: 6 };
+const tokensOfItem = (item: { tokenText: string; imageCount: number }) =>
+  tokens(item.tokenText) + item.imageCount * 85;
 
 function request(
   format: Format,
@@ -64,7 +72,7 @@ function stretchOf(req: InternalRequest, after = 0, config = STRETCH) {
   return findStretch(
     req,
     items,
-    (item) => tokens(item.tokenText) + item.imageCount * 85,
+    tokensInRange(items, tokensOfItem),
     after,
     config,
   );
@@ -180,6 +188,45 @@ describe('compression', () => {
         content: 'changed',
       } as (typeof changed.messages)[number];
       expect(stretchOf(request('openai', changed))!.key).not.toBe(a.key);
+    });
+
+    it('should only compress when the block would at least halve the stretch as sent', () => {
+      const worth = (req: InternalRequest, sent: InternalRequest) => {
+        const sentItems = extractContextItems(sent);
+        const stretch = findStretch(
+          req,
+          extractContextItems(req),
+          tokensInRange(sentItems, tokensOfItem),
+          0,
+          STRETCH,
+        );
+        return (
+          stretch &&
+          worthCompressing({
+            sent,
+            sentItems,
+            stretch,
+            stretchInput: stretchInput(req, stretch, isSideEffect),
+            isSideEffect,
+            count: tokens,
+            tokensOf: tokensOfItem,
+          })
+        );
+      };
+      const research = request('openai', 'research-agent-session');
+      expect(worth(research, research)?.worth).toBe(true);
+
+      // After GC, a long session's stretch is mostly stubs and kept
+      // save_note calls: a block would not halve it.
+      const long = request('openai', buildLongSession(200));
+      const gc = runGc({
+        request: long,
+        config: GC_CONFIG,
+        countTokens: tokens,
+      }).request;
+      const check = worth(long, gc)!;
+      expect(check.worth).toBe(false);
+      expect(worth(long, long)?.worth).toBe(true);
     });
 
     it('should list every original with its archive id and the side-effect actions', () => {

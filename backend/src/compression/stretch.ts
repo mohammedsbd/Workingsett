@@ -18,6 +18,7 @@ import type {
 } from '../compressions/domain/compression';
 import { archiveIdFor } from '../gc/gc-engine';
 import { archivedText } from '../recall/recall-tool';
+import { renderStateBlock } from './state-block';
 
 /**
  * Finished stretches: the part of a conversation that can be summarized
@@ -32,7 +33,9 @@ import { archivedText } from '../recall/recall-tool';
  * - No open tool calls: every call in the stretch has its result in it.
  * - No system or developer messages inside it (they mark a change the
  *   client made on purpose).
- * - At least `minTokens` tokens, so a summary is worth its cost.
+ * - At least `minTokens` tokens as sent (after GC), so a summary is worth
+ *   its cost. `worthCompressing` then checks the block would at least halve
+ *   the stretch, since the GC may already have shrunk it to stubs.
  */
 
 export type StretchConfig = {
@@ -79,14 +82,32 @@ export function stretchKey(
   return sha256Hex(canonicalJson({ startIndex, endIndex, hashes }));
 }
 
+/** Sums item tokens over a message range [startIndex, endIndex). */
+export function tokensInRange(
+  items: ExtractedItem[],
+  tokensOf: (item: ExtractedItem) => number,
+): (startIndex: number, endIndex: number) => number {
+  return (startIndex, endIndex) =>
+    items
+      .filter(
+        (item) =>
+          item.messageIndex !== null &&
+          item.messageIndex >= startIndex &&
+          item.messageIndex < endIndex,
+      )
+      .reduce((sum, item) => sum + tokensOf(item), 0);
+}
+
 /**
  * The next finished stretch after message index `after` (the end of the
- * previous compression, or 0), or null if there is none yet.
+ * previous compression, or 0), or null if there is none yet. `items` are
+ * the request's own (for the key); `tokensIn` measures a range as it is
+ * sent, which can be the GC'd request with the same message indices.
  */
 export function findStretch(
   request: InternalRequest,
   items: ExtractedItem[],
-  tokensOf: (item: ExtractedItem) => number,
+  tokensIn: (startIndex: number, endIndex: number) => number,
   after: number,
   config: StretchConfig,
 ): Stretch | null {
@@ -118,14 +139,7 @@ export function findStretch(
     [...results].every((id) => calls.has(id));
   if (!closed) return null;
 
-  const tokens = items
-    .filter(
-      (item) =>
-        item.messageIndex !== null &&
-        item.messageIndex >= startIndex &&
-        item.messageIndex < endIndex,
-    )
-    .reduce((sum, item) => sum + tokensOf(item), 0);
+  const tokens = tokensIn(startIndex, endIndex);
   if (tokens < config.minTokens) return null;
 
   return {
@@ -214,4 +228,55 @@ export function stretchInput(
     messages: stretchMessages,
     actions,
   };
+}
+
+/** Tokens a summary's goal, decisions, facts and open items may take. */
+export const SUMMARY_ALLOWANCE_TOKENS = 600;
+
+/**
+ * Whether a stretch is worth a summary: the state block (with its action
+ * lines, original ids and a summary allowance) plus the side-effect calls
+ * and results kept next to it must take at most half of what the stretch
+ * costs as sent. Decided once, before any summary is paid for.
+ */
+export function worthCompressing(input: {
+  /** The request as sent (after GC), same message indices. */
+  sent: InternalRequest;
+  sentItems: ExtractedItem[];
+  stretch: Stretch;
+  stretchInput: CompressionInput;
+  isSideEffect: (toolName: string) => boolean;
+  count: (text: string) => number;
+  tokensOf: (item: ExtractedItem) => number;
+}): { worth: boolean; estimate: number } {
+  const { stretch, sent } = input;
+  const ids = new Set<string>();
+  for (let i = stretch.startIndex; i < stretch.endIndex; i++) {
+    for (const part of sent.messages[i]?.parts ?? []) {
+      if (part.type === 'tool_call' && input.isSideEffect(part.name)) {
+        ids.add(part.id);
+      }
+    }
+  }
+  const kept = input.sentItems
+    .filter(
+      (item) =>
+        item.messageIndex !== null &&
+        item.messageIndex >= stretch.startIndex &&
+        item.messageIndex < stretch.endIndex &&
+        item.toolCallId !== null &&
+        ids.has(item.toolCallId),
+    )
+    .reduce((sum, item) => sum + input.tokensOf(item), 0);
+  const block = input.count(
+    renderStateBlock({
+      summary: { goal: '', decisions: [], facts: [], openItems: [] },
+      firstTurn: stretch.firstTurn,
+      lastTurn: stretch.lastTurn,
+      actions: input.stretchInput.actions,
+      messages: input.stretchInput.messages,
+    }),
+  );
+  const estimate = kept + block + SUMMARY_ALLOWANCE_TOKENS;
+  return { worth: estimate * 2 <= stretch.tokens, estimate };
 }

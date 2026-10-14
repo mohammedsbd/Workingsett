@@ -755,6 +755,7 @@ export class ProxyService implements BeforeApplicationShutdown {
           forward.sessionHeader,
         ),
         agentSessionId,
+        evaluation,
       );
     }
   }

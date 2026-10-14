@@ -102,7 +102,14 @@ describe('Compression (e2e)', () => {
     await request(t.server)
       .patch(`/api/v1/projects/${fx.project.id}`)
       .auth(fx.adminToken, { type: 'bearer' })
-      .send({ gcMode: 'on', compressionEnabled: true, ...settings })
+      // No new GC decisions: the GC alone would shrink this fixture so
+      // much that no stretch is worth a summary (see docs/compression.md).
+      .send({
+        gcMode: 'on',
+        compressionEnabled: true,
+        gcMinContextTokens: 1_000_000,
+        ...settings,
+      })
       .expect(200);
     return fx;
   }
@@ -335,6 +342,14 @@ describe('Compression (e2e)', () => {
     expect(failed.error).toBe('upstream returned 400');
     await send(fx);
     expect(upstream.lastRequest.rawBody).not.toContain(STATE_BLOCK_START);
+  });
+
+  it('should not pay for a summary when the GC already shrank the stretch', async () => {
+    const fx = await compressingProject({ gcMinContextTokens: null });
+    await send(fx);
+    await send(fx);
+    expect(await compressions(fx.project.id)).toEqual([]);
+    expect(internal.requests).toEqual([]);
   });
 
   it('should not compress projects in shadow mode', async () => {

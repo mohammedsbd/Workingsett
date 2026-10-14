@@ -167,6 +167,7 @@ export class ProxyGcService {
   async afterResponse(
     input: GcRequest,
     agentSessionId: string | null,
+    evaluation: GcEvaluation,
   ): Promise<void> {
     if (!agentSessionId || !this.compression.enabledFor(input.project)) return;
     try {
@@ -177,6 +178,8 @@ export class ProxyGcService {
         project: input.project,
         agentSessionId,
         request,
+        // Stretches are measured as sent: after GC, before state blocks.
+        sent: evaluation.result?.request ?? request,
         target: { upstream: input.upstream, model: request.model },
       });
     } catch (error) {

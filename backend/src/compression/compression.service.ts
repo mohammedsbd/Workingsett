@@ -23,7 +23,12 @@ import {
   parseSummary,
   renderStateBlock,
 } from './state-block';
-import { findStretch, stretchInput } from './stretch';
+import {
+  findStretch,
+  stretchInput,
+  tokensInRange,
+  worthCompressing,
+} from './stretch';
 import { summarize, SummarizerError, SummarizerTarget } from './summarizer';
 import { SUMMARY_INSTRUCTIONS, summaryPrompt } from './summary-prompt';
 
@@ -145,10 +150,13 @@ export class CompressionService implements OnModuleInit {
   async maybeEnqueue(input: {
     project: Project;
     agentSessionId: string;
+    /** The request as the client sent it. */
     request: InternalRequest;
+    /** The request as forwarded (after GC), same message indices. */
+    sent: InternalRequest;
     target: Target;
   }): Promise<Compression | null> {
-    const { project, agentSessionId, request, target } = input;
+    const { project, agentSessionId, request, sent, target } = input;
     try {
       const existing = await this.compressions.findBySession(agentSessionId);
       if (existing.some((c) => c.status === 'pending')) return null;
@@ -156,20 +164,38 @@ export class CompressionService implements OnModuleInit {
         0,
         ...existing.filter((c) => c.status === 'ready').map((c) => c.endIndex),
       );
-      const items = extractContextItems(request);
       const gc = projectGcConfig(
         project,
         this.configService.getOrThrow('gc', { infer: true }),
       );
+      const tokensOf = (item: ExtractedItem) =>
+        this.tokens.count(item.tokenText, item.imageCount, target).tokens;
+      const sentItems = extractContextItems(sent);
       const stretch = findStretch(
         request,
-        items,
-        (item) =>
-          this.tokens.count(item.tokenText, item.imageCount, target).tokens,
+        extractContextItems(request),
+        tokensInRange(sentItems, tokensOf),
         after,
         { minTokens: this.config.minTokens, protectedTurns: gc.protectedTurns },
       );
       if (!stretch) return null;
+      const isSideEffect = this.isSideEffect(project);
+      const stretchData = stretchInput(request, stretch, isSideEffect);
+      const { worth, estimate } = worthCompressing({
+        sent,
+        sentItems,
+        stretch,
+        stretchInput: stretchData,
+        isSideEffect,
+        count: (text) => this.tokens.count(text, 0, target).tokens,
+        tokensOf,
+      });
+      if (!worth) {
+        this.logger.log(
+          `compression skipped project=${project.id} session=${agentSessionId} turns=${stretch.firstTurn}-${stretch.lastTurn} tokens=${stretch.tokens} estimate=${estimate}`,
+        );
+        return null;
+      }
       const created = await this.compressions.createPending({
         projectId: project.id,
         agentSessionId,
@@ -178,7 +204,7 @@ export class CompressionService implements OnModuleInit {
         endIndex: stretch.endIndex,
         firstTurn: stretch.firstTurn,
         lastTurn: stretch.lastTurn,
-        input: stretchInput(request, stretch, this.isSideEffect(project)),
+        input: stretchData,
         tokensBefore: stretch.tokens,
       });
       if (!created) return null;

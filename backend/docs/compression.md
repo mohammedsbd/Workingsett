@@ -68,6 +68,8 @@ Originals:
 [end of parsim state block]
 ```
 
+An original id is listed once, at the first turn it appears in (repeated content has the same id).
+
 The rendered block is stored once and sent byte for byte on every later request, so the prompt prefix stays cacheable (see [cache stability](gc.md#sticky-rewrites-and-prompt-caching)).
 
 ## Applying a block
@@ -139,7 +141,7 @@ Tokens of the context (OpenAI format, `gpt-4o` encoding), with the default GC se
 | research-agent-session | 117 | 27,301 | 7,061 | 7,061 | 0 (under 6,000 as sent) |
 | long session, 60 rounds | 160 | 35,750 | 7,826 | 7,826 | 0 (under 6,000 as sent) |
 | long session, 120 rounds | 324 | 76,320 | 10,378 | 10,378 | 0 (under 6,000 as sent) |
-| long session, 200 rounds | 536 | 125,639 | 13,813 | 13,813 | 0 (not worth it: 9,220 sent, block estimate 11,647) |
+| long session, 200 rounds | 536 | 125,639 | 13,813 | 13,813 | 0 (not worth it: 9,220 sent, block estimate 4,883) |
 
 These fixtures repeat their tool output, so the GC alone removes 74% to 89% and leaves little for a summary; compression correctly declines. Before the "worth it" rule, a block on the 120-round session added 1,873 tokens.
 
@@ -147,13 +149,55 @@ Where the GC has made no decisions yet (for example below `GC_MIN_CONTEXT_TOKENS
 
 | Fixture | Tokens | Compression alone | Reduction |
 | --- | --- | --- | --- |
-| research-agent-session | 27,301 | 6,268 | 77.0% |
-| long session, 60 rounds | 35,750 | 7,628 | 78.7% |
-| long session, 200 rounds | 125,639 | 16,139 | 87.2% |
+| research-agent-session | 27,301 | 5,397 | 80.2% |
+| long session, 60 rounds | 35,750 | 6,264 | 82.5% |
+| long session, 120 rounds | 76,320 | 8,552 | 88.8% |
+| long session, 200 rounds | 125,639 | 9,375 | 92.5% |
 
 ## Example
 
-The opt-in live test (`npm run test:live`, file `test/live/compression.live-spec.ts`) summarizes the research fixture's first finished stretch with the internal model and writes the result to a temp file to check by hand.
+The opt-in live test (`npm run test:live`, file `test/live/compression.live-spec.ts`) summarizes the research fixture's first finished stretch with the internal model and writes the result to a temp file. One run on 2026-10-14 with `gemini-3.8-flash` (synthetic fixture data, free-tier key):
+
+- the stretch: turns 1 to 37, 23,683 tokens;
+- the summary call: 26,527 input and 670 output tokens (about $0.02 at the listed price);
+- the block: 2,289 tokens.
+
+Checked by hand against the fixture: the goal, the URLs, every revision's figures (for example 11.0, 14.0 and 17.0 units for battery recycling), the six saved notes and the open items match it, and nothing is invented. The agent made no explicit choices in this stretch, so "Decisions made" is empty. The block, with the Originals list cut short:
+
+```text
+[parsim state block: turns 1 to 37 were compressed. Call parsim_recall with an id from Originals to see an original message.]
+Goal: Research the current state of battery technology for grid storage across six subtopics, note conflicting source figures, flag figures dependent on temperature, and email a two-page report to requester@example.com.
+Decisions made:
+- none
+Facts learned:
+- Six article URLs identified: 'https://research.example.com/articles/battery-recycling', 'https://research.example.com/articles/grid-storage', 'https://research.example.com/articles/solid-state-cells', 'https://research.example.com/articles/sodium-ion-cells', 'https://research.example.com/articles/second-life-packs', and 'https://research.example.com/articles/cathode-chemistry'.
+- Across all fetched pages and sections, authors note that results depend on temperature, cycle count, and test protocol, and that figures from different labs are not directly comparable.
+- Section 1 measurement 0 for battery recycling changed across revisions: 11.0 units (revision 0), 14.0 units (revision 1), and 17.0 units (revision 2).
+- Section 1 measurement 1 for grid storage changed across revisions: 22.0 units (revision 0), 25.0 units (revision 1), and 28.0 units (revision 2).
+- Section 1 measurement 2 for solid-state cells was 33.0 units in revision 0 and 36.0 units in revision 1.
+- Section 1 measurement 3 for sodium-ion cells was 44.0 units in revision 0 and 47.0 units in revision 1.
+- Section 1 measurement 4 for second-life packs was 55.0 units in revision 0 and 58.0 units in revision 1.
+- Section 1 measurement 5 for cathode chemistry was 66.0 units in revision 0 and 69.0 units in revision 1.
+- Saved notes exist with IDs note-1 through note-6 corresponding to revision 0 key values.
+Open items:
+- Check remaining subtopics (solid-state cells, sodium-ion cells, second-life packs, cathode chemistry) for revision 2 updates.
+- Document discrepancies/conflicts across revisions and labs.
+- Flag all figures dependent on temperature as instructed by user.
+- Compile the two-page report and send it to requester@example.com.
+Actions taken (their calls and results follow this block, unchanged):
+- save_note({"title":"Notes: battery recycling","body":"Key figure for battery recycling: 11.0 units (see https://research.example.com/articles/battery-recycling)."}) -> {"ok":true,"noteId":"note-1"}
+- save_note({"title":"Notes: grid storage","body":"Key figure for grid storage: 22.0 units (see https://research.example.com/articles/grid-storage)."}) -> {"ok":true,"noteId":"note-2"}
+- save_note({"title":"Notes: solid-state cells","body":"Key figure for solid-state cells: 33.0 units (see https://research.example.com/articles/solid-state-cells)."}) -> {"ok":true,"noteId":"note-3"}
+- save_note({"title":"Notes: sodium-ion cells","body":"Key figure for sodium-ion cells: 44.0 units (see https://research.example.com/articles/sodium-ion-cells)."}) -> {"ok":true,"noteId":"note-4"}
+- save_note({"title":"Notes: second-life packs","body":"Key figure for second-life packs: 55.0 units (see https://research.example.com/articles/second-life-packs)."}) -> {"ok":true,"noteId":"note-5"}
+- save_note({"title":"Notes: cathode chemistry","body":"Key figure for cathode chemistry: 66.0 units (see https://research.example.com/articles/cathode-chemistry)."}) -> {"ok":true,"noteId":"note-6"}
+Originals:
+- turn 1: arc_966e0b9394bfc6bb, arc_55a707c1a7ec74c1
+- turn 2: arc_38133a43b0c51995, arc_5b7b68d29bf1f294
+- turn 3: arc_8da402cb44efcb0f, arc_da2680a551fcdf95, arc_c9ea4dff2fe6eda8
+- ... (one line per turn up to turn 37)
+[end of parsim state block]
+```
 
 ---
 

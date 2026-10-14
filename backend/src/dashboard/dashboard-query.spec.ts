@@ -10,7 +10,7 @@ describe('dashboard queries', () => {
       from: new Date('2026-09-11T15:30:00Z'),
       to: now,
     });
-    expect(parseRange({ to: '2026-01-31T00:00:00Z' }).from).toEqual(
+    expect(parseRange({ to: '2026-01-31T00:00:00Z' }, now).from).toEqual(
       new Date('2026-01-01T00:00:00Z'),
     );
   });

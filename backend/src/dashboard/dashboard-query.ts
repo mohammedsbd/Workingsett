@@ -10,11 +10,12 @@ export type DateRange = { from: Date; to: Date };
 /**
  * The requested range, defaulting to the 30 days before `now`. `to` is
  * exclusive. Rejects empty, reversed and over-long ranges.
+ *
+ * `now` must come from the database clock (see `DashboardService.dbNow`):
+ * rows get their `createdAt` from the database's now(), and Node's clock can
+ * run a few milliseconds behind it, which would leave the newest rows out.
  */
-export function parseRange(
-  query: DateRangeQueryDto,
-  now = new Date(),
-): DateRange {
+export function parseRange(query: DateRangeQueryDto, now: Date): DateRange {
   const to = query.to ? new Date(query.to) : now;
   const from = query.from
     ? new Date(query.from)

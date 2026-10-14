@@ -45,11 +45,11 @@ export class Compression {
   stateBlock: string | null;
   /** Tokens of the original stretch. */
   tokensBefore: number;
-  /** Tokens of the state block and the kept side-effect messages. */
+  /** Tokens of the state block (kept side-effect messages not included). */
   tokensAfter: number | null;
   /** Usage record of the summarization call. */
   usageRecordId: string | null;
-  /** Error class name when failed. */
+  /** Short reason when failed (never content). */
   error: string | null;
   createdAt: Date;
   readyAt: Date | null;

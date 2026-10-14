@@ -6,7 +6,20 @@ import { AgentSession } from '../agent-sessions/domain/agent-session';
 import { AgentSessionRepository } from '../agent-sessions/infrastructure/persistence/agent-session.repository';
 import { ArchivedItemRepository } from '../archived-items/infrastructure/persistence/archived-item.repository';
 import { NewArchivedItem } from '../archived-items/infrastructure/persistence/archived-item.repository';
+import { CompressionService } from '../compression/compression.service';
+import {
+  renderStateBlock,
+  STATE_BLOCK_START,
+} from '../compression/state-block';
+import { Compression } from '../compressions/domain/compression';
+import {
+  CompressionRepository,
+  NewCompression,
+} from '../compressions/infrastructure/persistence/compression.repository';
 import { OpenAiChatConverter } from '../context/normalization/openai-chat.converter';
+import { JobsService } from '../jobs/jobs.service';
+import { ProjectsService } from '../projects/projects.service';
+import { UsageRecordsService } from '../usage-records/usage-records.service';
 import { GcDecision } from '../gc-decisions/domain/gc-decision';
 import {
   GcDecisionRepository,
@@ -27,8 +40,11 @@ class Store {
   decisions: GcDecision[] = [];
   runs: GcRun[] = [];
   archived: NewArchivedItem[] = [];
+  compressions: Compression[] = [];
+  jobs: object[] = [];
   failArchive = false;
   failRuns = false;
+  failCompressions = false;
 
   processed: [string, number][] = [];
   sessions: Pick<
@@ -67,6 +83,30 @@ class Store {
     },
     findByProject: () => Promise.resolve(this.runs),
   };
+  compressionRepo: Pick<
+    CompressionRepository,
+    'findBySession' | 'createPending'
+  > = {
+    findBySession: () =>
+      this.failCompressions
+        ? Promise.reject(new Error('db down'))
+        : Promise.resolve(this.compressions),
+    createPending: (c: NewCompression) => {
+      const row = {
+        ...c,
+        id: `c${this.compressions.length}`,
+        status: 'pending',
+      } as Compression;
+      this.compressions.push(row);
+      return Promise.resolve(row);
+    },
+  };
+  jobsService: Pick<JobsService, 'send'> = {
+    send: (_name: string, data: object) => {
+      this.jobs.push(data);
+      return Promise.resolve('job1');
+    },
+  };
   archiveRepo: Pick<ArchivedItemRepository, 'insertMissing'> = {
     insertMissing: (items: NewArchivedItem[]) => {
       if (this.failArchive) return Promise.reject(new Error('db down'));
@@ -77,6 +117,13 @@ class Store {
 }
 
 const project = { id: 'p1', gcMode: 'on' } as Project;
+const compressing = {
+  ...project,
+  compressionEnabled: true,
+  gcSideEffectTools: [] as string[],
+  // Archive nothing, so the state block is what shrinks the stretch.
+  gcArchiveMinTokens: 1_000_000,
+} as Project;
 const converter = new OpenAiChatConverter();
 
 async function setup() {
@@ -84,6 +131,11 @@ async function setup() {
   const moduleRef = await Test.createTestingModule({
     providers: [
       ProxyGcService,
+      CompressionService,
+      { provide: CompressionRepository, useValue: store.compressionRepo },
+      { provide: JobsService, useValue: store.jobsService },
+      { provide: ProjectsService, useValue: {} },
+      { provide: UsageRecordsService, useValue: {} },
       { provide: AgentSessionRepository, useValue: store.sessions },
       { provide: GcDecisionRepository, useValue: store.decisionRepo },
       { provide: GcRunRepository, useValue: store.runRepo },
@@ -96,6 +148,7 @@ async function setup() {
             archiveMinTokens: 500,
             sideEffectTools: ['save_note'],
           },
+          compression: { minTokens: 6000 },
         }),
       },
     ],
@@ -103,8 +156,8 @@ async function setup() {
   return { service: moduleRef.get(ProxyGcService), store };
 }
 
-const input = (rawBody: Buffer): GcRequest => ({
-  project,
+const input = (rawBody: Buffer, forProject = project): GcRequest => ({
+  project: forProject,
   upstream: 'openai',
   converter,
   rawBody,
@@ -315,5 +368,85 @@ describe('ProxyGcService', () => {
         usageRecordId: null,
       }),
     ).resolves.toBeUndefined();
+  });
+  describe('compression', () => {
+    it('should queue a summary of the next finished stretch after the response', async () => {
+      const { service, store } = await setup();
+
+      await service.afterResponse(input(research(), compressing), 'sess1');
+
+      expect(store.compressions).toHaveLength(1);
+      expect(store.compressions[0]).toMatchObject({
+        projectId: 'p1',
+        agentSessionId: 'sess1',
+        status: 'pending',
+        firstTurn: 1,
+      });
+      expect(store.jobs).toEqual([{ compressionId: 'c0' }]);
+
+      // One pending summary per session at a time.
+      await service.afterResponse(input(research(), compressing), 'sess1');
+      expect(store.compressions).toHaveLength(1);
+    });
+
+    it('should not queue without compression enabled, in shadow mode or without a session', async () => {
+      const { service, store } = await setup();
+      await service.afterResponse(input(research()), 'sess1');
+      await service.afterResponse(
+        input(research(), { ...compressing, gcMode: 'shadow' } as Project),
+        'sess1',
+      );
+      await service.afterResponse(input(research(), compressing), null);
+      expect(store.compressions).toEqual([]);
+    });
+
+    it('should send the original turns until the block is ready, then the block', async () => {
+      const { service, store } = await setup();
+      store.session = { id: 'sess1' } as AgentSession;
+      await service.afterResponse(input(research(), compressing), 'sess1');
+
+      const pending = await service.beforeForward(
+        input(research(), compressing),
+      );
+      expect(pending.body.toString()).not.toContain(STATE_BLOCK_START);
+      expect(pending.compressionSavedTokens).toBe(0);
+
+      const c = store.compressions[0];
+      Object.assign(c, {
+        status: 'ready',
+        stateBlock: renderStateBlock({
+          summary: { goal: 'g', decisions: [], facts: ['f'], openItems: [] },
+          firstTurn: c.firstTurn,
+          lastTurn: c.lastTurn,
+          actions: c.input!.actions,
+          messages: c.input!.messages,
+        }),
+      });
+      const ready = await service.beforeForward(input(research(), compressing));
+      const again = await service.beforeForward(input(research(), compressing));
+
+      expect(ready.applied).toBe(true);
+      expect(ready.body.toString()).toContain(STATE_BLOCK_START);
+      expect(ready.body.length).toBeLessThan(pending.body.length);
+      expect(ready.compressionSavedTokens).toBeGreaterThan(0);
+      expect(ready.result!.tokensAfter).toBe(
+        pending.result!.tokensAfter - ready.compressionSavedTokens!,
+      );
+      // Byte-identical on every later request.
+      expect(again.body.equals(ready.body)).toBe(true);
+    });
+
+    it('should fail open to the GC result when state blocks cannot be loaded', async () => {
+      const { service, store } = await setup();
+      store.session = { id: 'sess1' } as AgentSession;
+      store.failCompressions = true;
+
+      const evaluation = await service.beforeForward(
+        input(research(), compressing),
+      );
+
+      expect(evaluation).toMatchObject({ applied: true, error: null });
+      expect(evaluation.compressionSavedTokens).toBe(0);
+    });
   });
 });

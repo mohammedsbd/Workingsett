@@ -37,6 +37,7 @@ import {
 } from './providers/provider-adapter';
 import { SseStreamFilter } from './streaming/sse-stream-filter';
 import { archiveStubIds } from '../recall/archive-stubs';
+import { STATE_BLOCK_START } from '../compression/state-block';
 import {
   AssistantTurn,
   isObject,
@@ -302,7 +303,10 @@ export class ProxyService implements BeforeApplicationShutdown {
     if (max < 1) return null;
     try {
       const text = body.toString('utf8');
-      if (!archiveStubIds(text).length) return null;
+      // Archive stubs and state blocks both point at recallable originals.
+      if (!archiveStubIds(text).length && !text.includes(STATE_BLOCK_START)) {
+        return null;
+      }
       const parsed = JSON.parse(text) as Record<string, unknown>;
       // Gemini rejects tools or a system instruction next to cachedContent.
       if (usesCachedContent(parsed)) return null;
@@ -741,6 +745,18 @@ export class ProxyService implements BeforeApplicationShutdown {
       agentSessionId,
       usageRecordId,
     });
+    if (evaluation.mode === 'on') {
+      await this.gc.afterResponse(
+        gcRequest(
+          project,
+          forward.adapter,
+          forward.rawBody,
+          forward.info.model,
+          forward.sessionHeader,
+        ),
+        agentSessionId,
+      );
+    }
   }
 
   /**

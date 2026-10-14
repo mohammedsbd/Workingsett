@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AgentSessionRepository } from '../agent-sessions/infrastructure/persistence/agent-session.repository';
 import { ArchivedItemRepository } from '../archived-items/infrastructure/persistence/archived-item.repository';
+import { CompressionService } from '../compression/compression.service';
 import { AllConfigType } from '../config/config.type';
 import { canonicalJson } from '../context/canonical-json';
 import { extractContextItems } from '../context/context-items';
 import {
+  InternalRequest,
   isObject,
   MessageConverter,
 } from '../context/normalization/internal-model';
@@ -66,6 +68,7 @@ export class ProxyGcService {
     private readonly decisions: GcDecisionRepository,
     private readonly runs: GcRunRepository,
     private readonly archive: ArchivedItemRepository,
+    private readonly compression: CompressionService,
     private readonly configService: ConfigService<AllConfigType>,
   ) {}
 
@@ -73,12 +76,19 @@ export class ProxyGcService {
   async beforeForward(input: GcRequest): Promise<GcEvaluation> {
     const started = performance.now();
     try {
-      const { result, converter } = await this.evaluate(input);
-      if (!result.decisions.length) {
+      const { result, converter, request, sessionId } =
+        await this.evaluate(input);
+      const compressed = await this.applyCompressions(
+        input,
+        sessionId,
+        request,
+        result.request,
+      );
+      if (!result.decisions.length && !compressed.applied) {
         return this.done('on', input, started, result, false);
       }
       const body = Buffer.from(
-        JSON.stringify(converter.fromInternal(result.request)),
+        JSON.stringify(converter.fromInternal(compressed.request)),
       );
       // Store every archived original before the stub is sent, so it is
       // always recallable (including archives first decided in shadow mode).
@@ -95,12 +105,84 @@ export class ProxyGcService {
             sizeBytes: Buffer.byteLength(canonicalJson(d.original)),
           })),
       );
+      const evaluation = this.done(
+        'on',
+        input,
+        started,
+        compressed.savedTokens
+          ? {
+              ...result,
+              tokensAfter: result.tokensAfter - compressed.savedTokens,
+            }
+          : result,
+        true,
+      );
       return {
-        ...this.done('on', input, started, result, true),
+        ...evaluation,
         body,
+        compressionSavedTokens: compressed.savedTokens,
       };
     } catch (error) {
       return this.failed('on', input, started, error);
+    }
+  }
+
+  /**
+   * The session's ready state blocks on top of the GC'd request. Fails
+   * open: on any error the GC'd request is forwarded without them.
+   */
+  private async applyCompressions(
+    input: GcRequest,
+    sessionId: string | null,
+    original: InternalRequest,
+    request: InternalRequest,
+  ): Promise<{
+    request: InternalRequest;
+    applied: number;
+    savedTokens: number;
+  }> {
+    if (!sessionId || !this.compression.enabledFor(input.project)) {
+      return { request, applied: 0, savedTokens: 0 };
+    }
+    try {
+      return await this.compression.apply({
+        project: input.project,
+        agentSessionId: sessionId,
+        original,
+        request,
+        target: { upstream: input.upstream, model: original.model },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not apply state blocks, forwarding without them project=${input.project.id}: ${(error as Error)?.name ?? 'Error'}`,
+      );
+      return { request, applied: 0, savedTokens: 0 };
+    }
+  }
+
+  /**
+   * After an on-mode response: queues a summary of the session's next
+   * finished stretch when the project compresses. Never throws.
+   */
+  async afterResponse(
+    input: GcRequest,
+    agentSessionId: string | null,
+  ): Promise<void> {
+    if (!agentSessionId || !this.compression.enabledFor(input.project)) return;
+    try {
+      const body: unknown = JSON.parse(input.rawBody.toString('utf8'));
+      if (!isObject(body)) return;
+      const request = input.converter.toInternal(body, { model: input.model });
+      await this.compression.maybeEnqueue({
+        project: input.project,
+        agentSessionId,
+        request,
+        target: { upstream: input.upstream, model: request.model },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not check for compression project=${input.project.id}: ${(error as Error)?.name ?? 'Error'}`,
+      );
     }
   }
 
@@ -183,9 +265,12 @@ export class ProxyGcService {
     }
   }
 
-  private async evaluate(
-    input: GcRequest,
-  ): Promise<{ result: GcResult; converter: MessageConverter }> {
+  private async evaluate(input: GcRequest): Promise<{
+    result: GcResult;
+    converter: MessageConverter;
+    request: InternalRequest;
+    sessionId: string | null;
+  }> {
     const body: unknown = JSON.parse(input.rawBody.toString('utf8'));
     if (!isObject(body)) throw new TypeError('Request body is not an object');
     const request = input.converter.toInternal(body, { model: input.model });
@@ -216,7 +301,12 @@ export class ProxyGcService {
       processedPosition: session?.gcProcessedPosition ?? 0,
       allowArchive,
     });
-    return { result, converter: input.converter };
+    return {
+      result,
+      converter: input.converter,
+      request,
+      sessionId: session?.id ?? null,
+    };
   }
 
   private done(

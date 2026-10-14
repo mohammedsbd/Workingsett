@@ -15,6 +15,7 @@ import {
   SavingsSummary,
   SessionDetail,
   SessionRow,
+  TimelineCompression,
   TimelineDecision,
   TimelineRequest,
 } from './dashboard.types';
@@ -65,12 +66,14 @@ export class DashboardService {
     const params = [project.id, range.from, range.to];
 
     const [usage] = (await this.db.query(
-      `SELECT count(*) AS requests,
-              coalesce(sum("inputTokens"), 0) AS input,
-              coalesce(sum("outputTokens"), 0) AS output,
-              coalesce(sum("cachedInputTokens"), 0) AS cached,
-              coalesce(sum("costUsd"), 0) AS cost,
-              coalesce(sum("upstreamCalls"), 0) AS calls
+      `SELECT count(*) FILTER (WHERE kind = 'proxy') AS requests,
+              coalesce(sum("inputTokens") FILTER (WHERE kind = 'proxy'), 0) AS input,
+              coalesce(sum("outputTokens") FILTER (WHERE kind = 'proxy'), 0) AS output,
+              coalesce(sum("cachedInputTokens") FILTER (WHERE kind = 'proxy'), 0) AS cached,
+              coalesce(sum("costUsd") FILTER (WHERE kind = 'proxy'), 0) AS cost,
+              coalesce(sum("upstreamCalls") FILTER (WHERE kind = 'proxy'), 0) AS calls,
+              count(*) FILTER (WHERE kind = 'compression') AS summaries,
+              coalesce(sum("costUsd") FILTER (WHERE kind = 'compression'), 0) AS "compressionCost"
          FROM usage_record
         WHERE "projectId" = $1 AND "createdAt" >= $2 AND "createdAt" < $3`,
       params,
@@ -86,6 +89,15 @@ export class DashboardService {
       gc.tokensAfter += row.tokensAfter;
       this.add(row.mode === 'on' ? applied : estimated, row);
     }
+
+    const [compressed] = (await this.db.query(
+      `SELECT coalesce(sum("compressionSavedTokens"), 0) AS saved
+         FROM gc_run
+        WHERE "projectId" = $1 AND "createdAt" >= $2 AND "createdAt" < $3
+          AND mode = 'on' AND NOT failed`,
+      params,
+    )) as Record<string, unknown>[];
+    const compressionCostUsd = num(usage.compressionCost);
 
     const [recalls] = (await this.db.query(
       `SELECT count(*) AS count,
@@ -129,6 +141,12 @@ export class DashboardService {
         applied: round(applied),
         estimated: round(estimated),
       },
+      compression: {
+        summaries: num(usage.summaries),
+        tokensSaved: num(compressed.saved),
+        costUsd: roundUsd(compressionCostUsd),
+      },
+      netDollarsSaved: roundUsd(applied.dollarsSaved - compressionCostUsd),
       recalls: {
         count: num(recalls.count),
         found: num(recalls.found),
@@ -158,6 +176,7 @@ export class DashboardService {
         date,
         requests: 0,
         costUsd: 0,
+        compressionCostUsd: 0,
         tokensBefore: 0,
         tokensAfter: 0,
         applied: noSavings(),
@@ -167,17 +186,25 @@ export class DashboardService {
 
     const usage = (await this.db.query(
       `SELECT to_char(date_trunc('day', "createdAt"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS day,
-              count(*) AS requests, coalesce(sum("costUsd"), 0) AS cost
+              count(*) FILTER (WHERE kind = 'proxy') AS requests,
+              coalesce(sum("costUsd") FILTER (WHERE kind = 'proxy'), 0) AS cost,
+              coalesce(sum("costUsd") FILTER (WHERE kind = 'compression'), 0) AS "compressionCost"
          FROM usage_record
         WHERE "projectId" = $1 AND "createdAt" >= $2 AND "createdAt" < $3
         GROUP BY day`,
       params,
-    )) as { day: string; requests: string; cost: string }[];
+    )) as {
+      day: string;
+      requests: string;
+      cost: string;
+      compressionCost: string;
+    }[];
     for (const row of usage) {
       const day = days.get(row.day);
       if (!day) continue;
       day.requests = num(row.requests);
       day.costUsd = num(row.cost);
+      day.compressionCostUsd = num(row.compressionCost);
     }
 
     for (const row of await this.savingsByModel(params, true)) {
@@ -190,6 +217,7 @@ export class DashboardService {
     return [...days.values()].map((day) => ({
       ...day,
       costUsd: roundUsd(day.costUsd),
+      compressionCostUsd: roundUsd(day.compressionCostUsd),
       applied: round(day.applied),
       estimated: round(day.estimated),
     }));
@@ -267,7 +295,7 @@ export class DashboardService {
               r."decisionCount", r."newDecisionCount", r.id AS "gcRunId"
          FROM usage_record u
          LEFT JOIN gc_run r ON r."usageRecordId" = u.id
-        WHERE u."agentSessionId" = $1
+        WHERE u."agentSessionId" = $1 AND u.kind = 'proxy'
         ORDER BY u."createdAt"`,
       [sessionId],
     )) as Record<string, unknown>[];
@@ -288,6 +316,17 @@ export class DashboardService {
 
     const recalls = (await this.db.query(
       `SELECT * FROM recall WHERE "agentSessionId" = $1 ORDER BY "createdAt"`,
+      [sessionId],
+    )) as Record<string, unknown>[];
+
+    const compressions = (await this.db.query(
+      `SELECT c.id, c.status, c."firstTurn", c."lastTurn", c."tokensBefore",
+              c."tokensAfter", c.error, c."createdAt", c."readyAt",
+              u."costUsd"${contentAllowed ? ', c."stateBlock"' : ''}
+         FROM compression c
+         LEFT JOIN usage_record u ON u.id = c."usageRecordId"
+        WHERE c."agentSessionId" = $1
+        ORDER BY c."startIndex"`,
       [sessionId],
     )) as Record<string, unknown>[];
 
@@ -346,12 +385,32 @@ export class DashboardService {
         tokensRestored: num(r.tokensRestored),
         createdAt: iso(r.createdAt),
       })),
+      compressions: compressions.map(
+        (c): TimelineCompression => ({
+          id: c.id as string,
+          status: c.status as string,
+          firstTurn: num(c.firstTurn),
+          lastTurn: num(c.lastTurn),
+          tokensBefore: num(c.tokensBefore),
+          tokensAfter: numOrNull(c.tokensAfter),
+          costUsd: numOrNull(c.costUsd),
+          error: (c.error as string | null) ?? null,
+          createdAt: iso(c.createdAt),
+          readyAt: c.readyAt ? iso(c.readyAt) : null,
+          ...(contentAllowed && {
+            stateBlock: (c.stateBlock as string | null) ?? null,
+          }),
+        }),
+      ),
     };
   }
 
   async settings(ownerId: number, projectId: string): Promise<ProjectSettings> {
     const project = await this.projects.findOwned(ownerId, projectId);
     const gc = this.configService.getOrThrow('gc', { infer: true });
+    const compression = this.configService.getOrThrow('compression', {
+      infer: true,
+    });
     const setting = (value: number | null, fallback: number) => ({
       value,
       default: fallback,
@@ -388,6 +447,15 @@ export class DashboardService {
         'proxy.recallMaxPerRequest',
         { infer: true },
       ),
+      compression: {
+        enabled: project.compressionEnabled,
+        keySource: project.compressionKeySource,
+        model: project.compressionModel,
+        minTokens: compression.minTokens,
+        internalModelConfigured: Boolean(
+          compression.internal.model && compression.internal.apiKey,
+        ),
+      },
     };
   }
 

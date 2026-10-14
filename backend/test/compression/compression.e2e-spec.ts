@@ -212,6 +212,61 @@ describe('Compression (e2e)', () => {
     expect(Number(compression.costUsd)).toBeGreaterThan(0);
   });
 
+  it('should report compression cost and net savings on the dashboard', async () => {
+    const fx = await compressingProject();
+    internal.respondNext(summaryResponse(0));
+    await send(fx);
+    await waitForStatus(fx.project.id, 'ready');
+    await send(fx);
+    const api = (path: string) =>
+      request(t.server)
+        .get(`/api/v1/projects/${fx.project.id}${path}`)
+        .auth(fx.adminToken, { type: 'bearer' })
+        .expect(200)
+        .then(({ body }) => body as Record<string, unknown>);
+
+    const summary = (await api('/dashboard/summary')) as {
+      requests: number;
+      gc: { applied: { dollarsSaved: number } };
+      compression: { summaries: number; tokensSaved: number; costUsd: number };
+      netDollarsSaved: number;
+    };
+    // The summary call is not a client request.
+    expect(summary.requests).toBe(2);
+    expect(summary.compression.summaries).toBe(1);
+    expect(summary.compression.tokensSaved).toBeGreaterThan(0);
+    expect(summary.compression.costUsd).toBeGreaterThan(0);
+    expect(summary.netDollarsSaved).toBeCloseTo(
+      summary.gc.applied.dollarsSaved - summary.compression.costUsd,
+      6,
+    );
+
+    const [session] = (await t.dataSource.query(
+      'SELECT id FROM agent_session WHERE "projectId" = $1',
+      [fx.project.id],
+    )) as { id: string }[];
+    const detail = (await api(`/sessions/${session.id}`)) as {
+      requests: unknown[];
+      compressions: { status: string; costUsd: number; stateBlock?: string }[];
+    };
+    expect(detail.requests).toHaveLength(2);
+    expect(detail.compressions).toHaveLength(1);
+    expect(detail.compressions[0].status).toBe('ready');
+    expect(detail.compressions[0].costUsd).toBeGreaterThan(0);
+    expect(detail.compressions[0].stateBlock).toContain(STATE_BLOCK_START);
+
+    const settings = (await api('/settings')) as {
+      compression: Record<string, unknown>;
+    };
+    expect(settings.compression).toEqual({
+      enabled: true,
+      keySource: 'parsim',
+      model: null,
+      minTokens: 6000,
+      internalModelConfigured: true,
+    });
+  });
+
   it('should make the archived originals of compressed turns recallable', async () => {
     const fx = await compressingProject();
     internal.respondNext(summaryResponse(0));

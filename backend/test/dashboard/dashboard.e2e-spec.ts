@@ -5,8 +5,10 @@ import {
   describe,
   expect,
   it,
+  jest,
 } from '@jest/globals';
 import request from 'supertest';
+import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
 import { ProxyService } from '../../src/proxy/proxy.service';
 import { archiveStubIds } from '../../src/recall/archive-stubs';
 import { RECALL_TOOL_NAME } from '../../src/recall/recall-tool';
@@ -222,6 +224,73 @@ describe('Dashboard endpoints', () => {
       expect(
         days.filter((d) => d.date !== today).every((d) => d.requests === 0),
       ).toBe(true);
+    });
+  });
+
+  describe('range bounds', () => {
+    type Day = { requests: number };
+
+    it("should count the newest rows when Node's clock lags the database's", async () => {
+      const fx = await createProjectWithKey(t);
+      await setMode(fx, { gcMode: 'on' });
+      await proxy(fx, research(), 'session-a');
+
+      // A real lag is a few milliseconds and only loses the race under load;
+      // five seconds makes it certain. Only Date is faked.
+      jest.useFakeTimers({
+        now: Date.now() - 5_000,
+        advanceTimers: true,
+        doNotFake: [
+          'hrtime',
+          'nextTick',
+          'performance',
+          'queueMicrotask',
+          'setImmediate',
+          'clearImmediate',
+          'setInterval',
+          'clearInterval',
+          'setTimeout',
+          'clearTimeout',
+        ],
+      });
+      let summary: Summary;
+      let days: Day[];
+      try {
+        summary = await get<Summary>(fx, '/dashboard/summary');
+        days = await get<Day[]>(fx, '/dashboard/daily');
+      } finally {
+        jest.useRealTimers();
+      }
+
+      expect(summary.requests).toBe(1);
+      expect(summary.gc.runs).toBe(1);
+      expect(days.reduce((total, day) => total + day.requests, 0)).toBe(1);
+    });
+
+    it('should match usage records whatever time zone Node runs in', async () => {
+      const fx = await createProjectWithKey(t);
+      await proxy(fx, research(12), 'session-a');
+      const from = new Date(Date.now() - 60_000).toISOString();
+      const to = new Date(Date.now() + 60_000).toISOString();
+
+      // node-postgres sends Dates with Node's UTC offset. Sending them as UTC
+      // stands in for a Node process whose zone differs from the database
+      // session's (TZ cannot be changed inside Jest's sandbox).
+      const pg = (t.dataSource.driver as PostgresDriver).postgres as {
+        defaults: { parseInputDatesAsUTC: boolean };
+      };
+      pg.defaults.parseInputDatesAsUTC = true;
+      let summary: Summary;
+      try {
+        summary = await get<Summary>(
+          fx,
+          `/dashboard/summary?from=${from}&to=${to}`,
+        );
+      } finally {
+        pg.defaults.parseInputDatesAsUTC = false;
+      }
+
+      expect(summary.requests).toBe(1);
     });
   });
 

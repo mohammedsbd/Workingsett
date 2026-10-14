@@ -33,6 +33,15 @@ const SORT_COLUMNS: Record<SessionSort, string> = {
   tokensSaved: '"tokensSaved"',
 };
 
+/**
+ * usage_record.createdAt is a timestamp without time zone holding the
+ * database session's local time, while node-postgres sends a Date with
+ * Node's own UTC offset. Comparing them directly drops that offset, so the
+ * bounds are read as instants and converted to the session's local time
+ * first. The column stays bare so its index still applies.
+ */
+const USAGE_IN_RANGE = `"createdAt" >= $2::timestamptz::timestamp AND "createdAt" < $3::timestamptz::timestamp`;
+
 /** Postgres returns bigint sums and numerics as strings. */
 const num = (value: unknown): number =>
   value === null || value === undefined ? 0 : Number(value);
@@ -62,7 +71,7 @@ export class DashboardService {
     query: DateRangeQueryDto,
   ): Promise<SavingsSummary> {
     const project = await this.projects.findOwned(ownerId, projectId);
-    const range = parseRange(query);
+    const range = parseRange(query, await this.dbNow());
     const params = [project.id, range.from, range.to];
 
     const [usage] = (await this.db.query(
@@ -75,7 +84,7 @@ export class DashboardService {
               count(*) FILTER (WHERE kind = 'compression') AS summaries,
               coalesce(sum("costUsd") FILTER (WHERE kind = 'compression'), 0) AS "compressionCost"
          FROM usage_record
-        WHERE "projectId" = $1 AND "createdAt" >= $2 AND "createdAt" < $3`,
+        WHERE "projectId" = $1 AND ${USAGE_IN_RANGE}`,
       params,
     )) as Record<string, unknown>[];
 
@@ -167,7 +176,7 @@ export class DashboardService {
     query: DateRangeQueryDto,
   ): Promise<DailySavings[]> {
     const project = await this.projects.findOwned(ownerId, projectId);
-    const range = parseRange(query);
+    const range = parseRange(query, await this.dbNow());
     const params = [project.id, range.from, range.to];
 
     const days = new Map<string, DailySavings>();
@@ -190,7 +199,7 @@ export class DashboardService {
               coalesce(sum("costUsd") FILTER (WHERE kind = 'proxy'), 0) AS cost,
               coalesce(sum("costUsd") FILTER (WHERE kind = 'compression'), 0) AS "compressionCost"
          FROM usage_record
-        WHERE "projectId" = $1 AND "createdAt" >= $2 AND "createdAt" < $3
+        WHERE "projectId" = $1 AND ${USAGE_IN_RANGE}
         GROUP BY day`,
       params,
     )) as {
@@ -457,6 +466,19 @@ export class DashboardService {
         ),
       },
     };
+  }
+
+  /**
+   * The database's current time, rounded up past the current millisecond.
+   * Rows get their createdAt from the database's now(), so measuring "now"
+   * on the same clock keeps every committed row inside a default range even
+   * when Node's clock lags. A JS Date has no microseconds, hence the bump.
+   */
+  private async dbNow(): Promise<Date> {
+    const [{ now }] = (await this.db.query(
+      `SELECT date_trunc('milliseconds', clock_timestamp()) + interval '1 millisecond' AS now`,
+    )) as { now: Date }[];
+    return now;
   }
 
   /** GC savings grouped by model and mode (and day), priced as input. */

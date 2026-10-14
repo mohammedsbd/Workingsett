@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 import { GC_MODES, GcMode } from '../../gc/gc-config';
+
+export const COMPRESSION_KEY_SOURCES = ['parsim', 'project'] as const;
+export type CompressionKeySource = (typeof COMPRESSION_KEY_SOURCES)[number];
 import { User } from '../../users/domain/user';
 
 export class Project {
@@ -63,6 +66,24 @@ export class Project {
    */
   @ApiProperty({ type: String, isArray: true })
   gcSideEffectTools: string[];
+
+  /**
+   * Compress finished stretches of long sessions into state blocks (GC on
+   * mode only). Off by default: each summary is a paid model call.
+   */
+  @ApiProperty({ type: Boolean })
+  compressionEnabled: boolean;
+
+  /**
+   * Whose key pays for summaries: Parsim's internal model, or the project's
+   * own provider key with compressionModel.
+   */
+  @ApiProperty({ enum: COMPRESSION_KEY_SOURCES })
+  compressionKeySource: CompressionKeySource;
+
+  /** Model for summaries when the project's own key is used. */
+  @ApiProperty({ type: String, nullable: true })
+  compressionModel: string | null;
 
   /** AES-256-GCM encrypted provider key. Never serialized. */
   @Exclude({ toPlainOnly: true })

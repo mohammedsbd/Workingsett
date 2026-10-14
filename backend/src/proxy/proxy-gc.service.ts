@@ -42,6 +42,8 @@ export type GcEvaluation = {
   body: Buffer;
   /** Whether `body` is the GC'd request. */
   applied: boolean;
+  /** Tokens removed by state blocks (on mode with compression). */
+  compressionSavedTokens?: number;
   durationMs: number;
 };
 
@@ -139,6 +141,7 @@ export class ProxyGcService {
         error: evaluation.error,
         tokensBefore: result?.tokensBefore ?? null,
         tokensAfter: result?.tokensAfter ?? null,
+        compressionSavedTokens: evaluation.compressionSavedTokens ?? 0,
         decisionCount: result?.decisions.length ?? 0,
         newDecisionCount: fresh.length,
         durationMs: evaluation.durationMs,

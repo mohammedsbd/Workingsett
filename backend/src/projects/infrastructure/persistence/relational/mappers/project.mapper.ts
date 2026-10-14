@@ -1,7 +1,7 @@
 import { GcMode } from '../../../../../gc/gc-config';
 import { Upstream } from '../../../../../proxy/providers/provider-adapter';
 import { UserMapper } from '../../../../../users/infrastructure/persistence/relational/mappers/user.mapper';
-import { Project } from '../../../../domain/project';
+import { CompressionKeySource, Project } from '../../../../domain/project';
 import { ProjectEntity } from '../entities/project.entity';
 
 export class ProjectMapper {
@@ -23,6 +23,10 @@ export class ProjectMapper {
     domainEntity.gcArchiveMinTokens = raw.gcArchiveMinTokens ?? null;
     domainEntity.gcArchiveAfterTurns = raw.gcArchiveAfterTurns ?? null;
     domainEntity.gcSideEffectTools = raw.gcSideEffectTools ?? [];
+    domainEntity.compressionEnabled = raw.compressionEnabled ?? false;
+    domainEntity.compressionKeySource = (raw.compressionKeySource ??
+      'parsim') as CompressionKeySource;
+    domainEntity.compressionModel = raw.compressionModel ?? null;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -46,6 +50,9 @@ export class ProjectMapper {
     persistenceEntity.gcArchiveMinTokens = domainEntity.gcArchiveMinTokens;
     persistenceEntity.gcArchiveAfterTurns = domainEntity.gcArchiveAfterTurns;
     persistenceEntity.gcSideEffectTools = domainEntity.gcSideEffectTools;
+    persistenceEntity.compressionEnabled = domainEntity.compressionEnabled;
+    persistenceEntity.compressionKeySource = domainEntity.compressionKeySource;
+    persistenceEntity.compressionModel = domainEntity.compressionModel;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
 

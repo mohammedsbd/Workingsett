@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export type UsageKind = 'proxy' | 'compression';
+
 /**
  * One proxied request: tokens, cost and timing. Never holds prompt or
  * response content.
@@ -59,6 +61,13 @@ export class UsageRecord {
    */
   @ApiProperty({ type: Number })
   upstreamCalls: number;
+
+  /**
+   * proxy: a client request. compression: a summary Parsim made for a state
+   * block, recorded so savings can be reported net of its cost.
+   */
+  @ApiProperty({ enum: ['proxy', 'compression'] })
+  kind: UsageKind;
 
   @ApiProperty()
   createdAt: Date;

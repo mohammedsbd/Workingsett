@@ -75,6 +75,9 @@ export class GcRunEntity extends EntityRelationalHelper {
   @Column({ type: 'integer', nullable: true })
   tokensAfter: number | null;
 
+  @Column({ type: 'integer', default: 0 })
+  compressionSavedTokens: number;
+
   @Column({ type: 'integer' })
   decisionCount: number;
 

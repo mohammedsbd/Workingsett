@@ -66,6 +66,15 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ type: 'jsonb', default: () => "'[]'" })
   gcSideEffectTools: string[];
 
+  @Column({ type: 'boolean', default: false })
+  compressionEnabled: boolean;
+
+  @Column({ type: 'varchar', length: 8, default: 'parsim' })
+  compressionKeySource: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  compressionModel?: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

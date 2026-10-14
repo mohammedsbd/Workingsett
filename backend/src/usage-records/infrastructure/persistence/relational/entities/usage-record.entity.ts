@@ -88,6 +88,9 @@ export class UsageRecordEntity extends EntityRelationalHelper {
   @Column({ type: 'integer', default: 1 })
   upstreamCalls: number;
 
+  @Column({ type: 'varchar', length: 16, default: 'proxy' })
+  kind: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

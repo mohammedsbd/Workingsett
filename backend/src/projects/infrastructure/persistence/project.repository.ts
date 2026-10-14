@@ -15,6 +15,9 @@ export type NewProject = Pick<
   | 'gcArchiveMinTokens'
   | 'gcArchiveAfterTurns'
   | 'gcSideEffectTools'
+  | 'compressionEnabled'
+  | 'compressionKeySource'
+  | 'compressionModel'
 >;
 
 export type ProjectChanges = Partial<
@@ -31,6 +34,9 @@ export type ProjectChanges = Partial<
     | 'gcArchiveMinTokens'
     | 'gcArchiveAfterTurns'
     | 'gcSideEffectTools'
+    | 'compressionEnabled'
+    | 'compressionKeySource'
+    | 'compressionModel'
   >
 >;
 

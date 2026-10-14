@@ -30,6 +30,9 @@ export class ProjectsService {
       gcArchiveMinTokens: dto.gcArchiveMinTokens ?? null,
       gcArchiveAfterTurns: dto.gcArchiveAfterTurns ?? null,
       gcSideEffectTools: dto.gcSideEffectTools ?? [],
+      compressionEnabled: dto.compressionEnabled ?? false,
+      compressionKeySource: dto.compressionKeySource ?? 'parsim',
+      compressionModel: dto.compressionModel ?? null,
       providerKeyEncrypted: dto.providerKey
         ? this.getCipher().encrypt(dto.providerKey)
         : null,
@@ -66,6 +69,9 @@ export class ProjectsService {
       gcArchiveMinTokens: dto.gcArchiveMinTokens,
       gcArchiveAfterTurns: dto.gcArchiveAfterTurns,
       gcSideEffectTools: dto.gcSideEffectTools,
+      compressionEnabled: dto.compressionEnabled,
+      compressionKeySource: dto.compressionKeySource,
+      compressionModel: dto.compressionModel,
       ...(dto.providerKey !== undefined && {
         providerKeyEncrypted: dto.providerKey
           ? this.getCipher().encrypt(dto.providerKey)

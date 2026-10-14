@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { UPSTREAMS, Upstream } from '../../proxy/providers/provider-adapter';
 import { GC_MODES, GcMode } from '../../gc/gc-config';
+import { User } from '../../users/domain/user';
 
 export const COMPRESSION_KEY_SOURCES = ['parsim', 'project'] as const;
 export type CompressionKeySource = (typeof COMPRESSION_KEY_SOURCES)[number];
-import { User } from '../../users/domain/user';
 
 export class Project {
   @ApiProperty({ type: String })

@@ -410,8 +410,12 @@ describe('Proxy: POST /v1/chat/completions', () => {
       expect(Number(record.costUsd)).toBeCloseTo(0.000175, 8);
       expect(record.latencyMs).toBeGreaterThanOrEqual(0);
 
-      // Content may only live in context_content (when the project stores it).
-      const everything = await dumpAllTables(t.dataSource, ['context_content']);
+      // Content may only live in context_content and snapshot_part (when the
+      // project stores it).
+      const everything = await dumpAllTables(t.dataSource, [
+        'context_content',
+        'snapshot_part',
+      ]);
       expect(everything).not.toContain(PROMPT);
       expect(everything).not.toContain('You are terse.');
       expect(everything).not.toContain(FAKE_REPLY_TEXT);

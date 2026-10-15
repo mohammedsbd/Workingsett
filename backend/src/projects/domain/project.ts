@@ -85,6 +85,18 @@ export class Project {
   @ApiProperty({ type: String, nullable: true })
   compressionModel: string | null;
 
+  /**
+   * Whose key pays for the replay judge: Parsim's internal model, or the
+   * project's own provider key with replayJudgeModel. The replay calls
+   * themselves always use the project's own key.
+   */
+  @ApiProperty({ enum: COMPRESSION_KEY_SOURCES })
+  replayJudgeKeySource: CompressionKeySource;
+
+  /** Model for the replay judge when the project's own key is used. */
+  @ApiProperty({ type: String, nullable: true })
+  replayJudgeModel: string | null;
+
   /** AES-256-GCM encrypted provider key. Never serialized. */
   @Exclude({ toPlainOnly: true })
   providerKeyEncrypted?: string | null;

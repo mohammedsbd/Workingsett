@@ -420,7 +420,10 @@ describe('Proxy: Gemini native API (/v1beta/models)', () => {
         .expect(200);
       await idle();
 
-      const tables = await dumpAllTables(t.dataSource, ['context_content']);
+      const tables = await dumpAllTables(t.dataSource, [
+        'context_content',
+        'snapshot_part',
+      ]);
       expect(tables).not.toContain(GOOGLE_KEY);
       expect(tables).not.toContain(fx.parsimKey);
       expect(tables).not.toContain(PROMPT);

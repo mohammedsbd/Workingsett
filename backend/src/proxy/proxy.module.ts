@@ -7,6 +7,7 @@ import { RelationalGcDecisionPersistenceModule } from '../gc-decisions/infrastru
 import { RelationalGcRunPersistenceModule } from '../gc-runs/infrastructure/persistence/relational/relational-persistence.module';
 import { ParsimApiKeysModule } from '../parsim-api-keys/parsim-api-keys.module';
 import { ProjectsModule } from '../projects/projects.module';
+import { RequestSnapshotsModule } from '../request-snapshots/request-snapshots.module';
 import { UsageRecordsModule } from '../usage-records/usage-records.module';
 import { ChatCompletionsController } from './chat-completions.controller';
 import { GeminiController } from './gemini.controller';
@@ -35,6 +36,7 @@ const ADAPTERS = [
     UsageRecordsModule,
     ContextModule,
     CompressionModule,
+    RequestSnapshotsModule,
     RelationalAgentSessionPersistenceModule,
     RelationalGcRunPersistenceModule,
     RelationalGcDecisionPersistenceModule,
@@ -59,5 +61,7 @@ const ADAPTERS = [
     ProxyGcService,
     RecallService,
   ],
+  // Replay sends recorded requests through the same adapters and recall.
+  exports: [PROVIDER_ADAPTERS, RecallService],
 })
 export class ProxyModule {}

@@ -502,6 +502,33 @@ describe('Dashboard endpoints', () => {
       ).toBeNull();
     });
 
+    it('should show and change who pays for the replay judge', async () => {
+      const fx = await createProjectWithKey(t);
+      type ReplaySettings = {
+        replay: {
+          judgeKeySource: string;
+          judgeModel: string | null;
+          defaultBudgetUsd: number;
+          maxBudgetUsd: number;
+        };
+      };
+      expect((await get<ReplaySettings>(fx, '/settings')).replay).toMatchObject(
+        {
+          judgeKeySource: 'parsim',
+          judgeModel: null,
+          defaultBudgetUsd: 1,
+          maxBudgetUsd: 25,
+        },
+      );
+      await setMode(fx, {
+        replayJudgeKeySource: 'project',
+        replayJudgeModel: 'gpt-4o-mini',
+      });
+      expect((await get<ReplaySettings>(fx, '/settings')).replay).toMatchObject(
+        { judgeKeySource: 'project', judgeModel: 'gpt-4o-mini' },
+      );
+    });
+
     it.each([
       { gcBatchTokens: -1 },
       { gcProtectedTurns: 0 },

@@ -9,6 +9,7 @@ import { GcConfig } from '../gc/gc-config';
 import { GoogleConfig } from '../auth-google/config/google-config.type';
 import { MailConfig } from '../mail/config/mail-config.type';
 import { ProxyConfig } from '../proxy/config/proxy-config.type';
+import { ReplayConfig } from '../replay/config/replay-config.type';
 
 export type AllConfigType = {
   app: AppConfig;
@@ -22,4 +23,5 @@ export type AllConfigType = {
   google: GoogleConfig;
   mail: MailConfig;
   proxy: ProxyConfig;
+  replay: ReplayConfig;
 };

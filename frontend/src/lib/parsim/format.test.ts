@@ -3,12 +3,17 @@ import {
   chartSeries,
   formatPercent,
   formatTokens,
+  formatAgreement,
   formatUsd,
   headlineSavings,
+  isReplayActive,
+  pointVerdict,
   reduction,
-  timeAgo
+  replayProgress,
+  timeAgo,
+  toggleRequest
 } from './format';
-import type { DailySavings, SavingsSummary } from './types';
+import type { DailySavings, ReplayPoint, SavingsSummary } from './types';
 
 describe('formatTokens', () => {
   it.each([
@@ -151,5 +156,59 @@ describe('timeAgo', () => {
     ['2024-10-01T12:00:00Z', '2 years ago']
   ])('describes %s as %s', (date, expected) => {
     expect(timeAgo(date, now)).toBe(expected);
+  });
+});
+
+const point = (fields: Partial<ReplayPoint>): ReplayPoint => ({
+  requestNumber: 1,
+  status: 'completed',
+  gcChanged: true,
+  exactMatch: false,
+  toolCallsMatch: true,
+  judgeScore: null,
+  judgeCostUsd: 0,
+  agreed: null,
+  error: null,
+  original: null,
+  gc: null,
+  ...fields
+});
+
+describe('replay helpers', () => {
+  it('labels each point by its verdict', () => {
+    expect(pointVerdict(point({ status: 'failed' }))).toEqual({ label: 'Failed', tone: 'failed' });
+    expect(pointVerdict(point({ exactMatch: true, agreed: true, judgeScore: 5 }))).toEqual({
+      label: 'Identical',
+      tone: 'agree'
+    });
+    expect(pointVerdict(point({ agreed: true, judgeScore: 4 }))).toEqual({
+      label: 'Equivalent, judge 4/5',
+      tone: 'agree'
+    });
+    expect(pointVerdict(point({ agreed: false, judgeScore: 2 }))).toEqual({
+      label: 'Different, judge 2/5',
+      tone: 'differ'
+    });
+    expect(pointVerdict(point({}))).toEqual({ label: 'Not judged', tone: 'unknown' });
+  });
+
+  it('formats the agreement rate', () => {
+    expect(formatAgreement({ rate: 2 / 3 })).toBe('67%');
+    expect(formatAgreement({ rate: 1 })).toBe('100%');
+    expect(formatAgreement({ rate: null })).toBe('No verdict yet');
+  });
+
+  it('measures progress and tells active replays apart', () => {
+    expect(replayProgress({ pointsDone: 1, pointsTotal: 3 })).toBe(33);
+    expect(replayProgress({ pointsDone: 0, pointsTotal: 0 })).toBe(0);
+    expect(isReplayActive('running')).toBe(true);
+    expect(isReplayActive('queued')).toBe(true);
+    expect(isReplayActive('budget_exceeded')).toBe(false);
+  });
+
+  it('toggles request points, sorted and within the limit', () => {
+    expect(toggleRequest([2, 9], 5, 5)).toEqual([2, 5, 9]);
+    expect(toggleRequest([2, 5, 9], 5, 5)).toEqual([2, 9]);
+    expect(toggleRequest([2, 9], 5, 2)).toEqual([2, 9]);
   });
 });

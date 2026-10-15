@@ -18,6 +18,8 @@ export type Project = {
   compressionEnabled: boolean;
   compressionKeySource: CompressionKeySource;
   compressionModel: string | null;
+  replayJudgeKeySource: CompressionKeySource;
+  replayJudgeModel: string | null;
   createdAt: string;
 };
 
@@ -176,6 +178,15 @@ export type ProjectSettings = {
     minTokens: number;
     internalModelConfigured: boolean;
   };
+  replay: {
+    judgeKeySource: CompressionKeySource;
+    judgeModel: string | null;
+    /** The judge model on Parsim's key. */
+    internalJudgeModel: string;
+    internalModelConfigured: boolean;
+    defaultBudgetUsd: number;
+    maxBudgetUsd: number;
+  };
 };
 
 export type ApiKey = {
@@ -190,3 +201,114 @@ export type ApiKey = {
 
 /** Returned once, when a key is created. */
 export type CreatedApiKey = ApiKey & { key: string };
+
+export type ReplayStatus = 'queued' | 'running' | 'completed' | 'budget_exceeded' | 'failed';
+
+export type ReplayJudge = { keySource: CompressionKeySource; provider: string; model: string };
+
+export type ReplayCandidate = {
+  requestNumber: number;
+  gcChanged: boolean;
+  model: string;
+  createdAt: string;
+};
+
+export type ReplayOptions = {
+  /** Null when the session can be replayed; otherwise why not. */
+  blockedReason: string | null;
+  candidates: ReplayCandidate[];
+  defaultRequestNumbers: number[];
+  defaultBudgetUsd: number;
+  maxBudgetUsd: number;
+  maxPoints: number;
+  judge: ReplayJudge;
+};
+
+export type ReplayPointEstimate = {
+  requestNumber: number;
+  model: string;
+  originalInputTokens: number;
+  gcInputTokens: number;
+  outputTokens: number;
+  originalUsd: number;
+  gcUsd: number;
+  judgeUsd: number;
+};
+
+export type ReplayEstimate = {
+  requestNumbers: number[];
+  budgetUsd: number;
+  models: string[];
+  judge: ReplayJudge;
+  points: ReplayPointEstimate[];
+  totalUsd: number;
+  overBudget: boolean;
+};
+
+export type ReplaySummary = {
+  id: string;
+  status: ReplayStatus;
+  requestNumbers: number[];
+  pointsTotal: number;
+  pointsDone: number;
+  budgetUsd: number;
+  estimatedCostUsd: number;
+  spentUsd: number;
+  judgeKeySource: CompressionKeySource;
+  judgeProvider: string;
+  judgeModel: string;
+  error: string | null;
+  createdAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+};
+
+export type ReplayAnswer = {
+  text: string;
+  toolCalls: { name: string; arguments: unknown }[];
+};
+
+export type ReplayVariant = {
+  status: number;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  temperatureZero: boolean;
+  upstreamCalls: number;
+  recalls: number;
+  error: string | null;
+  /** Only when the project stores content. */
+  answer?: ReplayAnswer | null;
+};
+
+export type ReplayPoint = {
+  requestNumber: number;
+  status: 'completed' | 'failed';
+  gcChanged: boolean;
+  exactMatch: boolean | null;
+  toolCallsMatch: boolean | null;
+  judgeScore: number | null;
+  judgeReason?: string | null;
+  judgeCostUsd: number;
+  agreed: boolean | null;
+  error: string | null;
+  original: ReplayVariant | null;
+  gc: ReplayVariant | null;
+};
+
+export type ReplayTotals = { inputTokens: number; outputTokens: number; costUsd: number };
+
+export type ReplayReport = {
+  replay: ReplaySummary;
+  contentAllowed: boolean;
+  agreement: {
+    judged: number;
+    agreed: number;
+    rate: number | null;
+    exactMatches: number;
+    toolCallMatches: number;
+    failed: number;
+  };
+  totals: { original: ReplayTotals; gc: ReplayTotals; judgeCostUsd: number };
+  points: ReplayPoint[];
+};

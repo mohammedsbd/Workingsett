@@ -33,6 +33,8 @@ export class ProjectsService {
       compressionEnabled: dto.compressionEnabled ?? false,
       compressionKeySource: dto.compressionKeySource ?? 'parsim',
       compressionModel: dto.compressionModel ?? null,
+      replayJudgeKeySource: dto.replayJudgeKeySource ?? 'parsim',
+      replayJudgeModel: dto.replayJudgeModel ?? null,
       providerKeyEncrypted: dto.providerKey
         ? this.getCipher().encrypt(dto.providerKey)
         : null,
@@ -72,6 +74,8 @@ export class ProjectsService {
       compressionEnabled: dto.compressionEnabled,
       compressionKeySource: dto.compressionKeySource,
       compressionModel: dto.compressionModel,
+      replayJudgeKeySource: dto.replayJudgeKeySource,
+      replayJudgeModel: dto.replayJudgeModel,
       ...(dto.providerKey !== undefined && {
         providerKeyEncrypted: dto.providerKey
           ? this.getCipher().encrypt(dto.providerKey)
@@ -91,6 +95,16 @@ export class ProjectsService {
   }
 
   /** Decrypted stored provider key, or undefined if none is stored. */
+  /** Whether the project stores content (its setting, or PARSIM_STORE_CONTENT). */
+  storesContent(project: Project): boolean {
+    return (
+      project.storeContent ??
+      this.configService.getOrThrow('proxy.storeContentDefault', {
+        infer: true,
+      })
+    );
+  }
+
   storedProviderKey(project: Project): string | undefined {
     return project.providerKeyEncrypted
       ? this.getCipher().decrypt(project.providerKeyEncrypted)

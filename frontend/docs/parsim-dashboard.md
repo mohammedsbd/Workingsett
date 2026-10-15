@@ -8,9 +8,9 @@ The dashboard shows what the context GC saved for each project, and manages its 
 | --- | --- |
 | Overview (`/dashboard/overview`) | Tokens and dollars saved, context reduction, requests and recalls for 7, 30 or 90 days, a daily savings chart, and decisions by type in the `--gc-*` colors. Shadow-mode projects are labelled "Shadow mode: estimated savings". |
 | Agent sessions (`/dashboard/sessions`) | Every agent run, searchable by session id or model, sortable and paged on the server. |
-| Session detail (`/dashboard/sessions/:id`) | Each request's context before and after GC, the GC decisions with their reasons and stubs, and recalls. The original tool result is only shown when the project stores content. |
+| Session detail (`/dashboard/sessions/:id`) | Each request's context before and after GC, the GC decisions with their reasons and stubs, recalls, compressions, and the Replay tab: pick request points and a budget, see the cost estimate, start a replay, follow its progress and read the report (agreement rate, both versions' tokens and cost, answers side by side). The original tool result and the answers are only shown when the project stores content. |
 | API keys (`/dashboard/api-keys`) | Create a key (shown once, with a copy button), list keys, revoke a key. |
-| Settings (`/dashboard/settings`) | GC mode (with a warning and a confirmation before switching to On), thresholds (empty uses the server default), side-effect tools and content storage. |
+| Settings (`/dashboard/settings`) | GC mode (with a warning and a confirmation before switching to On), thresholds (empty uses the server default), side-effect tools, compression, who pays for the replay judge, and content storage. |
 | Setup (`/dashboard/setup`) | One-line integration snippets for OpenAI, Gemini (OpenAI-compatible and the Google GenAI SDK), Anthropic and Claude Code, with the Parsim endpoint filled in. |
 
 The project switcher at the bottom of the sidebar picks the project every page shows (stored in the `parsim_project` cookie).

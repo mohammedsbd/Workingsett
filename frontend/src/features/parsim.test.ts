@@ -77,6 +77,14 @@ describe('settings form values', () => {
       model: null,
       minTokens: 6000,
       internalModelConfigured: true
+    },
+    replay: {
+      judgeKeySource: 'parsim',
+      judgeModel: null,
+      internalJudgeModel: 'flash',
+      internalModelConfigured: true,
+      defaultBudgetUsd: 1,
+      maxBudgetUsd: 25
     }
   };
 
@@ -100,8 +108,21 @@ describe('settings form values', () => {
       gcArchiveAfterTurns: null,
       compressionEnabled: false,
       compressionKeySource: 'parsim',
-      compressionModel: null
+      compressionModel: null,
+      replayJudgeKeySource: 'parsim',
+      replayJudgeModel: null
     });
+  });
+
+  it('maps who pays for the replay judge, an empty model meaning none', () => {
+    expect(
+      toUpdate({
+        ...toForm(settings),
+        replayJudgeKeySource: 'project',
+        replayJudgeModel: ' gpt-mini '
+      })
+    ).toMatchObject({ replayJudgeKeySource: 'project', replayJudgeModel: 'gpt-mini' });
+    expect(toUpdate({ ...toForm(settings), replayJudgeModel: '' }).replayJudgeModel).toBeNull();
   });
 
   it('maps the compression settings, an empty model meaning none', () => {

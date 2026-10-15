@@ -214,6 +214,61 @@ export function SettingsForm({ projectId }: { projectId: string }) {
 
       <Card>
         <CardHeader>
+          <CardTitle>Replay judge</CardTitle>
+          <CardDescription>
+            Replay sends recorded requests again, as recorded and as the GC made them, with this
+            project&apos;s stored provider key. When the two answers differ, a judge model scores
+            them. Start a replay from a session page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='flex flex-col gap-4'>
+          <form.AppField
+            name='replayJudgeKeySource'
+            children={(field) => (
+              <field.RadioGroupField
+                label='Who pays for the judge'
+                options={[
+                  {
+                    value: 'parsim',
+                    label: settings.replay.internalModelConfigured
+                      ? `Parsim's internal model (${settings.replay.internalJudgeModel})`
+                      : "Parsim's internal model (not configured on this server)"
+                  },
+                  {
+                    value: 'project',
+                    label: "This project's stored provider key, with the model below"
+                  }
+                ]}
+              />
+            )}
+          />
+          <form.Subscribe
+            selector={(state) => state.values.replayJudgeKeySource}
+            children={(source) =>
+              source === 'project' ? (
+                <form.AppField
+                  name='replayJudgeModel'
+                  children={(field) => (
+                    <field.TextField
+                      label='Judge model'
+                      placeholder='A capable model of your provider'
+                      description='Required when the project pays. The judge reads the latest turn and both answers.'
+                    />
+                  )}
+                />
+              ) : (
+                <p className='text-muted-foreground text-sm'>
+                  The judge reads the latest turn and both answers. Choose the project key if this
+                  content must stay within your own provider account.
+                </p>
+              )
+            }
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Content storage</CardTitle>
           <CardDescription>
             Whether Parsim stores prompt and tool content for this project. Hashes and token counts

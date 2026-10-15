@@ -29,6 +29,7 @@ import type {
 } from '@/lib/parsim/types';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { sessionQueryOptions } from '../api/queries';
+import { SessionReplay } from './session-replay';
 
 export function SessionDetailView({
   projectId,
@@ -65,7 +66,11 @@ export function SessionDetailView({
           <TabsTrigger value='decisions'>Decisions</TabsTrigger>
           <TabsTrigger value='recalls'>Recalls</TabsTrigger>
           <TabsTrigger value='compressions'>Compressions</TabsTrigger>
+          <TabsTrigger value='replay'>Replay</TabsTrigger>
         </TabsList>
+        <TabsContent value='replay'>
+          <SessionReplay projectId={projectId} sessionId={sessionId} />
+        </TabsContent>
         <TabsContent value='compressions'>
           <CompressionsList compressions={data.compressions} contentAllowed={data.contentAllowed} />
         </TabsContent>

@@ -180,4 +180,16 @@ export type ProjectSettings = {
     /** Whether PARSIM_INTERNAL_MODEL and its key are set. */
     internalModelConfigured: boolean;
   };
+  replay: {
+    /** Who pays for the replay judge. */
+    judgeKeySource: CompressionKeySource;
+    /** The judge model with the project's key. */
+    judgeModel: string | null;
+    /** The judge model with Parsim's key (REPLAY_JUDGE_MODEL or PARSIM_INTERNAL_MODEL). */
+    internalJudgeModel: string;
+    /** Whether that model and its key are set. */
+    internalModelConfigured: boolean;
+    defaultBudgetUsd: number;
+    maxBudgetUsd: number;
+  };
 };

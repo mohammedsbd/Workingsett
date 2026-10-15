@@ -420,6 +420,7 @@ export class DashboardService {
     const compression = this.configService.getOrThrow('compression', {
       infer: true,
     });
+    const replay = this.configService.getOrThrow('replay', { infer: true });
     const setting = (value: number | null, fallback: number) => ({
       value,
       default: fallback,
@@ -464,6 +465,17 @@ export class DashboardService {
         internalModelConfigured: Boolean(
           compression.internal.model && compression.internal.apiKey,
         ),
+      },
+      replay: {
+        judgeKeySource: project.replayJudgeKeySource,
+        judgeModel: project.replayJudgeModel,
+        internalJudgeModel: replay.judgeModel || compression.internal.model,
+        internalModelConfigured: Boolean(
+          (replay.judgeModel || compression.internal.model) &&
+          compression.internal.apiKey,
+        ),
+        defaultBudgetUsd: replay.defaultBudgetUsd,
+        maxBudgetUsd: replay.maxBudgetUsd,
       },
     };
   }

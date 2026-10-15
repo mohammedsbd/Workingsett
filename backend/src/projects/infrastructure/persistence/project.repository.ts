@@ -18,6 +18,8 @@ export type NewProject = Pick<
   | 'compressionEnabled'
   | 'compressionKeySource'
   | 'compressionModel'
+  | 'replayJudgeKeySource'
+  | 'replayJudgeModel'
 >;
 
 export type ProjectChanges = Partial<
@@ -37,6 +39,10 @@ export type ProjectChanges = Partial<
     | 'compressionEnabled'
     | 'compressionKeySource'
     | 'compressionModel'
+    | 'replayJudgeKeySource'
+    | 'replayJudgeModel'
+    | 'replayJudgeKeySource'
+    | 'replayJudgeModel'
   >
 >;
 

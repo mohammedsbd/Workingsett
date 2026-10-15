@@ -27,6 +27,9 @@ export class ProjectMapper {
     domainEntity.compressionKeySource = (raw.compressionKeySource ??
       'parsim') as CompressionKeySource;
     domainEntity.compressionModel = raw.compressionModel ?? null;
+    domainEntity.replayJudgeKeySource = (raw.replayJudgeKeySource ??
+      'parsim') as CompressionKeySource;
+    domainEntity.replayJudgeModel = raw.replayJudgeModel ?? null;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -53,6 +56,8 @@ export class ProjectMapper {
     persistenceEntity.compressionEnabled = domainEntity.compressionEnabled;
     persistenceEntity.compressionKeySource = domainEntity.compressionKeySource;
     persistenceEntity.compressionModel = domainEntity.compressionModel;
+    persistenceEntity.replayJudgeKeySource = domainEntity.replayJudgeKeySource;
+    persistenceEntity.replayJudgeModel = domainEntity.replayJudgeModel;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
 

@@ -9,13 +9,8 @@ import {
 } from 'typeorm';
 import { AgentSessionEntity } from '../../../../../agent-sessions/infrastructure/persistence/relational/entities/agent-session.entity';
 import { ProjectEntity } from '../../../../../projects/infrastructure/persistence/relational/entities/project.entity';
+import { numericToNumber } from '../../../../../utils/numeric-transformer';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
-
-/** numeric columns come back from pg as strings; convert them to numbers. */
-const numericToNumber = {
-  to: (value: number | null) => value,
-  from: (value: string | null) => (value === null ? null : Number(value)),
-};
 
 @Entity({
   name: 'usage_record',

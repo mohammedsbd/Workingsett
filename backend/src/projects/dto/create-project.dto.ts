@@ -153,6 +153,28 @@ export class CreateProjectDto {
   compressionModel?: string | null;
 
   @ApiPropertyOptional({
+    enum: COMPRESSION_KEY_SOURCES,
+    description:
+      "Who pays for the replay judge: Parsim's internal model, or the project's own provider key with replayJudgeModel.",
+  })
+  @IsOptional()
+  @IsIn(COMPRESSION_KEY_SOURCES)
+  replayJudgeKeySource?: CompressionKeySource;
+
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description:
+      "Model for the replay judge when the project's own key is used.",
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  replayJudgeModel?: string | null;
+
+  @ApiPropertyOptional({
     description:
       'Provider API key to use when a request does not send one. Stored encrypted and never returned.',
   })

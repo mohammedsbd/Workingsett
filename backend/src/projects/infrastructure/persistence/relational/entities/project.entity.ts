@@ -75,6 +75,12 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ type: 'varchar', length: 100, nullable: true })
   compressionModel?: string | null;
 
+  @Column({ type: 'varchar', length: 8, default: 'parsim' })
+  replayJudgeKeySource: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  replayJudgeModel?: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

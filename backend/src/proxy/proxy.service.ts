@@ -36,8 +36,6 @@ import {
   Upstream,
 } from './providers/provider-adapter';
 import { SseStreamFilter } from './streaming/sse-stream-filter';
-import { archiveStubIds } from '../recall/archive-stubs';
-import { STATE_BLOCK_START } from '../compression/state-block';
 import {
   AssistantTurn,
   isObject,
@@ -49,6 +47,8 @@ import {
 import { RECALL_FORMATS } from '../recall/recall-formats';
 import { planRecallRound } from '../recall/recall-limit';
 import { RecallLogEntry, RecallService } from '../recall/recall.service';
+import { hasRecallableContent } from '../recall/recallable';
+import { RequestSnapshotsService } from '../request-snapshots/request-snapshots.service';
 import { SseEventSplitter } from '../recall/sse-events';
 
 /** Status recorded when the client disconnects before the response ends. */
@@ -146,6 +146,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     private readonly contextCapture: ContextCaptureService,
     private readonly gc: ProxyGcService,
     private readonly recall: RecallService,
+    private readonly snapshots: RequestSnapshotsService,
     private readonly configService: ConfigService<AllConfigType>,
   ) {
     this.adapters = new Map(
@@ -303,10 +304,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     if (max < 1) return null;
     try {
       const text = body.toString('utf8');
-      // Archive stubs and state blocks both point at recallable originals.
-      if (!archiveStubIds(text).length && !text.includes(STATE_BLOCK_START)) {
-        return null;
-      }
+      if (!hasRecallableContent(text)) return null;
       const parsed = JSON.parse(text) as Record<string, unknown>;
       // Gemini rejects tools or a system instruction next to cachedContent.
       if (usesCachedContent(parsed)) return null;
@@ -688,7 +686,8 @@ export class ProxyService implements BeforeApplicationShutdown {
       `${forward.operation.name} project=${forward.project.id} upstream=${forward.adapter.upstream} model=${forward.info.model} status=${outcome.status} streamed=${forward.info.stream} latencyMs=${latencyMs} inputTokens=${outcome.usage?.inputTokens ?? '-'} outputTokens=${outcome.usage?.outputTokens ?? '-'}`,
     );
     if (!forward.operation.recordsUsage) return;
-    const agentSessionId = await this.captureContext(forward);
+    const captured = await this.captureContext(forward);
+    const agentSessionId = captured?.agentSessionId ?? null;
     let usageRecordId: string | null = null;
     try {
       const usageRecord = await this.usageRecords.record({
@@ -708,12 +707,62 @@ export class ProxyService implements BeforeApplicationShutdown {
         `Could not save usage record: ${(error as Error).message}`,
       );
     }
-    await this.recordGc(forward, agentSessionId, usageRecordId);
+    const evaluation = await this.recordGc(
+      forward,
+      agentSessionId,
+      usageRecordId,
+    );
     await this.recall.record(outcome.recalls ?? [], {
       projectId: forward.project.id,
       agentSessionId,
       usageRecordId,
     });
+    if (captured) {
+      await this.recordSnapshot(forward, captured, usageRecordId, evaluation);
+    }
+  }
+
+  /**
+   * Stores what the request sent, for replay: the original and, when the
+   * GC changed it, the GC'd request (as forwarded in on mode, before
+   * parsim_recall is added; as it would have been in shadow mode). Only
+   * when the project stores content. Never throws.
+   */
+  private async recordSnapshot(
+    forward: Forward,
+    captured: { agentSessionId: string; requestNumber: number },
+    usageRecordId: string | null,
+    evaluation: GcEvaluation | null,
+  ): Promise<void> {
+    try {
+      const original = parseJson(forward.rawBody);
+      if (!isObject(original)) return;
+      let gc: unknown = null;
+      if (evaluation?.applied) {
+        gc = parseJson(evaluation.body);
+      } else if (evaluation?.mode === 'shadow' && evaluation.result) {
+        if (evaluation.result.decisions.length) {
+          gc = forward.adapter.converter.fromInternal(
+            evaluation.result.request,
+          );
+        }
+      }
+      await this.snapshots.record({
+        project: forward.project,
+        agentSessionId: captured.agentSessionId,
+        requestNumber: captured.requestNumber,
+        usageRecordId,
+        api: forward.adapter.api,
+        model: forward.info.model,
+        streamed: forward.info.stream,
+        original,
+        gc: isObject(gc) ? gc : null,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not store request snapshot project=${forward.project.id}: ${(error as Error)?.name ?? 'Error'}`,
+      );
+    }
   }
 
   /**
@@ -724,7 +773,7 @@ export class ProxyService implements BeforeApplicationShutdown {
     forward: Forward,
     agentSessionId: string | null,
     usageRecordId: string | null,
-  ): Promise<void> {
+  ): Promise<GcEvaluation | null> {
     const { project } = forward;
     const evaluation =
       forward.gc ??
@@ -739,7 +788,7 @@ export class ProxyService implements BeforeApplicationShutdown {
             ),
           )
         : null);
-    if (!evaluation) return;
+    if (!evaluation) return null;
     await this.gc.record(evaluation, {
       projectId: project.id,
       agentSessionId,
@@ -758,14 +807,18 @@ export class ProxyService implements BeforeApplicationShutdown {
         evaluation,
       );
     }
+    return evaluation;
   }
 
   /**
    * Stores the agent session and context items. Runs after the response
    * has been sent, so it adds no latency, and a failure here never affects
-   * the request. Returns the agent session id, or null if storing failed.
+   * the request. Returns the agent session id and request number, or null
+   * if storing failed.
    */
-  private async captureContext(forward: Forward): Promise<string | null> {
+  private async captureContext(
+    forward: Forward,
+  ): Promise<{ agentSessionId: string; requestNumber: number } | null> {
     try {
       const result = await this.contextCapture.capture({
         project: forward.project,
@@ -776,7 +829,10 @@ export class ProxyService implements BeforeApplicationShutdown {
         sessionHeader: forward.sessionHeader,
         at: new Date(),
       });
-      return result.agentSessionId;
+      return {
+        agentSessionId: result.agentSessionId,
+        requestNumber: result.requestNumber,
+      };
     } catch (error) {
       this.logger.error(
         `Could not store context project=${forward.project.id}: ${(error as Error).message}`,

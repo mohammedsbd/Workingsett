@@ -94,6 +94,7 @@ Notes on the approximation:
 - Item metadata (kind, position, hash, token count) is always stored.
 - Content is stored in `context_content`, once per project per hash, only when the project stores content: the project's `storeContent` setting, or `PARSIM_STORE_CONTENT` when the project has not set it. `PARSIM_STORE_CONTENT` defaults to true outside production and false in production.
 - Set it per project with `PATCH /api/v1/projects/:id` and `{"storeContent": false}` (or `null` to use the default).
+- Under the same setting, each request is also kept as a request snapshot (`request_snapshot`, `snapshot_part`) so it can be replayed exactly; see [Replay](replay.md).
 - Content is never written to logs at info level. With `DEBUG_CONTENT=true`, the start of each new item is logged at debug level; never enable that in production.
 - Usage records never contain content.
 

@@ -15,6 +15,7 @@
 - [Context GC](gc.md)
 - [Recall](recall.md)
 - [Compression](compression.md)
+- [Replay](replay.md)
 - [Dashboard API](dashboard.md)
 - [Serialization](serialization.md)
 - [File uploading](file-uploading.md)

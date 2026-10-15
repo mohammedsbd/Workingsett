@@ -23,7 +23,8 @@ All paths start with `/api/v1/projects/:projectId`.
 | `GET dashboard/daily?from&to` | One entry per UTC day of the range with requests, cost, compression cost, tokens before and after, and savings |
 | `GET sessions?page&limit&sort&order&search` | Agent sessions, paged (limit up to 100), sortable by `lastSeenAt` (default), `firstSeenAt`, `requestCount` or `tokensSaved`, searchable by session id or model (wildcards are literal) |
 | `GET sessions/:sessionId` | The session, its requests with their GC run, its decisions with reasons, its recalls, and its compressions (with the state block when the project stores content) |
-| `GET settings` | GC mode, content storage, each threshold with the project's value and the server default, side-effect tools (project, server and patterns), the recall limit, and the compression settings |
+| `GET settings` | GC mode, content storage, each threshold with the project's value and the server default, side-effect tools (project, server and patterns), the recall limit, the compression settings, and the replay judge and budget limits |
+| `sessions/:sessionId/replays/...` | Replays of a session: options, estimate, start, list and report. See [Replay](replay.md) |
 
 `from` and `to` are ISO 8601 dates; `to` is exclusive. The default range is the 30 days before now, and a range can be at most 366 days.
 

@@ -36,7 +36,8 @@ export class SummarizerError extends Error {
   }
 }
 
-const MAX_OUTPUT_TOKENS = 4096;
+/** The output limit of a summary (or replay judge) call. */
+export const MAX_OUTPUT_TOKENS = 4096;
 
 type Call = { url: string; headers: Record<string, string>; body: unknown };
 

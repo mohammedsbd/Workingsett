@@ -249,19 +249,21 @@ describe('replay', () => {
         [
           {
             requestNumber: 3,
+            model: 'm',
             originalInputTokens: 10_000,
             gcInputTokens: 4_000,
             outputTokens: 200,
           },
           {
             requestNumber: 7,
+            model: 'm',
             originalInputTokens: 20_000,
             gcInputTokens: 5_000,
             outputTokens: 100,
           },
         ],
         {
-          replay: { model: 'm', price: per(2, 10) },
+          replay: (model) => (model === 'm' ? per(2, 10) : null),
           judge: { model: 'j', price: per(1, 4) },
         },
       );
@@ -284,13 +286,14 @@ describe('replay', () => {
           [
             {
               requestNumber: 1,
+              model: 'unknown-model',
               originalInputTokens: 1,
               gcInputTokens: 1,
               outputTokens: 1,
             },
           ],
           {
-            replay: { model: 'unknown-model', price: () => null },
+            replay: () => null,
             judge: { model: 'j', price: per(1, 1) },
           },
         ),

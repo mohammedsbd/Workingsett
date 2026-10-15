@@ -6,6 +6,8 @@ export const JUDGE_OUTPUT_TOKENS = 150;
 /** Token counts of one request point, as recorded. */
 export type PointTokens = {
   requestNumber: number;
+  /** The recorded model; both versions are replayed with it. */
+  model: string;
   originalInputTokens: number;
   /** Equal to originalInputTokens when the GC changed nothing. */
   gcInputTokens: number;
@@ -50,34 +52,49 @@ export const judgeInputTokens = (outputTokens: number): number =>
  */
 export function estimateReplay(
   points: PointTokens[],
-  models: {
-    replay: { model: string; price: PriceFn };
-    judge: { model: string; price: PriceFn };
+  prices: {
+    /** The price of a model, or null if it has none. */
+    replay: (model: string) => PriceFn | null;
+    judge: { model: string; price: PriceFn | null };
   },
 ): ReplayEstimate {
+  const judge = prices.judge.price;
+  if (!judge) throw new UnknownPriceError(prices.judge.model);
   const priced = (
-    target: { model: string; price: PriceFn },
+    price: PriceFn,
+    model: string,
     input: number,
     output: number,
   ) => {
-    const usd = target.price(input, output);
-    if (usd === null) throw new UnknownPriceError(target.model);
+    const usd = price(input, output);
+    if (usd === null) throw new UnknownPriceError(model);
     return usd;
   };
-  const estimates = points.map((point) => ({
-    ...point,
-    originalUsd: priced(
-      models.replay,
-      point.originalInputTokens,
-      point.outputTokens,
-    ),
-    gcUsd: priced(models.replay, point.gcInputTokens, point.outputTokens),
-    judgeUsd: priced(
-      models.judge,
-      judgeInputTokens(point.outputTokens),
-      JUDGE_OUTPUT_TOKENS,
-    ),
-  }));
+  const estimates = points.map((point) => {
+    const price = prices.replay(point.model);
+    if (!price) throw new UnknownPriceError(point.model);
+    return {
+      ...point,
+      originalUsd: priced(
+        price,
+        point.model,
+        point.originalInputTokens,
+        point.outputTokens,
+      ),
+      gcUsd: priced(
+        price,
+        point.model,
+        point.gcInputTokens,
+        point.outputTokens,
+      ),
+      judgeUsd: priced(
+        judge,
+        prices.judge.model,
+        judgeInputTokens(point.outputTokens),
+        JUDGE_OUTPUT_TOKENS,
+      ),
+    };
+  });
   const total = estimates.reduce(
     (sum, p) => sum + p.originalUsd + p.gcUsd + p.judgeUsd,
     0,

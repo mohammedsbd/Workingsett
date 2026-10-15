@@ -1,6 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export type UsageKind = 'proxy' | 'compression';
+/**
+ * proxy: a proxied request. compression: a summary call. replay: a replayed
+ * request (the project's key). replay_judge: a replay judge call.
+ */
+export type UsageKind = 'proxy' | 'compression' | 'replay' | 'replay_judge';
 
 /**
  * One proxied request: tokens, cost and timing. Never holds prompt or

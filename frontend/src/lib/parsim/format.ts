@@ -1,4 +1,12 @@
-import type { DailySavings, GcMode, Savings, SavingsSummary } from './types';
+import type {
+  DailySavings,
+  GcMode,
+  ReplayPoint,
+  ReplayStatus,
+  ReplaySummary,
+  Savings,
+  SavingsSummary
+} from './types';
 
 /** 950, 12.3k, 4.5M, 1.2B. */
 export function formatTokens(value: number): string {
@@ -136,4 +144,50 @@ export function timeAgo(date: string | Date, now = new Date()): string {
     }
   }
   return 'just now';
+}
+
+export const REPLAY_STATUS_LABELS: Record<ReplayStatus, string> = {
+  queued: 'Queued',
+  running: 'Running',
+  completed: 'Completed',
+  budget_exceeded: 'Stopped by budget',
+  failed: 'Failed'
+};
+
+/** Whether a replay may still change (poll its report). */
+export const isReplayActive = (status: ReplayStatus): boolean =>
+  status === 'queued' || status === 'running';
+
+/** Points done as a 0 to 100 percentage. */
+export function replayProgress(replay: Pick<ReplaySummary, 'pointsDone' | 'pointsTotal'>): number {
+  if (replay.pointsTotal <= 0) return 0;
+  return Math.min(100, Math.round((replay.pointsDone / replay.pointsTotal) * 100));
+}
+
+/** The agreement rate, or a note while no point has a verdict. */
+export function formatAgreement(agreement: { rate: number | null }): string {
+  return agreement.rate === null ? 'No verdict yet' : formatPercent(agreement.rate);
+}
+
+export type PointVerdict = { label: string; tone: 'agree' | 'differ' | 'unknown' | 'failed' };
+
+/** How a replayed point is shown: identical, equivalent, different or failed. */
+export function pointVerdict(point: ReplayPoint): PointVerdict {
+  if (point.status === 'failed') return { label: 'Failed', tone: 'failed' };
+  if (point.exactMatch) return { label: 'Identical', tone: 'agree' };
+  if (point.agreed === null) return { label: 'Not judged', tone: 'unknown' };
+  const score = `judge ${point.judgeScore}/5`;
+  return point.agreed
+    ? { label: `Equivalent, ${score}`, tone: 'agree' }
+    : { label: `Different, ${score}`, tone: 'differ' };
+}
+
+/**
+ * Adds or removes a request point from a selection, keeping it sorted and
+ * at most `max` long (a point over the limit is not added).
+ */
+export function toggleRequest(selected: number[], requestNumber: number, max: number): number[] {
+  if (selected.includes(requestNumber)) return selected.filter((n) => n !== requestNumber);
+  if (selected.length >= max) return selected;
+  return [...selected, requestNumber].toSorted((a, b) => a - b);
 }

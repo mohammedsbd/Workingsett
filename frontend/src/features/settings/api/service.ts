@@ -19,6 +19,8 @@ export type SettingsUpdate = {
   compressionEnabled: boolean;
   compressionKeySource: CompressionKeySource;
   compressionModel: string | null;
+  replayJudgeKeySource: CompressionKeySource;
+  replayJudgeModel: string | null;
 } & Record<ThresholdKey, number | null>;
 
 export const updateSettings = (projectId: string, update: SettingsUpdate) =>

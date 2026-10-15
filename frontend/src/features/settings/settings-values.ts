@@ -53,7 +53,9 @@ export const settingsSchema = z.object({
   gcArchiveAfterTurns: optionalInt(1),
   compressionEnabled: z.boolean(),
   compressionKeySource: z.enum(['parsim', 'project']),
-  compressionModel: z.string().trim().max(100)
+  compressionModel: z.string().trim().max(100),
+  replayJudgeKeySource: z.enum(['parsim', 'project']),
+  replayJudgeModel: z.string().trim().max(100)
 });
 
 export type SettingsValues = z.input<typeof settingsSchema>;
@@ -67,6 +69,8 @@ export function toForm(settings: ProjectSettings): SettingsValues {
     compressionEnabled: settings.compression.enabled,
     compressionKeySource: settings.compression.keySource,
     compressionModel: settings.compression.model ?? '',
+    replayJudgeKeySource: settings.replay.judgeKeySource,
+    replayJudgeModel: settings.replay.judgeModel ?? '',
     ...(Object.fromEntries(
       THRESHOLDS.map((t) => [t.key, settings.thresholds[t.key].value ?? undefined])
     ) as Partial<Record<ThresholdKey, number>>)
@@ -81,6 +85,8 @@ export function toUpdate(values: SettingsValues): SettingsUpdate {
     compressionEnabled: values.compressionEnabled,
     compressionKeySource: values.compressionKeySource,
     compressionModel: values.compressionModel.trim() || null,
+    replayJudgeKeySource: values.replayJudgeKeySource,
+    replayJudgeModel: values.replayJudgeModel.trim() || null,
     ...(Object.fromEntries(THRESHOLDS.map((t) => [t.key, values[t.key] ?? null])) as Record<
       ThresholdKey,
       number | null

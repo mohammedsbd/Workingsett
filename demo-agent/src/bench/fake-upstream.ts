@@ -77,6 +77,28 @@ function ownSince(messages: Msg[], at: number) {
   };
 }
 
+/** The archive id of the first fetch of a site's page, if it was archived. */
+function siteStub(messages: Msg[], site: string): string | undefined {
+  const slug = site.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const callIds = new Set(
+    messages.flatMap((m) =>
+      (m.tool_calls ?? [])
+        .filter(
+          (c) =>
+            c.function.name === 'fetch_page' &&
+            c.function.arguments.includes(`/sites/${slug}`),
+        )
+        .map((c) => c.id),
+    ),
+  );
+  for (const m of messages) {
+    if (m.role !== 'tool' || !callIds.has(m.tool_call_id ?? '')) continue;
+    const id = [...text(m).matchAll(ARCHIVE_STUB)][0]?.[1];
+    if (id) return id;
+  }
+  return undefined;
+}
+
 /** Archive stubs present, not yet recalled in this request. */
 function unrecalledStubs(messages: Msg[], tools: string[]): string[] {
   if (!tools.includes('parsim_recall')) return [];
@@ -202,11 +224,14 @@ function researchTurn(messages: Msg[], tools: string[]): Reply {
     ).exec(visible(messages));
     if (done === 0 && first) return save(`${first[1]} MWh`);
     if (done === 0) {
-      const stubs = unrecalledStubs(messages, tools);
-      if (stubs.length) {
+      // Like a real model: recall the stub that answered this site's
+      // page fetch (the call's URL is still in the conversation).
+      const stub = siteStub(messages, site);
+      const pending = unrecalledStubs(messages, tools);
+      if (stub && pending.includes(stub)) {
         return {
           text: '',
-          calls: [{ name: 'parsim_recall', args: { archive_id: stubs[0] } }],
+          calls: [{ name: 'parsim_recall', args: { archive_id: stub } }],
         };
       }
       return save('unknown');

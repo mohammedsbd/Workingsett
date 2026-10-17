@@ -25,7 +25,8 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | Gemini API key (`GEMINI_API_KEY`) | step 06 | Google AI Studio, "Get API key". Give it to Claude when asked. Set a spending limit in Google Cloud billing. The free tier is fine for development, but never send real customer data through it |
 | Anthropic API key (`ANTHROPIC_API_KEY`), optional | step 07 | only for its live tests; skipped if missing |
 | OpenAI API key (`OPENAI_API_KEY`), optional | step 06 | only for its live tests; skipped if missing |
-| A budget for the benchmark | step 16 | Claude asks before spending |
+| Groq API key (`GROQ_API_KEY`) | step 16a | console.groq.com, free tier, no card. Used for free development runs of the demo agent and benchmark. Never send real customer data through it |
+| A budget for the benchmark | step 16c | Claude asks before spending |
 | A domain and hosting | when you deploy | not needed to build |
 
 ## Steps
@@ -47,7 +48,9 @@ At the start of every step, Claude lists what it needs from you (keys, decisions
 | 13 | Dashboard: real Parsim pages |
 | 14 | Compression with background summaries |
 | 15 | Replay |
-| 16 | Demo agent and benchmark |
+| 16a | Demo agents, free model support (Groq) and recorded mode |
+| 16b | Benchmark runner with baselines, honest metrics and reports |
+| 16c | Live benchmark run and published results |
 | 17 | Developer integration (docs, llms.txt, CLI) |
 | 18 | Authentication: email, Google and GitHub sign-in, real emails, protected dashboard (last, before deploying) |
 
@@ -645,28 +648,129 @@ Finish with the step summary (include test counts), push, and stop.
 
 ---
 
-## Step 16: Demo agent and benchmark
+## Step 16a: Demo agents, free model support and recorded mode
 
 ```text
-Step 16: build a demo agent and a benchmark that measures Parsim honestly.
+Step 16a: build the demo agents, add free model support for development, and make tool results recordable so benchmark runs are repeatable and cheap.
 
-Follow CLAUDE.md. Branch: feat/step-16-demo-agent-benchmark from main.
+Follow CLAUDE.md. Branch: feat/step-16a-demo-agents from main.
 
-What to build
-1. A demo long-running agent in a new folder demo-agent/ (TypeScript, Node, Windows-friendly), using the official SDKs pointed at a configurable base URL, with Gemini Flash as the default model (switchable to OpenAI or Anthropic through config):
-   - a research agent that works through a list of questions over 100+ steps, using tools: web search (behind an interface, with a recorded/cached mode so benchmark runs are repeatable and cheap), fetch page, take note, and a side-effect tool "save_report"
-   - a support agent that works through 20 scripted tickets with tools: look up order, update ticket, send reply (side effect, logged only)
-2. Each task has a known expected answer or a checklist for an LLM judge.
-3. A benchmark runner: npm run bench -- --agent research --runs 3 --model <model> that runs every task three ways: without Parsim, Parsim in shadow mode, Parsim on. It records task success, input and output tokens, cost, wall time and number of recalls.
-4. Write the results to docs/benchmarks/<date>-<agent>-<model>.md with a table, the exact command, the model and the Parsim version. Report variance across runs. Never edit numbers by hand.
+Before you start, list what you need from me and wait. Expect to ask:
+- GROQ_API_KEY, for free development runs. Write it into the gitignored env files yourself (backend/.env, backend/.env.test if tests need it, and demo-agent/.env) as CLAUDE.md describes.
+- Which Groq model to use for dev runs. Check Groq's current model list and free-tier limits, and suggest one with a large context window and tool calling support.
+- Check that GEMINI_API_KEY is set in backend/.env without printing it.
+
+Part A: free model support (Groq)
+1. Update the "Providers and models" section of CLAUDE.md: Parsim's internal calls, the demo agent and the benchmark still default to Gemini Flash through GEMINI_API_KEY, but can use Groq (or any other OpenAI-compatible provider) configured in .env. Free tiers are for development only; never send real customer data through a free-tier key. Commit as docs(repo).
+2. Internal model client: add an "openai-compatible" provider configured by PARSIM_INTERNAL_BASE_URL, PARSIM_INTERNAL_API_KEY and PARSIM_INTERNAL_MODEL, using the official openai npm SDK. Document the Groq values (base URL https://api.groq.com/openai/v1, GROQ_API_KEY) in .env.example.
+3. Proxy upstream: add an "openai-compatible" project upstream with a custom base URL, so a project can forward to Groq through the existing OpenAI adapter. Custom base URLs are a server-side request forgery risk, so allow them only when PARSIM_ALLOW_CUSTOM_UPSTREAM=true (dev) or when the host is in a configured allowlist (api.groq.com by default). Document this in .env.example.
+4. Context length guard: read the chosen Groq model's context window from config, and make both the demo agent and the internal client fail loudly when an estimated prompt is larger than it, instead of sending a request that gets rejected or truncated.
+5. Free tier rate limits: Groq's free tier has per-model limits on requests and tokens per minute and per day. Handle 429 with retry and backoff that respects Retry-After, log clearly when a daily quota is exhausted, and stop the run cleanly with a message saying when it can resume.
+
+Part B: demo agents in demo-agent/
+1. A new folder demo-agent/ (TypeScript, Node, Windows-friendly, its own package.json, .env.example and gitignored .env), using the official SDKs pointed at a configurable base URL (Parsim or the provider directly). Model and provider come from config: Gemini Flash by default, switchable to Groq, OpenAI or Anthropic.
+2. Research agent: works through a scripted list of questions over 100+ steps, with tools: web search, fetch page, take note, and a side-effect tool save_report.
+3. Support agent: works through 20 scripted tickets with tools: look up order, update ticket (side effect), send reply (side effect, logged only, never sends anything).
+4. Recorded mode for every non-side-effect tool, behind one interface:
+   - record: call the real tool and save the result to demo-agent/recordings/<agent>/<tool>/<hash of arguments>.json
+   - replay: return the saved result; fail loudly if a recording is missing
+   - live: call the real tool without saving
+   Commit a full set of recordings for both agents so benchmark runs need no network for tools.
+5. Tasks that punish forgetting:
+   - Each task has a known expected answer or a checklist for an LLM judge, and a type tag: normal, late_recall, cross_ticket.
+   - At least 30% of research tasks are late_recall: the answer depends on a fact that appeared in a tool result at least 60 steps earlier.
+   - Several support tickets reference earlier tickets in the same run (cross_ticket).
+6. Side-effect log: record every side-effect tool call (tool name, arguments, step number) to a run log file, so 16b can compare arms.
+7. Context strategy hook: the agent builds each request's messages through a ContextStrategy interface (default: full context). 16b plugs naive truncation and naive summarization into it. Parsim itself is never a strategy; it is selected by pointing the base URL at the proxy.
+8. Each task run sends a unique x-parsim-session-id.
+9. Scripts: npm run agent -- --agent research|support --task <id> --mode record|replay|live --provider <name>.
 
 Tests
-- Unit tests for the runner's metrics and the report generation.
-- A dry-run mode with the fake upstream, used in CI, that runs the full pipeline without real calls.
+- Unit: recorded mode (same arguments give the same recording, missing recording fails loudly), task loading and validation, a check that every late_recall task's source fact is scheduled at least 60 steps before its question, the side-effect log, the context-length guard, 429 retry with Retry-After, daily quota exhaustion stopping cleanly, the custom upstream allowlist.
+- Backend e2e: a project with the openai-compatible upstream forwards to the fake upstream; a non-allowlisted host is refused when PARSIM_ALLOW_CUSTOM_UPSTREAM is not set.
+- Live (LIVE_TESTS=true only, skipped without GROQ_API_KEY): one real call to Groq through the local Parsim proxy, streamed and not streamed.
+- Manual check: run one support task end to end on Groq through the local Parsim proxy in replay mode, and record the result in the step summary.
 
-Then run the benchmark once with Gemini Flash (ask me before spending more than the budget I give you) and include the results in the step summary.
+Finish with the step summary (include test counts), push, and stop.
+```
 
-Finish with the step summary, push, and stop.
+---
+
+## Step 16b: Benchmark runner, baselines and metrics
+
+```text
+Step 16b: build a benchmark runner that measures Parsim honestly against naive baselines.
+
+Follow CLAUDE.md. Branch: feat/step-16b-benchmark-runner from main.
+
+Why this matters: the first question from investors and technical buyers is "why not just truncate old messages, or summarize everything?" The benchmark must answer it with data.
+
+What to build
+1. Runner: npm run bench -- --agent research|support --runs 3 --provider <name> --model <model> [--arms all|<list>] [--dry-run]
+   Runs every task in five arms, with tool recordings in replay mode and temperature 0 where supported:
+   a. full: no Parsim, full context
+   b. truncate: naive truncation (system prompt, first user goal and the last N turns), as a client-side ContextStrategy
+   c. summarize: naive summarization (one internal-model summary of everything older than N turns, refreshed every M turns), as a client-side ContextStrategy
+   d. parsim-shadow: through the proxy with the project in shadow mode
+   e. parsim-on: through the proxy with the project in on mode
+   N and M come from config and are the same for every arm that uses them. The runner creates or reuses one benchmark project per arm and sets its GC mode through the existing API.
+2. Metrics per task and per arm:
+   - Task success: exact match or the judge checklist (Parsim's internal model), with mean and standard deviation across runs.
+   - Input, output and cached input tokens.
+   - Cost three ways: raw; net (including Parsim's own internal calls for summaries, recalls and the summarize baseline's summaries); cache-adjusted using the price table's cached input prices.
+   - Proxy latency overhead, p50 and p95 (parsim arms against the full arm).
+   - Recalls per task, and recall success (whether the recalled item contained the fact the task needed).
+   - Side-effect safety: compare every arm's side-effect log against the full arm and flag missing, duplicated or changed calls.
+   - Wall time.
+   - Results broken down by task type (normal, late_recall, cross_ticket).
+3. Significance: mark any difference between arms that is smaller than the run-to-run spread as "not significant". Keep the method simple and explain it in the report.
+4. Budget guard: before any non-dry run, print the estimated tokens and cost per arm and in total, and wait for confirmation (--yes skips the prompt only for providers configured as free tier, such as Groq's free tier). Abort cleanly, writing partial results, if spending passes --budget.
+   For free-tier providers, also estimate whether the run fits the daily token and request quota. Save progress after every task so a run stopped by a quota can continue the next day with --resume, without repeating finished tasks.
+5. Report generator: writes docs/benchmarks/<date>-<agent>-<provider>-<model>.md, a JSON file with all raw numbers next to it, and an SVG chart (task success against net cost, one point per arm) generated by code. The report includes:
+   - a headline line in this form: "Parsim on: X% lower net cost, success Y% vs Z% for full context. Truncation: A% lower net cost, success B%."
+   - per-arm tables, the breakdown by task type, the side-effect safety result, the exact command, the model, the Parsim git commit and the run date
+   - a clear banner "Development run, not for publishing" when the provider is a free-tier model
+   Never edit numbers by hand.
+6. Dry-run mode: runs the full pipeline against the fake upstream with scripted answers, no real calls, used in CI.
+7. Free dev loop, documented in demo-agent/README.md: Groq's free tier for iteration (npm run bench -- --agent support --runs 1 --provider groq), the fake upstream for CI, Gemini Flash for published numbers.
+
+Tests
+- Unit: each metric, the three cost calculations, the significance flag, side-effect diff detection (missing, duplicated, changed arguments), the truncation and summarization strategies (truncation keeps the system prompt and first goal), the budget estimator and abort, the daily quota estimate, --resume skipping finished tasks, report generation (snapshot test of the markdown and JSON from a fixed result set), the dev-run banner.
+- E2E: a dry run of both agents over all five arms completes and writes a report, with the proxy booted in-process and the fake upstream behind it.
+
+Then run one development benchmark on Groq, support agent, 1 run, and include the dev report in the step summary. If the daily quota stops it, resume the next time I ask and say so in the summary.
+
+Finish with the step summary (include test counts), push, and stop.
+```
+
+---
+
+## Step 16c: Live benchmark run and published results
+
+```text
+Step 16c: run the benchmark on real models and publish the results.
+
+Follow CLAUDE.md. Branch: feat/step-16c-benchmark-run from main.
+
+Before you start, list what you need from me and wait:
+- My budget for this step.
+- The Gemini Flash model name to use, and whether to add a second model (for example a frontier model whose key is already set).
+- Whether to include the optional tau-bench subset (point 4).
+
+What to do
+1. Print the cost estimate for both agents, 3 runs, all five arms, per model, and wait for my approval.
+2. Run the benchmark with Gemini Flash for both agents, then the second model if I approved it. Commit each report (markdown, JSON and chart) as its own commit.
+3. Write docs/benchmarks/README.md: an index of all published reports, the headline numbers, the method in plain language (arms, task types, significance, cost calculations), and the known limits of the benchmark. No em dashes.
+4. Optional, only if I approved it: an adapter that runs a subset of tau-bench (retail domain) through the five arms, with its own report. Check tau-bench's license and current repo first, and keep the adapter in demo-agent/tau-bench/.
+5. If Parsim on does not beat truncation on task success, or loses success against full context:
+   - List the failing tasks and their type.
+   - Use replay (step 15) and the stored GC decisions to find which decisions caused each failure.
+   - Propose concrete GC rule or threshold changes in the step summary. Do not change the GC in this step; those changes get their own fix/ branch.
+
+Tests
+- No new product code is expected. If you add or change runner code, add unit tests for it and keep the dry run passing in CI.
+
+Finish with the step summary: the headline line for each model, the side-effect safety result, total money spent against the budget, and the proposed GC changes if any. Push, and stop.
 ```
 
 ---
@@ -770,3 +874,4 @@ Finish with the step summary (include test counts), push, and stop.
 - If Claude Code proposes a different approach than a prompt describes, let it explain why first. Accept changes that are smaller or safer.
 - If a step gets too big, ask Claude to split it into two branches.
 - Keep an eye on spending during live tests and the benchmark. Set a monthly limit with each provider.
+- Use the free dev loop from step 16a (Groq's free tier) for iterating on GC rules, and spend paid tokens only on runs you will publish.

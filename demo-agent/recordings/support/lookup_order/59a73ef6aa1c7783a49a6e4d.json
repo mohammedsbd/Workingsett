@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2009"
+  },
+  "result": "Order O-2009\nCustomer: Ines Pereira\nStatus: delayed\nPromised delivery: 2026-09-14\nTracking number: TRK159697I\nItems:\n- 3 x Headlamp at 27.75 EUR\n- 1 x Sleeping mat at 64.40 EUR\nOrder total: 147.65 EUR\nShipping history:\n- 2026-09-11 06:42 GDN-3: Customs data received\n- 2026-09-11 07:20 HAM-4: Departed facility\n- 2026-09-12 08:10 RIX-2: Weight check completed\n- 2026-09-12 09:26 GDN-3: Arrived at facility\n- 2026-09-13 10:41 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-13 11:07 RIX-2: Weight check completed\n- 2026-09-14 12:23 GDN-3: Address label verified\n- 2026-09-14 13:59 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-15 14:34 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-28 18:02 GDN-3: Delivery postponed: carrier backlog, new date not confirmed"
+}

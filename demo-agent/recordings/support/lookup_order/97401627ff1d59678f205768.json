@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2007"
+  },
+  "result": "Order O-2007\nCustomer: Greta Sollie\nStatus: delivered\nPromised delivery: 2026-09-05\nTracking number: TRK767511G\nItems:\n- 3 x Trail lantern at 34.50 EUR\n- 1 x Folding stool at 41.25 EUR\nOrder total: 144.75 EUR\nShipping history:\n- 2026-09-02 06:23 ARN-1: Departed facility\n- 2026-09-02 07:44 OSL-1: Address label verified\n- 2026-09-03 08:30 GDN-3: Address label verified\n- 2026-09-03 09:53 ARN-1: Parcel scanned at sorting hub\n- 2026-09-04 10:28 OSL-1: Customs data received\n- 2026-09-04 11:33 GDN-3: Address label verified\n- 2026-09-05 12:49 ARN-1: Parcel scanned at sorting hub\n- 2026-09-05 13:05 OSL-1: Sorted for regional delivery\n- 2026-09-06 14:40 GDN-3: Parcel scanned at sorting hub\n- 2026-09-28 18:02 ARN-1: Delivered to the front door, signed by driver"
+}

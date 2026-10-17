@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2023"
+  },
+  "result": "Order O-2023\nCustomer: Farid Haddad\nStatus: damaged\nPromised delivery: 2026-09-04\nTracking number: TRK492858W\nItems:\n- 3 x Folding stool at 41.25 EUR\n- 1 x Trail lantern at 34.50 EUR\n- 2 x Insulated flask at 22.00 EUR\n- 3 x Merino base layer at 58.00 EUR\nOrder total: 376.25 EUR\nShipping history:\n- 2026-09-01 06:03 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-01 07:17 OSL-1: Customs data received\n- 2026-09-02 08:21 GDN-3: Sorted for regional delivery\n- 2026-09-02 09:22 RIX-2: Address label verified\n- 2026-09-03 10:51 OSL-1: Loaded onto linehaul vehicle\n- 2026-09-03 11:03 GDN-3: Customs data received\n- 2026-09-04 12:40 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-04 13:55 OSL-1: Arrived at facility\n- 2026-09-05 14:16 GDN-3: Sorted for regional delivery\n- 2026-09-05 15:49 RIX-2: Arrived at facility\n- 2026-09-28 18:02 RIX-2: Delivered; customer reported the parcel damaged on arrival"
+}

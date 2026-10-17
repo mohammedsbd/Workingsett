@@ -1,0 +1,8 @@
+{
+  "tool": "fetch_page",
+  "args": {
+    "url": null,
+    "revision": 0
+  },
+  "result": "404: page not found."
+}

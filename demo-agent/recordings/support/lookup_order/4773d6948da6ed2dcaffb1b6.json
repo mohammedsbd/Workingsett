@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2017"
+  },
+  "result": "Order O-2017\nCustomer: Celine Marsh\nStatus: damaged\nPromised delivery: 2026-09-15\nTracking number: TRK298579Q\nItems:\n- 2 x Insulated flask at 22.00 EUR\n- 3 x Water filter at 45.60 EUR\n- 2 x Dry bag, 20 l at 19.90 EUR\n- 3 x Headlamp at 27.75 EUR\nOrder total: 303.85 EUR\nShipping history:\n- 2026-09-12 06:50 GDN-3: Weight check completed\n- 2026-09-12 07:19 RIX-2: Departed facility\n- 2026-09-13 08:41 HAM-4: Departed facility\n- 2026-09-13 09:21 GDN-3: Arrived at facility\n- 2026-09-14 10:55 RIX-2: Address label verified\n- 2026-09-14 11:31 HAM-4: Customs data received\n- 2026-09-15 12:57 GDN-3: Arrived at facility\n- 2026-09-15 13:39 RIX-2: Departed facility\n- 2026-09-16 14:15 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-28 18:02 GDN-3: Delivered; customer reported the parcel damaged on arrival"
+}

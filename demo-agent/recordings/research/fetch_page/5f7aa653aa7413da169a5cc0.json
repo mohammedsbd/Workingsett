@@ -1,0 +1,8 @@
+{
+  "tool": "fetch_page",
+  "args": {
+    "url": "https://atlas.example/technology/vanadium-flow",
+    "revision": 1
+  },
+  "result": "# vanadium flow storage\n\nCommissioning tests ran for several weeks before the plant joined the balancing market. Permitting took longer than the construction itself, a pattern seen at several sites in the region. The plant can black-start a nearby gas turbine, which the grid operator tests twice a year. Recycling partners have agreed to take back modules at the end of their service life.\n\nThe battery hall is divided into fire compartments, each with its own ventilation path. Data from the site feeds a public dashboard that shows charging and discharging in real time. Earlier feasibility studies considered pumped hydro, which the terrain made too expensive. Maintenance crews inspect the containment and the power electronics on a quarterly schedule.\n\nRecycling partners have agreed to take back modules at the end of their service life. The site was chosen for its existing substation and a transmission line with spare capacity. Grid operators value storage that can shift energy from midday surpluses to the evening peak. Maintenance crews inspect the containment and the power electronics on a quarterly schedule."
+}

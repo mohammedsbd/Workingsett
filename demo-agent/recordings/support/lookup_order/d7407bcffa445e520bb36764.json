@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": null
+  },
+  "result": "No order found with that id."
+}

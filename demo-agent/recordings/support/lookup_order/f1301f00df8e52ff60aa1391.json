@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2005"
+  },
+  "result": "Order O-2005\nCustomer: Elif Kaya\nStatus: delayed\nPromised delivery: 2026-09-13\nTracking number: TRK243360E\nItems:\n- 1 x Headlamp at 27.75 EUR\n- 1 x Trail lantern at 34.50 EUR\nOrder total: 62.25 EUR\nShipping history:\n- 2026-09-10 06:17 RIX-2: Departed facility\n- 2026-09-10 07:59 ARN-1: Address label verified\n- 2026-09-11 08:35 OSL-1: Address label verified\n- 2026-09-11 09:19 RIX-2: Departed facility\n- 2026-09-12 10:07 ARN-1: Loaded onto linehaul vehicle\n- 2026-09-12 11:50 OSL-1: Address label verified\n- 2026-09-13 12:51 RIX-2: Arrived at facility\n- 2026-09-13 13:24 ARN-1: Parcel scanned at sorting hub\n- 2026-09-14 14:04 OSL-1: Parcel scanned at sorting hub\n- 2026-09-28 18:02 RIX-2: Delivery postponed: carrier backlog, new date not confirmed"
+}

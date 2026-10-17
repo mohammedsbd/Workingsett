@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2002"
+  },
+  "result": "Order O-2002\nCustomer: Bram Okafor\nStatus: damaged\nPromised delivery: 2026-09-07\nTracking number: TRK396988B\nItems:\n- 3 x Camp stove at 89.00 EUR\n- 1 x Insulated flask at 22.00 EUR\n- 2 x Headlamp at 27.75 EUR\n- 2 x Sleeping mat at 64.40 EUR\nOrder total: 473.30 EUR\nShipping history:\n- 2026-09-04 06:17 ARN-1: Weight check completed\n- 2026-09-04 07:29 GDN-3: Address label verified\n- 2026-09-05 08:59 RIX-2: Sorted for regional delivery\n- 2026-09-05 09:14 ARN-1: Customs data received\n- 2026-09-06 10:28 GDN-3: Parcel scanned at sorting hub\n- 2026-09-06 11:22 RIX-2: Parcel scanned at sorting hub\n- 2026-09-07 12:54 ARN-1: Arrived at facility\n- 2026-09-07 13:22 GDN-3: Address label verified\n- 2026-09-28 18:02 ARN-1: Delivered; customer reported the parcel damaged on arrival"
+}

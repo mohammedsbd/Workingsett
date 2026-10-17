@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2018"
+  },
+  "result": "Order O-2018\nCustomer: Dario Venn\nStatus: lost\nPromised delivery: 2026-09-11\nTracking number: TRK402863R\nItems:\n- 1 x Sleeping mat at 64.40 EUR\n- 3 x Rain shell at 129.00 EUR\nOrder total: 451.40 EUR\nShipping history:\n- 2026-09-08 06:47 ARN-1: Parcel scanned at sorting hub\n- 2026-09-08 07:09 GDN-3: Arrived at facility\n- 2026-09-09 08:00 OSL-1: Loaded onto linehaul vehicle\n- 2026-09-09 09:32 ARN-1: Address label verified\n- 2026-09-10 10:51 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-10 11:54 OSL-1: Sorted for regional delivery\n- 2026-09-11 12:16 ARN-1: Address label verified\n- 2026-09-11 13:00 GDN-3: Sorted for regional delivery\n- 2026-09-12 14:23 OSL-1: Customs data received\n- 2026-09-28 18:02 ARN-1: Carrier declared the parcel lost in transit"
+}

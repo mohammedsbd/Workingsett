@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2014"
+  },
+  "result": "Order O-2014\nCustomer: Nils Aaberg\nStatus: damaged\nPromised delivery: 2026-09-23\nTracking number: TRK839255N\nItems:\n- 3 x Trail lantern at 34.50 EUR\n- 3 x Folding stool at 41.25 EUR\n- 3 x Camp stove at 89.00 EUR\n- 1 x Insulated flask at 22.00 EUR\nOrder total: 516.25 EUR\nShipping history:\n- 2026-09-20 06:43 GDN-3: Arrived at facility\n- 2026-09-20 07:43 RIX-2: Sorted for regional delivery\n- 2026-09-21 08:08 HAM-4: Departed facility\n- 2026-09-21 09:46 GDN-3: Departed facility\n- 2026-09-22 10:14 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-22 11:52 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-23 12:14 GDN-3: Sorted for regional delivery\n- 2026-09-23 13:47 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-28 18:02 GDN-3: Delivered; customer reported the parcel damaged on arrival"
+}

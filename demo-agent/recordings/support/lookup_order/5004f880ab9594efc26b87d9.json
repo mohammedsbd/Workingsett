@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2003"
+  },
+  "result": "Order O-2003\nCustomer: Celine Marsh\nStatus: lost\nPromised delivery: 2026-09-21\nTracking number: TRK356407C\nItems:\n- 2 x Sleeping mat at 64.40 EUR\n- 1 x Folding stool at 41.25 EUR\n- 1 x Rain shell at 129.00 EUR\n- 2 x Camp stove at 89.00 EUR\nOrder total: 477.05 EUR\nShipping history:\n- 2026-09-18 06:25 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-18 07:30 ARN-1: Departed facility\n- 2026-09-19 08:21 RIX-2: Departed facility\n- 2026-09-19 09:05 HAM-4: Arrived at facility\n- 2026-09-20 10:30 ARN-1: Customs data received\n- 2026-09-20 11:56 RIX-2: Address label verified\n- 2026-09-21 12:53 HAM-4: Address label verified\n- 2026-09-21 13:47 ARN-1: Arrived at facility\n- 2026-09-22 14:10 RIX-2: Arrived at facility\n- 2026-09-28 18:02 HAM-4: Carrier declared the parcel lost in transit"
+}

@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2015"
+  },
+  "result": "Order O-2015\nCustomer: Ada Lindqvist\nStatus: delayed\nPromised delivery: 2026-09-18\nTracking number: TRK688553O\nItems:\n- 1 x Insulated flask at 22.00 EUR\n- 1 x Water filter at 45.60 EUR\nOrder total: 67.60 EUR\nShipping history:\n- 2026-09-15 06:37 GDN-3: Sorted for regional delivery\n- 2026-09-15 07:07 HAM-4: Weight check completed\n- 2026-09-16 08:25 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-16 09:19 GDN-3: Departed facility\n- 2026-09-17 10:47 HAM-4: Sorted for regional delivery\n- 2026-09-17 11:13 RIX-2: Address label verified\n- 2026-09-18 12:23 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-18 13:36 HAM-4: Customs data received\n- 2026-09-19 14:22 RIX-2: Parcel scanned at sorting hub\n- 2026-09-19 15:16 GDN-3: Parcel scanned at sorting hub\n- 2026-09-20 16:38 HAM-4: Arrived at facility\n- 2026-09-28 18:02 GDN-3: Delivery postponed: carrier backlog, new date not confirmed"
+}

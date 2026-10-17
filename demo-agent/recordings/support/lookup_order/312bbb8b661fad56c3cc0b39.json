@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2004"
+  },
+  "result": "Order O-2004\nCustomer: Dario Venn\nStatus: delivered\nPromised delivery: 2026-09-08\nTracking number: TRK394988D\nItems:\n- 2 x Merino base layer at 58.00 EUR\n- 2 x Dry bag, 20 l at 19.90 EUR\nOrder total: 155.80 EUR\nShipping history:\n- 2026-09-05 06:26 ARN-1: Weight check completed\n- 2026-09-05 07:56 RIX-2: Arrived at facility\n- 2026-09-06 08:41 OSL-1: Sorted for regional delivery\n- 2026-09-06 09:41 ARN-1: Parcel scanned at sorting hub\n- 2026-09-07 10:51 RIX-2: Arrived at facility\n- 2026-09-07 11:23 OSL-1: Customs data received\n- 2026-09-08 12:15 ARN-1: Loaded onto linehaul vehicle\n- 2026-09-08 13:55 RIX-2: Address label verified\n- 2026-09-09 14:07 OSL-1: Parcel scanned at sorting hub\n- 2026-09-28 18:02 ARN-1: Delivered to the front door, signed by driver"
+}

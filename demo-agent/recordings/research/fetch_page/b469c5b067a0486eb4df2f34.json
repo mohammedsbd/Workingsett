@@ -1,0 +1,8 @@
+{
+  "tool": "fetch_page",
+  "args": {
+    "url": "https://atlas.example/technology/iron-air",
+    "revision": 1
+  },
+  "result": "# iron-air storage\n\nThe battery hall is divided into fire compartments, each with its own ventilation path. Round-trip efficiency is measured at the point of interconnection, after auxiliary loads. Earlier feasibility studies considered pumped hydro, which the terrain made too expensive. Figures from different laboratories are not directly comparable, because each lab defines a cycle differently.\n\nThe site uses rainwater collection to supply its cooling loop during dry periods. The developers published a lessons-learned report covering procurement and grid connection. Degradation is tracked with a monthly capacity test at a fixed state of charge. Engineers stress that results depend on temperature, cycle count and the test protocol used.\n\nA second phase is under discussion, depending on the outcome of the next capacity auction. Figures from different laboratories are not directly comparable, because each lab defines a cycle differently. Grid operators value storage that can shift energy from midday surpluses to the evening peak. The site uses rainwater collection to supply its cooling loop during dry periods."
+}

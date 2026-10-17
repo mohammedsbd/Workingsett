@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2011"
+  },
+  "result": "Order O-2011\nCustomer: Kemi Adeyemi\nStatus: delayed\nPromised delivery: 2026-09-07\nTracking number: TRK371632K\nItems:\n- 1 x Sleeping mat at 64.40 EUR\n- 2 x Dry bag, 20 l at 19.90 EUR\n- 1 x Trail lantern at 34.50 EUR\nOrder total: 138.70 EUR\nShipping history:\n- 2026-09-04 06:30 HAM-4: Customs data received\n- 2026-09-04 07:03 GDN-3: Departed facility\n- 2026-09-05 08:05 OSL-1: Weight check completed\n- 2026-09-05 09:05 HAM-4: Weight check completed\n- 2026-09-06 10:18 GDN-3: Address label verified\n- 2026-09-06 11:22 OSL-1: Parcel scanned at sorting hub\n- 2026-09-07 12:46 HAM-4: Sorted for regional delivery\n- 2026-09-07 13:28 GDN-3: Parcel scanned at sorting hub\n- 2026-09-08 14:46 OSL-1: Parcel scanned at sorting hub\n- 2026-09-28 18:02 HAM-4: Delivery postponed: carrier backlog, new date not confirmed"
+}

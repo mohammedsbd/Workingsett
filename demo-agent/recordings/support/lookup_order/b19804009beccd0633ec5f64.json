@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2006"
+  },
+  "result": "Order O-2006\nCustomer: Farid Haddad\nStatus: damaged\nPromised delivery: 2026-09-12\nTracking number: TRK848843F\nItems:\n- 3 x Water filter at 45.60 EUR\n- 3 x Folding stool at 41.25 EUR\nOrder total: 260.55 EUR\nShipping history:\n- 2026-09-09 06:19 HAM-4: Parcel scanned at sorting hub\n- 2026-09-09 07:40 ARN-1: Parcel scanned at sorting hub\n- 2026-09-10 08:37 OSL-1: Loaded onto linehaul vehicle\n- 2026-09-10 09:09 HAM-4: Customs data received\n- 2026-09-11 10:47 ARN-1: Departed facility\n- 2026-09-11 11:16 OSL-1: Weight check completed\n- 2026-09-12 12:00 HAM-4: Sorted for regional delivery\n- 2026-09-12 13:53 ARN-1: Arrived at facility\n- 2026-09-13 14:53 OSL-1: Sorted for regional delivery\n- 2026-09-28 18:02 HAM-4: Delivered; customer reported the parcel damaged on arrival"
+}

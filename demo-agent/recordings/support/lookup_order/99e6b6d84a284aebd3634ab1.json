@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2008"
+  },
+  "result": "Order O-2008\nCustomer: Hiro Tanabe\nStatus: lost\nPromised delivery: 2026-09-09\nTracking number: TRK514624H\nItems:\n- 2 x Water filter at 45.60 EUR\n- 1 x Rain shell at 129.00 EUR\n- 3 x Insulated flask at 22.00 EUR\nOrder total: 286.20 EUR\nShipping history:\n- 2026-09-06 06:41 HAM-4: Address label verified\n- 2026-09-06 07:34 OSL-1: Departed facility\n- 2026-09-07 08:14 ARN-1: Address label verified\n- 2026-09-07 09:31 HAM-4: Customs data received\n- 2026-09-08 10:44 OSL-1: Address label verified\n- 2026-09-08 11:26 ARN-1: Customs data received\n- 2026-09-09 12:53 HAM-4: Departed facility\n- 2026-09-09 13:48 OSL-1: Parcel scanned at sorting hub\n- 2026-09-10 14:57 ARN-1: Parcel scanned at sorting hub\n- 2026-09-10 15:01 HAM-4: Sorted for regional delivery\n- 2026-09-28 18:02 HAM-4: Carrier declared the parcel lost in transit"
+}

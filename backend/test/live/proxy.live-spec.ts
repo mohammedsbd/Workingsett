@@ -32,6 +32,15 @@ const providers = [
     key: process.env.OPENAI_API_KEY,
     model: process.env.OPENAI_LIVE_TEST_MODEL,
   },
+  // Groq's free tier through an openai-compatible project (api.groq.com is
+  // in the default custom upstream allowlist).
+  {
+    upstream: 'openai-compatible' as const,
+    key: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL,
+    upstreamBaseUrl:
+      process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
+  },
 ];
 
 describe('Live proxy calls', () => {
@@ -56,11 +65,18 @@ describe('Live proxy calls', () => {
     await t?.close();
   });
 
-  describe.each(providers)('$upstream', ({ upstream, key, model }) => {
+  describe.each(providers)('$upstream', (provider) => {
+    const { upstream, key, model } = provider;
+    const upstreamBaseUrl =
+      'upstreamBaseUrl' in provider ? provider.upstreamBaseUrl : undefined;
     const run = live && key && model ? it : it.skip;
 
     const client = async () => {
-      const fx = await createProjectWithKey(t, { upstream, providerKey: key });
+      const fx = await createProjectWithKey(t, {
+        upstream,
+        upstreamBaseUrl,
+        providerKey: key,
+      });
       return {
         fx,
         openai: new OpenAI({ apiKey: fx.parsimKey, baseURL, maxRetries: 3 }),

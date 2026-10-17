@@ -165,6 +165,7 @@ describe('setup snippets', () => {
     expect(snippets.map((s) => s.id)).toEqual([
       'openai',
       'gemini-openai',
+      'openai-compatible',
       'gemini-native',
       'anthropic',
       'claude-code'

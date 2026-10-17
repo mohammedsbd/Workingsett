@@ -628,6 +628,7 @@
         "p50": 400,
         "p95": 800
       },
+      "waitedMs": null,
       "overheadVsFull": null,
       "wallTimeMs": 12000,
       "sideEffects": null,
@@ -675,6 +676,7 @@
         "p50": 380,
         "p95": 760
       },
+      "waitedMs": null,
       "overheadVsFull": null,
       "wallTimeMs": 12000,
       "sideEffects": {
@@ -734,6 +736,7 @@
         "p50": 390,
         "p95": 780
       },
+      "waitedMs": null,
       "overheadVsFull": null,
       "wallTimeMs": 12000,
       "sideEffects": {
@@ -786,6 +789,7 @@
         "p50": 420,
         "p95": 840
       },
+      "waitedMs": null,
       "overheadVsFull": {
         "p50": 20,
         "p95": 40
@@ -841,6 +845,7 @@
         "p50": 430,
         "p95": 860
       },
+      "waitedMs": null,
       "overheadVsFull": {
         "p50": 30,
         "p95": 60

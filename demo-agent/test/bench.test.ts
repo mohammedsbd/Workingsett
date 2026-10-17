@@ -46,6 +46,7 @@ import {
   reportFiles,
   summarizeArms,
   headline,
+  lowerOrHigher,
 } from '../src/bench/report.js';
 import { runBench } from '../src/bench/run-bench.js';
 import {
@@ -688,6 +689,23 @@ describe('report', () => {
     await expect(renderSvg(summaries)).toMatchFileSnapshot(
       '__snapshots__/report.svg',
     );
+  });
+
+  it('should say "higher" when an arm costs more than full context', () => {
+    expect(lowerOrHigher(0.375)).toBe('37.5% lower');
+    expect(lowerOrHigher(-0.005)).toBe('0.5% higher');
+  });
+
+  it('should report rate-limit waits apart when they were recorded', () => {
+    const results = bench(true);
+    for (const r of results.results) {
+      r.stepRecords = r.stepRecords.map((s) => ({ ...s, waitedMs: 1500 }));
+    }
+    const summaries = summarizeArms(results);
+    expect(summaries[0]!.waitedMs).toBe(3000);
+    const md = renderMarkdown(results, summaries, reportFiles(results));
+    expect(md).toContain('| 3.0s |');
+    expect(md).not.toContain('includes the waits');
   });
 
   it('should mark free-tier runs as development runs, and only those', () => {

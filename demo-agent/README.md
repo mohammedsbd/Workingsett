@@ -137,7 +137,7 @@ Before a real run the bench prints the estimated requests, tokens and cost per a
 
 A difference between arms counts as significant only when it is larger than the run-to-run spread.
 
-**The report** goes to `docs/benchmarks/<date>-<agent>-<provider>-<model>.md`, with the raw numbers in a `.json` file next to it and an `.svg` chart (task success against net cost). Its headline reads "Parsim on: X% lower net cost, success Y% vs Z% for full context. Truncation: A% lower net cost, success B%." Runs on a free-tier model carry a "Development run, not for publishing" banner. Never edit the numbers by hand.
+**The report** goes to `docs/benchmarks/<date>-<agent>-<provider>-<model>.md`, with the raw numbers in a `.json` file next to it and an `.svg` chart (task success against net cost). Its headline reads "Parsim on: X% lower net cost, success Y% vs Z% for full context. Truncation: A% lower net cost, success B%." Runs on a free-tier model carry a "Development run, not for publishing" banner. Never edit the numbers by hand. To render a report again from a bench's saved results (for example after a layout change), run `npm run bench:report -- --id <bench id>`.
 
 **Dry run** (`--dry-run`): everything runs against a scripted fake upstream (`src/bench/fake-upstream.ts`) with no real model call. The scripted agent knows only what is in each request, so the baselines lose facts as they would with a real model. For the Parsim arms, point Parsim's `PROXY_OPENAI_BASE_URL` at the fake's port (`--fake-port`). The backend's e2e suite (`backend/test/bench`) does exactly this, in CI.
 

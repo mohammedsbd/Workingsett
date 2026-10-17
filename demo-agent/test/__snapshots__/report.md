@@ -34,13 +34,15 @@
 
 ## Latency
 
-| Arm | p50 per step | p95 per step | Overhead vs full (p50 / p95) |
-| --- | --- | --- | --- |
-| full | 400 ms | 800 ms | - |
-| truncate | 380 ms | 760 ms | - |
-| summarize | 390 ms | 780 ms | - |
-| parsim-shadow | 420 ms | 840 ms | 20 ms / 40 ms |
-| parsim-on | 430 ms | 860 ms | 30 ms / 60 ms |
+| Arm | p50 per step | p95 per step | Overhead vs full (p50 / p95) | Rate-limit waits |
+| --- | --- | --- | --- | --- |
+| full | 400 ms | 800 ms | - | included above |
+| truncate | 380 ms | 760 ms | - | included above |
+| summarize | 390 ms | 780 ms | - | included above |
+| parsim-shadow | 420 ms | 840 ms | 20 ms / 40 ms | included above |
+| parsim-on | 430 ms | 860 ms | 30 ms / 60 ms | included above |
+
+> In this run the time per step includes the waits for the provider's rate limits (they were not recorded apart), so the latency and overhead above mostly measure those waits, not Parsim.
 
 ## Recalls
 

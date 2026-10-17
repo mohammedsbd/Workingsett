@@ -38,6 +38,8 @@ export type ArmSummary = {
   recalls: number;
   recallHits: number | null;
   latency: { p50: number; p95: number };
+  /** Total rate-limit waits per run (ms); null if not recorded apart. */
+  waitedMs: number | null;
   overheadVsFull: { p50: number; p95: number } | null;
   wallTimeMs: number;
   sideEffects: Record<SideEffectIssue['kind'], number> | null;
@@ -45,6 +47,9 @@ export type ArmSummary = {
 };
 
 const pct = (fraction: number) => `${(fraction * 100).toFixed(1)}%`;
+/** "37.5% lower", or "0.5% higher" for a negative reduction. */
+export const lowerOrHigher = (fraction: number) =>
+  fraction >= 0 ? `${pct(fraction)} lower` : `${pct(-fraction)} higher`;
 const usd = (value: number) => `$${value.toFixed(value < 0.01 ? 5 : 4)}`;
 const int = (value: number) => Math.round(value).toLocaleString('en-US');
 
@@ -141,6 +146,15 @@ export function summarizeArms(bench: BenchResults): ArmSummary[] {
           p50: percentile(latencies, 50),
           p95: percentile(latencies, 95),
         },
+        waitedMs: runs.every((r) =>
+          r.stepRecords.every((s) => s.waitedMs !== undefined),
+        )
+          ? mean(
+              runs.map((r) =>
+                r.stepRecords.reduce((sum, s) => sum + (s.waitedMs ?? 0), 0),
+              ),
+            )
+          : null,
         overheadVsFull:
           PARSIM_ARMS.includes(arm) && fullLatency.length
             ? latencyOverhead(latencies, fullLatency)
@@ -170,7 +184,7 @@ export function headline(summaries: ArmSummary[]): string {
   if (!full || !on || !truncate) {
     return 'Headline needs the full, truncate and parsim-on arms.';
   }
-  return `Parsim on: ${pct(on.netVsFull ?? 0)} lower net cost, success ${pct(on.success.mean)} vs ${pct(full.success.mean)} for full context. Truncation: ${pct(truncate.netVsFull ?? 0)} lower net cost, success ${pct(truncate.success.mean)}.`;
+  return `Parsim on: ${lowerOrHigher(on.netVsFull ?? 0)} net cost, success ${pct(on.success.mean)} vs ${pct(full.success.mean)} for full context. Truncation: ${lowerOrHigher(truncate.netVsFull ?? 0)} net cost, success ${pct(truncate.success.mean)}.`;
 }
 
 export const DEV_RUN_BANNER =
@@ -292,7 +306,7 @@ export function renderMarkdown(
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...summaries.map(
       (s) =>
-        `| ${s.arm} | ${pct(s.success.mean)} ± ${pct(s.success.sd)} | ${s.successVsFull ?? '-'} | ${int(s.tokens.input)} | ${int(s.tokens.output)} | ${int(s.tokens.cached)} | ${usd(s.costs.raw)} | ${usd(s.costs.net)} | ${usd(s.costs.cacheAdjusted)} | ${s.netVsFull === null ? '-' : `${pct(s.netVsFull)} lower`} | ${s.recalls.toFixed(1)} | ${(s.wallTimeMs / 1000).toFixed(1)}s |`,
+        `| ${s.arm} | ${pct(s.success.mean)} ± ${pct(s.success.sd)} | ${s.successVsFull ?? '-'} | ${int(s.tokens.input)} | ${int(s.tokens.output)} | ${int(s.tokens.cached)} | ${usd(s.costs.raw)} | ${usd(s.costs.net)} | ${usd(s.costs.cacheAdjusted)} | ${s.netVsFull === null ? '-' : lowerOrHigher(s.netVsFull)} | ${s.recalls.toFixed(1)} | ${(s.wallTimeMs / 1000).toFixed(1)}s |`,
     ),
     '',
     ...(summaries.some((s) => s.judgeSuccess)
@@ -317,13 +331,19 @@ export function renderMarkdown(
     '',
     '## Latency',
     '',
-    '| Arm | p50 per step | p95 per step | Overhead vs full (p50 / p95) |',
-    '| --- | --- | --- | --- |',
+    '| Arm | p50 per step | p95 per step | Overhead vs full (p50 / p95) | Rate-limit waits |',
+    '| --- | --- | --- | --- | --- |',
     ...summaries.map(
       (s) =>
-        `| ${s.arm} | ${int(s.latency.p50)} ms | ${int(s.latency.p95)} ms | ${s.overheadVsFull ? `${int(s.overheadVsFull.p50)} ms / ${int(s.overheadVsFull.p95)} ms` : '-'} |`,
+        `| ${s.arm} | ${int(s.latency.p50)} ms | ${int(s.latency.p95)} ms | ${s.overheadVsFull ? `${int(s.overheadVsFull.p50)} ms / ${int(s.overheadVsFull.p95)} ms` : '-'} | ${s.waitedMs === null ? 'included above' : `${(s.waitedMs / 1000).toFixed(1)}s`} |`,
     ),
     '',
+    ...(summaries.some((s) => s.waitedMs === null)
+      ? [
+          "> In this run the time per step includes the waits for the provider's rate limits (they were not recorded apart), so the latency and overhead above mostly measure those waits, not Parsim.",
+          '',
+        ]
+      : []),
     '## Recalls',
     '',
     ...summaries

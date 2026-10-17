@@ -8,6 +8,7 @@ Parsim is a garbage collector for the context of long-running, non-coding AI age
 .
 ├── backend/    NestJS + TypeORM + PostgreSQL API and proxy (from brocoders/nestjs-boilerplate)
 ├── frontend/   Next.js + shadcn/ui dashboard (from Kiranism/next-shadcn-dashboard-starter)
+├── demo-agent/ Long-running demo agents (research, support) for the benchmark
 ├── docs/       Project docs, including per-step progress notes in docs/progress/
 └── CLAUDE.md   Permanent project rules
 ```
@@ -16,3 +17,4 @@ Parsim is a garbage collector for the context of long-running, non-coding AI age
 
 - Backend: see [backend/README.md](backend/README.md)
 - Frontend: see [frontend/README.md](frontend/README.md)
+- Demo agents: see [demo-agent/README.md](demo-agent/README.md)

@@ -3,8 +3,18 @@ import type { QueryParams } from '../proxy-credentials';
 import { MessageConverter } from '../../context/normalization/internal-model';
 import { TokenUsage } from '../../usage-records/domain/token-usage';
 
-/** Upstreams a project can forward to. */
-export const UPSTREAMS = ['openai', 'gemini', 'anthropic'] as const;
+/**
+ * Upstreams a project can forward to. "openai-compatible" is any provider
+ * that speaks the OpenAI chat completions format at a custom base URL (for
+ * example Groq), allowed only by PARSIM_ALLOW_CUSTOM_UPSTREAM or the host
+ * allowlist (see custom-upstream.ts).
+ */
+export const UPSTREAMS = [
+  'openai',
+  'gemini',
+  'anthropic',
+  'openai-compatible',
+] as const;
 export type Upstream = (typeof UPSTREAMS)[number];
 
 /** Client-facing API formats the proxy serves. */
@@ -96,6 +106,8 @@ export interface ProviderAdapter {
     clientHeaders: IncomingHttpHeaders;
     /** The client's query parameters (Gemini), without any API key. */
     query: QueryParams;
+    /** The project's checked base URL, for openai-compatible upstreams. */
+    upstreamBaseUrl?: string;
   }): PreparedUpstreamRequest;
   /** Usage from a non-streamed JSON response body. */
   usageFromResponse(body: unknown): TokenUsage | null;

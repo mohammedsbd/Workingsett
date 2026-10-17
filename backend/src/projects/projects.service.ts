@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '../config/config.type';
+import { checkCustomUpstream } from '../proxy/custom-upstream';
+import { Upstream } from '../proxy/providers/provider-adapter';
 import { NullableType } from '../utils/types/nullable.type';
 import { Project } from './domain/project';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -21,6 +28,7 @@ export class ProjectsService {
     return this.projectRepository.create({
       name: dto.name,
       upstream: dto.upstream,
+      upstreamBaseUrl: this.upstreamBaseUrl(dto.upstream, dto.upstreamBaseUrl),
       ownerId,
       storeContent: dto.storeContent ?? null,
       gcMode: dto.gcMode ?? 'shadow',
@@ -59,10 +67,17 @@ export class ProjectsService {
     id: Project['id'],
     dto: UpdateProjectDto,
   ): Promise<Project> {
-    await this.findOwned(ownerId, id);
+    const project = await this.findOwned(ownerId, id);
+    const upstream = dto.upstream ?? project.upstream;
     const updated = await this.projectRepository.update(id, {
       name: dto.name,
       upstream: dto.upstream,
+      upstreamBaseUrl: this.upstreamBaseUrl(
+        upstream,
+        dto.upstreamBaseUrl !== undefined
+          ? dto.upstreamBaseUrl
+          : project.upstreamBaseUrl,
+      ),
       storeContent: dto.storeContent,
       gcMode: dto.gcMode,
       gcMinContextTokens: dto.gcMinContextTokens,
@@ -84,6 +99,28 @@ export class ProjectsService {
     });
     if (!updated) throw new NotFoundException();
     return updated;
+  }
+
+  /**
+   * The base URL to store: checked against the custom upstream policy for
+   * openai-compatible projects (422 when refused), null for the others.
+   */
+  private upstreamBaseUrl(
+    upstream: Upstream,
+    url: string | null | undefined,
+  ): string | null {
+    if (upstream !== 'openai-compatible') return null;
+    const check = checkCustomUpstream(
+      url,
+      this.configService.getOrThrow('proxy.customUpstream', { infer: true }),
+    );
+    if (!check.allowed) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: { upstreamBaseUrl: check.reason },
+      });
+    }
+    return check.baseUrl;
   }
 
   findById(id: Project['id']): Promise<NullableType<Project>> {

@@ -17,6 +17,13 @@ export class Project {
   @ApiProperty({ enum: UPSTREAMS })
   upstream: Upstream;
 
+  /**
+   * Base URL of an openai-compatible upstream (for example
+   * https://api.groq.com/openai/v1). Null for the other upstreams.
+   */
+  @ApiProperty({ type: String, nullable: true })
+  upstreamBaseUrl: string | null;
+
   /** The user who owns the project. Every project belongs to a user. */
   @ApiProperty({ type: Number })
   ownerId: number;

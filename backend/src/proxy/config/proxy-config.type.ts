@@ -1,3 +1,5 @@
+import type { CustomUpstreamPolicy } from '../custom-upstream';
+
 export type ProxyConfig = {
   /** When false, requests from localhost may omit the Parsim key (dev only). */
   requireKey: boolean;
@@ -20,4 +22,6 @@ export type ProxyConfig = {
   storeContentDefault: boolean;
   /** Log prompt and response content at debug level (DEBUG_CONTENT=true). */
   debugContent: boolean;
+  /** Custom upstream base URLs (openai-compatible projects); see custom-upstream.ts. */
+  customUpstream: CustomUpstreamPolicy;
 };

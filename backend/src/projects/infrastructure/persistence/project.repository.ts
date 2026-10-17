@@ -5,6 +5,7 @@ export type NewProject = Pick<
   Project,
   | 'name'
   | 'upstream'
+  | 'upstreamBaseUrl'
   | 'ownerId'
   | 'providerKeyEncrypted'
   | 'storeContent'
@@ -27,6 +28,7 @@ export type ProjectChanges = Partial<
     Project,
     | 'name'
     | 'upstream'
+    | 'upstreamBaseUrl'
     | 'providerKeyEncrypted'
     | 'storeContent'
     | 'gcMode'

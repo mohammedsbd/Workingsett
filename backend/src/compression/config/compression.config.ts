@@ -42,6 +42,10 @@ class EnvironmentVariablesValidator {
   @IsUrl({ require_tld: false, require_protocol: true })
   @ValidateIf(isSet)
   PARSIM_INTERNAL_BASE_URL: string;
+
+  @Matches(POSITIVE_NUMBER)
+  @ValidateIf(isSet)
+  PARSIM_INTERNAL_CONTEXT_TOKENS: string;
 }
 
 const intOr = (value: string | undefined, fallback: number) =>
@@ -51,6 +55,7 @@ const INTERNAL_KEYS: Record<Upstream, string> = {
   gemini: 'GEMINI_API_KEY',
   openai: 'OPENAI_API_KEY',
   anthropic: 'ANTHROPIC_API_KEY',
+  'openai-compatible': 'GROQ_API_KEY',
 };
 
 export default registerAs<CompressionConfig>('compression', () => {
@@ -68,7 +73,13 @@ export default registerAs<CompressionConfig>('compression', () => {
       model: process.env.PARSIM_INTERNAL_MODEL?.trim() ?? '',
       baseUrl:
         process.env.PARSIM_INTERNAL_BASE_URL?.replace(/\/+$/, '') || undefined,
-      apiKey: process.env[INTERNAL_KEYS[provider]] || undefined,
+      apiKey:
+        process.env.PARSIM_INTERNAL_API_KEY ||
+        process.env[INTERNAL_KEYS[provider]] ||
+        undefined,
+      contextTokens: process.env.PARSIM_INTERNAL_CONTEXT_TOKENS
+        ? parseInt(process.env.PARSIM_INTERNAL_CONTEXT_TOKENS, 10)
+        : undefined,
     },
   };
 });

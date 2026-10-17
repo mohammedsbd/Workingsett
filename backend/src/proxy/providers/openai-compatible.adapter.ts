@@ -29,19 +29,22 @@ export abstract class OpenAiCompatibleAdapter implements ProviderAdapter {
   /** Count hidden reasoning tokens from total_tokens (see toTokenUsage). */
   protected readonly outputFromTotal: boolean = false;
 
-  protected abstract chatCompletionsUrl(): string;
+  /** The chat completions URL; `upstreamBaseUrl` is the project's own (openai-compatible). */
+  protected abstract chatCompletionsUrl(upstreamBaseUrl?: string): string;
 
   prepare({
     rawBody,
     info,
     providerKey,
     clientHeaders,
+    upstreamBaseUrl,
   }: {
     rawBody: Buffer;
     operation: ProxyOperation;
     info: RequestInfo;
     providerKey: string;
     clientHeaders: IncomingHttpHeaders;
+    upstreamBaseUrl?: string;
   }): PreparedUpstreamRequest {
     const usageInjected = info.stream && !info.hasStreamOptions;
     const headers: Record<string, string> = {
@@ -55,7 +58,7 @@ export abstract class OpenAiCompatibleAdapter implements ProviderAdapter {
     }
 
     return {
-      url: this.chatCompletionsUrl(),
+      url: this.chatCompletionsUrl(upstreamBaseUrl),
       headers,
       body: usageInjected ? injectIncludeUsage(rawBody) : rawBody,
       usageInjected,

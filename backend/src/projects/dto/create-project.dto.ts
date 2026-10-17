@@ -32,6 +32,18 @@ export class CreateProjectDto {
 
   @ApiPropertyOptional({
     nullable: true,
+    example: 'https://api.groq.com/openai/v1',
+    description:
+      'Base URL of an openai-compatible upstream (required for it, ignored otherwise). Allowed only for hosts in PARSIM_CUSTOM_UPSTREAM_HOSTS, or any URL with PARSIM_ALLOW_CUSTOM_UPSTREAM=true in development.',
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @MaxLength(500)
+  upstreamBaseUrl?: string | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
     description:
       'Store the content of context items (on by default in development, see PARSIM_STORE_CONTENT). Hashes and token counts are always stored.',
   })

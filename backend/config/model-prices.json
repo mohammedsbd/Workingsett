@@ -1,7 +1,8 @@
 {
-  "lastUpdated": "2026-10-06",
-  "note": "USD per 1M tokens, standard (non-batch) tier. Copied from https://ai.google.dev/gemini-api/docs/pricing (page dated 2026-10-01), https://developers.openai.com/api/docs/pricing and https://platform.claude.com/docs/en/about-claude/pricing on 2026-10-06. cachedInput = cache reads, cacheWrite = Anthropic 5-minute cache writes, cacheWrite1h = 1-hour cache writes. Gemini 3.6 to 3.8 Flash prices are promotional through 2026-12-31 and double on 2027-01-01. Edit this file when prices change; models not listed get cost null. Gemini output includes thinking tokens.",
+  "lastUpdated": "2026-10-17",
+  "note": "USD per 1M tokens, standard (non-batch) tier. Copied from https://ai.google.dev/gemini-api/docs/pricing (page dated 2026-10-01), https://developers.openai.com/api/docs/pricing and https://platform.claude.com/docs/en/about-claude/pricing on 2026-10-06; Groq (openai/gpt-oss-120b) from GroqCloud pricing on 2026-10-17, used to price free-tier development runs at list price. cachedInput = cache reads, cacheWrite = Anthropic 5-minute cache writes, cacheWrite1h = 1-hour cache writes. Gemini 3.6 to 3.8 Flash prices are promotional through 2026-12-31 and double on 2027-01-01. Edit this file when prices change; models not listed get cost null. Gemini output includes thinking tokens.",
   "models": {
+    "openai/gpt-oss-120b": { "input": 0.15, "cachedInput": 0.075, "output": 0.6 },
     "gemini-3.8-flash": { "input": 0.75, "cachedInput": 0.075, "output": 3.75 },
     "gemini-3.7-flash": { "input": 0.75, "cachedInput": 0.075, "output": 3.75 },
     "gemini-3.6-flash": { "input": 0.75, "cachedInput": 0.075, "output": 3.75 },

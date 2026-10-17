@@ -35,6 +35,15 @@ export function setupSnippets(proxyUrl: string): Snippet[] {
       code: `const client = new OpenAI({ baseURL: '${proxyUrl}/v1', apiKey: process.env.PARSIM_KEY }); // model: 'gemini-3.8-flash'`
     },
     {
+      id: 'openai-compatible',
+      title: 'Groq or another OpenAI-compatible API',
+      upstream: 'openai-compatible',
+      description:
+        'The same one line with an openai-compatible project: Parsim forwards to the base URL set on the project (for example https://api.groq.com/openai/v1).',
+      language: 'ts',
+      code: `const client = new OpenAI({ baseURL: '${proxyUrl}/v1', apiKey: process.env.PARSIM_KEY });`
+    },
+    {
       id: 'gemini-native',
       title: 'Gemini native (Google GenAI SDK)',
       upstream: 'gemini',

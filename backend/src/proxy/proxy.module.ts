@@ -13,6 +13,7 @@ import { ChatCompletionsController } from './chat-completions.controller';
 import { GeminiController } from './gemini.controller';
 import { MessagesController } from './messages.controller';
 import { AnthropicAdapter } from './providers/anthropic.adapter';
+import { CustomOpenAiAdapter } from './providers/custom-openai.adapter';
 import { GeminiNativeAdapter } from './providers/gemini-native.adapter';
 import { GeminiOpenAiAdapter } from './providers/gemini-openai.adapter';
 import { OpenAiAdapter } from './providers/openai.adapter';
@@ -27,6 +28,7 @@ const ADAPTERS = [
   GeminiOpenAiAdapter,
   AnthropicAdapter,
   GeminiNativeAdapter,
+  CustomOpenAiAdapter,
 ];
 
 @Module({

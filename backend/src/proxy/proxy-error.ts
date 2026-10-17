@@ -123,6 +123,13 @@ export const proxyErrors = {
       'invalid_request_error',
       'wrong_endpoint',
     ),
+  customUpstreamRefused: (reason: string) =>
+    new ProxyError(
+      403,
+      `This project's upstream base URL is not allowed. ${reason}`,
+      'invalid_request_error',
+      'custom_upstream_refused',
+    ),
   unknownGeminiMethod: () =>
     new ProxyError(
       404,

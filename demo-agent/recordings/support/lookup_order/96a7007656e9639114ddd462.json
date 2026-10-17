@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2021"
+  },
+  "result": "Order O-2021\nCustomer: Celine Marsh\nStatus: lost\nPromised delivery: 2026-09-22\nTracking number: TRK602810U\nItems:\n- 1 x Rain shell at 129.00 EUR\n- 3 x Dry bag, 20 l at 19.90 EUR\n- 2 x Merino base layer at 58.00 EUR\n- 3 x Water filter at 45.60 EUR\nOrder total: 441.50 EUR\nShipping history:\n- 2026-09-19 06:47 HAM-4: Customs data received\n- 2026-09-19 07:42 OSL-1: Departed facility\n- 2026-09-20 08:00 GDN-3: Customs data received\n- 2026-09-20 09:05 HAM-4: Arrived at facility\n- 2026-09-21 10:25 OSL-1: Parcel scanned at sorting hub\n- 2026-09-21 11:50 GDN-3: Departed facility\n- 2026-09-22 12:53 HAM-4: Departed facility\n- 2026-09-22 13:16 OSL-1: Weight check completed\n- 2026-09-28 18:02 HAM-4: Carrier declared the parcel lost in transit"
+}

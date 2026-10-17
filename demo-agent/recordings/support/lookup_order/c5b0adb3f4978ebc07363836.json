@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2012"
+  },
+  "result": "Order O-2012\nCustomer: Lior Ben-Ami\nStatus: delivered\nPromised delivery: 2026-09-13\nTracking number: TRK473434L\nItems:\n- 1 x Merino base layer at 58.00 EUR\n- 1 x Rain shell at 129.00 EUR\nOrder total: 187.00 EUR\nShipping history:\n- 2026-09-10 06:45 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-10 07:50 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-11 08:52 HAM-4: Sorted for regional delivery\n- 2026-09-11 09:23 GDN-3: Parcel scanned at sorting hub\n- 2026-09-12 10:37 RIX-2: Address label verified\n- 2026-09-12 11:17 HAM-4: Sorted for regional delivery\n- 2026-09-13 12:18 GDN-3: Arrived at facility\n- 2026-09-13 13:16 RIX-2: Arrived at facility\n- 2026-09-28 18:02 GDN-3: Delivered to the front door, signed by driver"
+}

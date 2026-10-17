@@ -5,7 +5,9 @@ export type GcMode = 'off' | 'shadow' | 'on';
 export type Project = {
   id: string;
   name: string;
-  upstream: 'openai' | 'gemini' | 'anthropic';
+  upstream: 'openai' | 'gemini' | 'anthropic' | 'openai-compatible';
+  /** Base URL of an openai-compatible upstream (for example Groq); null otherwise. */
+  upstreamBaseUrl: string | null;
   gcMode: GcMode;
   storeContent: boolean | null;
   hasProviderKey: boolean;

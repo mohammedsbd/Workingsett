@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2020"
+  },
+  "result": "Order O-2020\nCustomer: Farid Haddad\nStatus: delivered\nPromised delivery: 2026-09-18\nTracking number: TRK758826T\nItems:\n- 1 x Trail lantern at 34.50 EUR\n- 2 x Rain shell at 129.00 EUR\nOrder total: 292.50 EUR\nShipping history:\n- 2026-09-15 06:15 HAM-4: Arrived at facility\n- 2026-09-15 07:59 ARN-1: Departed facility\n- 2026-09-16 08:02 GDN-3: Parcel scanned at sorting hub\n- 2026-09-16 09:04 HAM-4: Parcel scanned at sorting hub\n- 2026-09-17 10:10 ARN-1: Sorted for regional delivery\n- 2026-09-17 11:27 GDN-3: Departed facility\n- 2026-09-18 12:16 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-18 13:35 ARN-1: Departed facility\n- 2026-09-19 14:21 GDN-3: Sorted for regional delivery\n- 2026-09-28 18:02 HAM-4: Delivered to the front door, signed by driver"
+}

@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2022"
+  },
+  "result": "Order O-2022\nCustomer: Elif Kaya\nStatus: delayed\nPromised delivery: 2026-09-09\nTracking number: TRK451906V\nItems:\n- 2 x Dry bag, 20 l at 19.90 EUR\n- 2 x Water filter at 45.60 EUR\nOrder total: 131.00 EUR\nShipping history:\n- 2026-09-06 06:19 HAM-4: Arrived at facility\n- 2026-09-06 07:39 RIX-2: Arrived at facility\n- 2026-09-07 08:01 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-07 09:48 HAM-4: Arrived at facility\n- 2026-09-08 10:22 RIX-2: Parcel scanned at sorting hub\n- 2026-09-08 11:47 GDN-3: Address label verified\n- 2026-09-09 12:31 HAM-4: Weight check completed\n- 2026-09-09 13:53 RIX-2: Loaded onto linehaul vehicle\n- 2026-09-10 14:51 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-10 15:31 HAM-4: Weight check completed\n- 2026-09-11 16:51 RIX-2: Departed facility\n- 2026-09-11 17:40 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-28 18:02 HAM-4: Delivery postponed: carrier backlog, new date not confirmed"
+}

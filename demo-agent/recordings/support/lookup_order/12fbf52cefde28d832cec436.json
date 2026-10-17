@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2013"
+  },
+  "result": "Order O-2013\nCustomer: Mira Castell\nStatus: lost\nPromised delivery: 2026-09-13\nTracking number: TRK149809M\nItems:\n- 1 x Folding stool at 41.25 EUR\n- 1 x Rain shell at 129.00 EUR\nOrder total: 170.25 EUR\nShipping history:\n- 2026-09-10 06:28 HAM-4: Sorted for regional delivery\n- 2026-09-10 07:10 ARN-1: Address label verified\n- 2026-09-11 08:55 OSL-1: Departed facility\n- 2026-09-11 09:39 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-12 10:05 ARN-1: Sorted for regional delivery\n- 2026-09-12 11:15 OSL-1: Departed facility\n- 2026-09-13 12:50 HAM-4: Parcel scanned at sorting hub\n- 2026-09-13 13:31 ARN-1: Weight check completed\n- 2026-09-14 14:34 OSL-1: Parcel scanned at sorting hub\n- 2026-09-28 18:02 HAM-4: Carrier declared the parcel lost in transit"
+}

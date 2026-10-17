@@ -10,6 +10,7 @@ export class ProjectMapper {
     domainEntity.id = raw.id;
     domainEntity.name = raw.name;
     domainEntity.upstream = raw.upstream as Upstream;
+    domainEntity.upstreamBaseUrl = raw.upstreamBaseUrl ?? null;
     domainEntity.ownerId = raw.ownerId;
     if (raw.owner) {
       domainEntity.owner = UserMapper.toDomain(raw.owner);
@@ -43,6 +44,7 @@ export class ProjectMapper {
     }
     persistenceEntity.name = domainEntity.name;
     persistenceEntity.upstream = domainEntity.upstream;
+    persistenceEntity.upstreamBaseUrl = domainEntity.upstreamBaseUrl;
     persistenceEntity.ownerId = domainEntity.ownerId;
     persistenceEntity.providerKeyEncrypted = domainEntity.providerKeyEncrypted;
     persistenceEntity.storeContent = domainEntity.storeContent;

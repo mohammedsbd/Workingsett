@@ -44,6 +44,7 @@ import {
   StreamSplicer,
   StreamWatcher,
 } from '../recall/recall-format';
+import { checkCustomUpstream } from './custom-upstream';
 import { RECALL_FORMATS } from '../recall/recall-formats';
 import { planRecallRound } from '../recall/recall-limit';
 import { RecallLogEntry, RecallService } from '../recall/recall.service';
@@ -75,6 +76,7 @@ const ENDPOINT_FOR_UPSTREAM: Record<Upstream, string> = {
   openai: '/v1/chat/completions',
   gemini: '/v1/chat/completions or /v1beta/models/{model}:generateContent',
   anthropic: '/v1/messages',
+  'openai-compatible': '/v1/chat/completions',
 };
 
 type Forward = {
@@ -234,6 +236,18 @@ export class ProxyService implements BeforeApplicationShutdown {
       );
     }
 
+    // Checked on every request, so a host removed from the allowlist is
+    // refused at once (see custom-upstream.ts).
+    let upstreamBaseUrl: string | undefined;
+    if (project.upstream === 'openai-compatible') {
+      const check = checkCustomUpstream(
+        project.upstreamBaseUrl,
+        this.configService.getOrThrow('proxy.customUpstream', { infer: true }),
+      );
+      if (!check.allowed) throw proxyErrors.customUpstreamRefused(check.reason);
+      upstreamBaseUrl = check.baseUrl;
+    }
+
     const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     const info: RequestInfo = {
       ...readRequestInfo(rawBody),
@@ -264,6 +278,7 @@ export class ProxyService implements BeforeApplicationShutdown {
         providerKey,
         clientHeaders: req.headers,
         query: omitKey(query),
+        upstreamBaseUrl,
       });
     const recall = gc?.applied
       ? this.recallPlan(project, adapter, gc.body)

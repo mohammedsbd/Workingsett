@@ -3,6 +3,7 @@ import { createInterface } from 'node:readline/promises';
 import { parseArgs } from 'node:util';
 import { CompressionConfig } from '../../compression/config/compression-config.type';
 import compressionConfig from '../../compression/config/compression.config';
+import { internalTarget } from '../../compression/internal-target';
 import { SummarizerTarget } from '../../compression/summarizer';
 import { TokenCounter } from '../../context/token-counter';
 import { GcConfig } from '../../gc/gc-config';
@@ -48,6 +49,7 @@ const KEYS: Record<Upstream, string> = {
   gemini: 'GEMINI_API_KEY',
   openai: 'OPENAI_API_KEY',
   anthropic: 'ANTHROPIC_API_KEY',
+  'openai-compatible': 'GROQ_API_KEY',
 };
 
 const usd = (value: number) => `$${value.toFixed(4)}`;
@@ -103,23 +105,18 @@ async function main(): Promise<void> {
         ? `${proxy.geminiBaseUrl}/chat/completions`
         : `${proxy.openaiBaseUrl}/v1/chat/completions`,
   };
-  const judgeModel = replay.judgeModel || internal.model;
-  if (!judgeModel || !internal.apiKey) {
+  let judge: SummarizerTarget;
+  try {
+    judge = internalTarget(
+      internal,
+      replay.judgeModel || internal.model,
+      proxy,
+    );
+  } catch {
     fail(
       'The judge needs PARSIM_INTERNAL_MODEL (or REPLAY_JUDGE_MODEL) and the internal provider key.',
     );
   }
-  const judgeBase: Record<Upstream, string> = {
-    openai: proxy.openaiBaseUrl,
-    gemini: proxy.geminiNativeBaseUrl,
-    anthropic: proxy.anthropicBaseUrl,
-  };
-  const judge: SummarizerTarget = {
-    provider: internal.provider,
-    model: judgeModel,
-    baseUrl: internal.baseUrl ?? judgeBase[internal.provider],
-    apiKey: internal.apiKey,
-  };
 
   const ids =
     values.fixtures?.split(',').map((s) => s.trim()) ?? listFixtures();

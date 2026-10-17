@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2010"
+  },
+  "result": "Order O-2010\nCustomer: Jonas Brekke\nStatus: damaged\nPromised delivery: 2026-09-20\nTracking number: TRK562008J\nItems:\n- 3 x Folding stool at 41.25 EUR\n- 2 x Dry bag, 20 l at 19.90 EUR\n- 2 x Insulated flask at 22.00 EUR\nOrder total: 207.55 EUR\nShipping history:\n- 2026-09-17 06:35 ARN-1: Address label verified\n- 2026-09-17 07:46 GDN-3: Parcel scanned at sorting hub\n- 2026-09-18 08:44 HAM-4: Sorted for regional delivery\n- 2026-09-18 09:03 ARN-1: Departed facility\n- 2026-09-19 10:50 GDN-3: Sorted for regional delivery\n- 2026-09-19 11:15 HAM-4: Arrived at facility\n- 2026-09-20 12:11 ARN-1: Address label verified\n- 2026-09-20 13:53 GDN-3: Weight check completed\n- 2026-09-21 14:08 HAM-4: Parcel scanned at sorting hub\n- 2026-09-21 15:58 ARN-1: Departed facility\n- 2026-09-22 16:17 GDN-3: Sorted for regional delivery\n- 2026-09-22 17:02 HAM-4: Address label verified\n- 2026-09-28 18:02 ARN-1: Delivered; customer reported the parcel damaged on arrival"
+}

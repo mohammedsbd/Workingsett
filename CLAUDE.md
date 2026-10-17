@@ -35,7 +35,8 @@ These rules are permanent and apply to every step.
   2. Anthropic Messages API (`/v1/messages`).
   3. Gemini native API (`generateContent` and `streamGenerateContent`).
 - Every provider is an adapter behind one interface. Adding a provider must not change the GC engine.
-- Parsim's own internal model calls (compression summaries, the replay judge, the demo agent, benchmarks and live tests) default to a Gemini Flash model through `GEMINI_API_KEY`. The provider and model are configurable in `.env`; never hardcode a model name in code.
+- Parsim's own internal model calls (compression summaries, the replay judge, the demo agent, benchmarks and live tests) default to a Gemini Flash model through `GEMINI_API_KEY`. They can instead use Groq, or any other OpenAI-compatible provider, configured in `.env` (`PARSIM_INTERNAL_PROVIDER=openai-compatible` with `PARSIM_INTERNAL_BASE_URL`, `PARSIM_INTERNAL_API_KEY` and `PARSIM_INTERNAL_MODEL`). The provider and model are configurable in `.env`; never hardcode a model name in code.
+- Free tiers (Groq's free tier, Gemini's free tier) are for development only: iterating on the demo agent, the benchmark and GC rules. Published benchmark numbers use a paid key.
 - Customers bring their own provider keys. Parsim forwards with them and never pays for customer traffic.
 - Never send real customer data through a free-tier key.
 

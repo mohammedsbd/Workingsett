@@ -21,9 +21,13 @@ export class ProjectEntity extends EntityRelationalHelper {
   @Column({ type: String })
   name: string;
 
-  /** "openai" or "gemini"; validated in the DTOs. */
+  /** One of UPSTREAMS; validated in the DTOs. */
   @Column({ type: String })
   upstream: string;
+
+  /** Base URL of an openai-compatible upstream; null otherwise. */
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  upstreamBaseUrl?: string | null;
 
   @Index()
   @Column({ type: Number })

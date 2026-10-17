@@ -10,6 +10,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import validateConfig from '../../utils/validate-config';
+import { DEFAULT_CUSTOM_UPSTREAM_HOSTS } from '../custom-upstream';
 import { ProxyConfig } from './proxy-config.type';
 
 /** Empty values (KEY= in .env) mean "use the default". */
@@ -65,6 +66,14 @@ class EnvironmentVariablesValidator {
   @IsBooleanString()
   @ValidateIf(isSet)
   DEBUG_CONTENT: string;
+
+  @IsBooleanString()
+  @ValidateIf(isSet)
+  PARSIM_ALLOW_CUSTOM_UPSTREAM: string;
+
+  @IsString()
+  @ValidateIf(isSet)
+  PARSIM_CUSTOM_UPSTREAM_HOSTS: string;
 }
 
 const trimSlash = (url: string) => url.replace(/\/+$/, '');
@@ -104,5 +113,16 @@ export default registerAs<ProxyConfig>('proxy', () => {
       ? process.env.PARSIM_STORE_CONTENT === 'true'
       : process.env.NODE_ENV !== 'production',
     debugContent: process.env.DEBUG_CONTENT === 'true',
+    customUpstream: {
+      // Never in production, whatever the env says.
+      allowAny:
+        process.env.PARSIM_ALLOW_CUSTOM_UPSTREAM === 'true' &&
+        process.env.NODE_ENV !== 'production',
+      hosts: process.env.PARSIM_CUSTOM_UPSTREAM_HOSTS
+        ? process.env.PARSIM_CUSTOM_UPSTREAM_HOSTS.split(',')
+            .map((host) => host.trim().toLowerCase())
+            .filter(Boolean)
+        : DEFAULT_CUSTOM_UPSTREAM_HOSTS,
+    },
   };
 });

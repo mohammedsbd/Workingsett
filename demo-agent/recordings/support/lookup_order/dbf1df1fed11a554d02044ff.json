@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2016"
+  },
+  "result": "Order O-2016\nCustomer: Bram Okafor\nStatus: delivered\nPromised delivery: 2026-09-18\nTracking number: TRK113079P\nItems:\n- 2 x Trail lantern at 34.50 EUR\n- 3 x Sleeping mat at 64.40 EUR\n- 3 x Headlamp at 27.75 EUR\nOrder total: 345.45 EUR\nShipping history:\n- 2026-09-15 06:02 ARN-1: Parcel scanned at sorting hub\n- 2026-09-15 07:29 RIX-2: Sorted for regional delivery\n- 2026-09-16 08:00 OSL-1: Parcel scanned at sorting hub\n- 2026-09-16 09:36 ARN-1: Arrived at facility\n- 2026-09-17 10:45 RIX-2: Arrived at facility\n- 2026-09-17 11:50 OSL-1: Address label verified\n- 2026-09-18 12:37 ARN-1: Arrived at facility\n- 2026-09-18 13:15 RIX-2: Arrived at facility\n- 2026-09-19 14:46 OSL-1: Customs data received\n- 2026-09-28 18:02 ARN-1: Delivered to the front door, signed by driver"
+}

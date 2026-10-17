@@ -12,9 +12,12 @@ import { DataSource } from 'typeorm';
 import {
   MAX_OUTPUT_TOKENS as JUDGE_MAX_OUTPUT_TOKENS,
   summarize,
+  SummarizerError,
   SummarizerTarget,
 } from '../compression/summarizer';
+import { internalTarget, projectTarget } from '../compression/internal-target';
 import { AllConfigType } from '../config/config.type';
+import { checkCustomUpstream } from '../proxy/custom-upstream';
 import { extractContextItems } from '../context/context-items';
 import { TokenCounter } from '../context/token-counter';
 import { JobsService } from '../jobs/jobs.service';
@@ -350,6 +353,7 @@ export class ReplayService implements OnModuleInit {
       projectId: project.id,
       agentSessionId: replay.agentSessionId,
     };
+    const upstreamBaseUrl = this.upstreamBaseUrl(project);
     return {
       api: snapshot.api,
       recallMax: proxy.recallMaxPerRequest,
@@ -362,6 +366,7 @@ export class ReplayService implements OnModuleInit {
           providerKey,
           body,
           proxy.upstreamTimeoutMs,
+          upstreamBaseUrl,
         ),
       // An unknown price makes the call too expensive for any budget.
       maxCallCostUsd: (body) =>
@@ -389,6 +394,7 @@ export class ReplayService implements OnModuleInit {
     providerKey: string,
     body: Record<string, unknown>,
     timeoutMs: number,
+    upstreamBaseUrl: string | undefined,
   ): Promise<ReplayCall> {
     const prepared = adapter.prepare({
       operation: OPERATION_FOR_API[adapter.api],
@@ -397,6 +403,7 @@ export class ReplayService implements OnModuleInit {
       providerKey,
       clientHeaders: {},
       query: {},
+      upstreamBaseUrl,
     });
     const started = performance.now();
     const response = await fetch(prepared.url, {
@@ -607,29 +614,38 @@ export class ReplayService implements OnModuleInit {
   private judgeTarget(project: Project): SummarizerTarget {
     const info = this.judgeInfo(project);
     const proxy = this.configService.getOrThrow('proxy', { infer: true });
-    const baseUrls: Record<Upstream, string> = {
-      openai: proxy.openaiBaseUrl,
-      gemini: proxy.geminiNativeBaseUrl,
-      anthropic: proxy.anthropicBaseUrl,
-    };
-    const apiKey =
-      info.keySource === 'project'
-        ? this.projects.storedProviderKey(project)
-        : this.internal().apiKey;
-    if (!apiKey || !info.model) {
-      throw new ReplayError('the replay judge has no model or key');
+    try {
+      return info.keySource === 'project'
+        ? projectTarget(
+            project,
+            this.projects.storedProviderKey(project),
+            info.model,
+            proxy,
+          )
+        : internalTarget(this.internal(), info.model, proxy);
+    } catch (error) {
+      if (error instanceof SummarizerError) {
+        throw new ReplayError('the replay judge has no model or key');
+      }
+      throw error;
     }
-    const baseUrl =
-      info.keySource === 'parsim'
-        ? (this.internal().baseUrl ?? baseUrls[info.provider])
-        : baseUrls[info.provider];
-    return { provider: info.provider, model: info.model, baseUrl, apiKey };
   }
 
   private priceFn(model: string): PriceFn | null {
     const probe = this.pricing.costUsd(model, usage(0, 0));
     if (probe === null) return null;
     return (input, output) => this.pricing.costUsd(model, usage(input, output));
+  }
+
+  /** An openai-compatible project's base URL, checked like the proxy does. */
+  private upstreamBaseUrl(project: Project): string | undefined {
+    if (project.upstream !== 'openai-compatible') return undefined;
+    const check = checkCustomUpstream(
+      project.upstreamBaseUrl,
+      this.configService.getOrThrow('proxy.customUpstream', { infer: true }),
+    );
+    if (!check.allowed) throw new ReplayError(check.reason);
+    return check.baseUrl;
   }
 
   private adapterFor(api: ProxyApi, project: Project): ProviderAdapter | null {

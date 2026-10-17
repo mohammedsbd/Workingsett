@@ -1,0 +1,7 @@
+{
+  "tool": "lookup_order",
+  "args": {
+    "orderId": "O-2024"
+  },
+  "result": "Order O-2024\nCustomer: Jonas Brekke\nStatus: delivered\nPromised delivery: 2026-09-13\nTracking number: TRK513997X\nItems:\n- 3 x Headlamp at 27.75 EUR\n- 3 x Sleeping mat at 64.40 EUR\n- 2 x Trail lantern at 34.50 EUR\nOrder total: 345.45 EUR\nShipping history:\n- 2026-09-10 06:09 OSL-1: Parcel scanned at sorting hub\n- 2026-09-10 07:53 GDN-3: Loaded onto linehaul vehicle\n- 2026-09-11 08:47 HAM-4: Loaded onto linehaul vehicle\n- 2026-09-11 09:16 OSL-1: Loaded onto linehaul vehicle\n- 2026-09-12 10:25 GDN-3: Customs data received\n- 2026-09-12 11:43 HAM-4: Arrived at facility\n- 2026-09-13 12:18 OSL-1: Customs data received\n- 2026-09-13 13:38 GDN-3: Parcel scanned at sorting hub\n- 2026-09-14 14:05 HAM-4: Arrived at facility\n- 2026-09-14 15:48 OSL-1: Sorted for regional delivery\n- 2026-09-15 16:07 GDN-3: Arrived at facility\n- 2026-09-28 18:02 OSL-1: Delivered to the front door, signed by driver"
+}

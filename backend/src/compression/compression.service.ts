@@ -29,6 +29,7 @@ import {
   tokensInRange,
   worthCompressing,
 } from './stretch';
+import { internalTarget, projectTarget } from './internal-target';
 import { summarize, SummarizerError, SummarizerTarget } from './summarizer';
 import { SUMMARY_INSTRUCTIONS, summaryPrompt } from './summary-prompt';
 
@@ -326,38 +327,18 @@ export class CompressionService implements OnModuleInit {
   /** Who computes the summary: Parsim's internal model or the project's key. */
   private target(project: Project): SummarizerTarget {
     const proxy = this.configService.getOrThrow('proxy', { infer: true });
-    const baseUrls: Record<Upstream, string> = {
-      openai: proxy.openaiBaseUrl,
-      gemini: proxy.geminiNativeBaseUrl,
-      anthropic: proxy.anthropicBaseUrl,
-    };
     if (project.compressionKeySource === 'project') {
-      const apiKey = this.projects.storedProviderKey(project);
-      if (!apiKey || !project.compressionModel) {
-        throw new SummarizerError(
-          'the project has no stored provider key or compression model',
-          false,
-        );
-      }
-      return {
-        provider: project.upstream,
-        model: project.compressionModel,
-        baseUrl: baseUrls[project.upstream],
-        apiKey,
-      };
-    }
-    const internal = this.config.internal;
-    if (!internal.apiKey || !internal.model) {
-      throw new SummarizerError(
-        'PARSIM_INTERNAL_MODEL or the internal provider key is not set',
-        false,
+      return projectTarget(
+        project,
+        this.projects.storedProviderKey(project),
+        project.compressionModel,
+        proxy,
       );
     }
-    return {
-      provider: internal.provider,
-      model: internal.model,
-      baseUrl: internal.baseUrl ?? baseUrls[internal.provider],
-      apiKey: internal.apiKey,
-    };
+    return internalTarget(
+      this.config.internal,
+      this.config.internal.model,
+      proxy,
+    );
   }
 }

@@ -1,0 +1,8 @@
+{
+  "tool": "fetch_page",
+  "args": {
+    "url": "https://atlas.example/technology/zinc-bromine",
+    "revision": 1
+  },
+  "result": "# zinc-bromine storage\n\nThe battery hall is divided into fire compartments, each with its own ventilation path. Commissioning tests ran for several weeks before the plant joined the balancing market. The developers published a lessons-learned report covering procurement and grid connection. The connection agreement limits export during summer evenings when the line is congested.\n\nResearchers caution against reading too much into a single season of operating data. Round-trip efficiency is measured at the point of interconnection, after auxiliary loads. Recycling partners have agreed to take back modules at the end of their service life. The plant can black-start a nearby gas turbine, which the grid operator tests twice a year.\n\nThe site was chosen for its existing substation and a transmission line with spare capacity. Grid operators value storage that can shift energy from midday surpluses to the evening peak. Permitting took longer than the construction itself, a pattern seen at several sites in the region. The battery hall is divided into fire compartments, each with its own ventilation path."
+}

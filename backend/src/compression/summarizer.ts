@@ -1,3 +1,4 @@
+import OpenAI from 'openai';
 import { Upstream } from '../proxy/providers/provider-adapter';
 import { anthropicResponseUsage } from '../proxy/providers/anthropic-format';
 import { geminiResponseUsage } from '../proxy/providers/gemini-format';
@@ -6,6 +7,13 @@ import {
   toTokenUsage,
 } from '../proxy/providers/openai-format';
 import { TokenUsage } from '../usage-records/domain/token-usage';
+import {
+  QuotaExhaustedError,
+  rateLimitInfo,
+  RateLimitedError,
+  RetryPolicy,
+  withRateLimitRetry,
+} from './rate-limit';
 
 /** Where a summary is computed, and who pays for it. */
 export type SummarizerTarget = {
@@ -13,10 +21,18 @@ export type SummarizerTarget = {
   model: string;
   /**
    * Provider host: the OpenAI base (path /v1/chat/completions), the Gemini
-   * native host (path /v1beta/models/...) or the Anthropic base (/v1/messages).
+   * native host (path /v1beta/models/...), the Anthropic base (/v1/messages)
+   * or, for openai-compatible providers, the full API base (for Groq
+   * https://api.groq.com/openai/v1, path /chat/completions).
    */
   baseUrl: string;
   apiKey: string;
+  /**
+   * The model's context window in tokens, when known (required for
+   * openai-compatible providers such as Groq). A prompt estimated larger
+   * than it fails before any call is made.
+   */
+  contextTokens?: number;
 };
 
 export type SummarizerResult = { text: string; usage: TokenUsage | null };
@@ -34,6 +50,40 @@ export class SummarizerError extends Error {
     super(message);
     this.name = 'SummarizerError';
   }
+}
+
+/** The prompt is larger than the model's context window. Never retried. */
+export class ContextTooLargeError extends SummarizerError {
+  constructor(
+    readonly estimatedTokens: number,
+    readonly contextTokens: number,
+  ) {
+    super(
+      `the prompt (about ${estimatedTokens} tokens with the output limit) is larger than the model's context window (${contextTokens} tokens)`,
+      false,
+    );
+    this.name = 'ContextTooLargeError';
+  }
+}
+
+/** A daily quota is used up, or the provider asks for too long a wait. */
+export class SummarizerQuotaError extends SummarizerError {
+  constructor(readonly quota: QuotaExhaustedError) {
+    super(quota.message, false);
+    this.name = 'SummarizerQuotaError';
+  }
+
+  get resumeAt(): Date | null {
+    return this.quota.resumeAt;
+  }
+}
+
+/**
+ * A conservative token estimate (about 3 characters per token, below the
+ * usual 4), so the context guard trips before the provider would reject.
+ */
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 3);
 }
 
 /** The output limit of a summary (or replay judge) call. */
@@ -124,15 +174,78 @@ function read(provider: Upstream, body: unknown): SummarizerResult {
   };
 }
 
-/**
- * One summary call to a provider: a system instruction and one user
- * message, not streamed, JSON output requested.
- */
-export async function summarize(
+export type SummarizeOptions = {
+  timeoutMs?: number;
+  /** Retries of 429 responses (per-minute limits); see rate-limit.ts. */
+  retry?: RetryPolicy;
+};
+
+/** Fails before any call when the prompt cannot fit the context window. */
+export function checkContext(
   target: SummarizerTarget,
   system: string,
   prompt: string,
-  timeoutMs = 120_000,
+): void {
+  if (!target.contextTokens) return;
+  const estimated =
+    estimateTokens(system) + estimateTokens(prompt) + MAX_OUTPUT_TOKENS;
+  if (estimated > target.contextTokens) {
+    throw new ContextTooLargeError(estimated, target.contextTokens);
+  }
+}
+
+/**
+ * One call to an OpenAI-compatible provider (Groq and others) with the
+ * official openai SDK. The SDK's own retries are off: 429s go through
+ * withRateLimitRetry like every other provider.
+ */
+async function callOpenAiCompatible(
+  target: SummarizerTarget,
+  system: string,
+  prompt: string,
+  timeoutMs: number,
+): Promise<SummarizerResult> {
+  const client = new OpenAI({
+    apiKey: target.apiKey,
+    baseURL: target.baseUrl,
+    maxRetries: 0,
+    timeout: timeoutMs,
+  });
+  try {
+    const completion = await client.chat.completions.create({
+      model: target.model,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0,
+      max_completion_tokens: MAX_OUTPUT_TOKENS,
+      response_format: { type: 'json_object' },
+    });
+    return read('openai', completion);
+  } catch (error) {
+    if (error instanceof OpenAI.APIConnectionError) {
+      throw new SummarizerError(`request failed (${error.name})`, true);
+    }
+    if (error instanceof OpenAI.APIError && error.status === 429) {
+      throw new RateLimitedError(rateLimitInfo(error.headers, error.message));
+    }
+    if (error instanceof OpenAI.APIError && error.status !== undefined) {
+      throw new SummarizerError(
+        `upstream returned ${error.status}`,
+        error.status >= 500,
+      );
+    }
+    throw error;
+  }
+}
+
+/** One call over fetch to the Gemini, OpenAI or Anthropic API. */
+async function callNative(
+  target: SummarizerTarget,
+  system: string,
+  prompt: string,
+  timeoutMs: number,
 ): Promise<SummarizerResult> {
   const { url, headers, body } = call(target, system, prompt);
   let response: Response;
@@ -147,11 +260,16 @@ export async function summarize(
     const name = error instanceof Error ? error.name : 'Error';
     throw new SummarizerError(`request failed (${name})`, true);
   }
+  if (response.status === 429) {
+    // Read only to find the wait and the kind of limit; never logged.
+    const text = (await response.text().catch(() => '')).slice(0, 4000);
+    throw new RateLimitedError(rateLimitInfo(response.headers, text));
+  }
   if (!response.ok) {
     await response.body?.cancel();
     throw new SummarizerError(
       `upstream returned ${response.status}`,
-      response.status === 429 || response.status >= 500,
+      response.status >= 500,
     );
   }
   let json: unknown;
@@ -160,7 +278,39 @@ export async function summarize(
   } catch {
     throw new SummarizerError('upstream returned invalid JSON', true);
   }
-  const result = read(target.provider, json);
+  return read(target.provider, json);
+}
+
+/**
+ * One summary call to a provider: a system instruction and one user
+ * message, not streamed, JSON output requested. Checks the context window
+ * first, retries per-minute rate limits, and stops on a daily quota
+ * (SummarizerQuotaError, with when it can resume).
+ */
+export async function summarize(
+  target: SummarizerTarget,
+  system: string,
+  prompt: string,
+  options: SummarizeOptions = {},
+): Promise<SummarizerResult> {
+  checkContext(target, system, prompt);
+  const timeoutMs = options.timeoutMs ?? 120_000;
+  const once = () =>
+    target.provider === 'openai-compatible'
+      ? callOpenAiCompatible(target, system, prompt, timeoutMs)
+      : callNative(target, system, prompt, timeoutMs);
+  let result: SummarizerResult;
+  try {
+    result = await withRateLimitRetry(once, options.retry);
+  } catch (error) {
+    if (error instanceof QuotaExhaustedError) {
+      throw new SummarizerQuotaError(error);
+    }
+    if (error instanceof RateLimitedError) {
+      throw new SummarizerError('upstream returned 429', true);
+    }
+    throw error;
+  }
   if (!result.text.trim()) {
     throw new SummarizerError('upstream returned no text', true);
   }

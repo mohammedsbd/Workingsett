@@ -1,0 +1,8 @@
+{
+  "tool": "fetch_page",
+  "args": {
+    "url": "https://atlas.example/technology/molten-salt",
+    "revision": 1
+  },
+  "result": "# molten salt storage\n\nCommissioning tests ran for several weeks before the plant joined the balancing market. Earlier feasibility studies considered pumped hydro, which the terrain made too expensive. The battery hall is divided into fire compartments, each with its own ventilation path. Recycling partners have agreed to take back modules at the end of their service life.\n\nRound-trip efficiency is measured at the point of interconnection, after auxiliary loads. Analysts expect the levelized cost of storage to keep falling as supply chains mature. The site uses rainwater collection to supply its cooling loop during dry periods. Degradation is tracked with a monthly capacity test at a fixed state of charge.\n\nA second phase is under discussion, depending on the outcome of the next capacity auction. Engineers stress that results depend on temperature, cycle count and the test protocol used. The battery hall is divided into fire compartments, each with its own ventilation path. Figures from different laboratories are not directly comparable, because each lab defines a cycle differently."
+}

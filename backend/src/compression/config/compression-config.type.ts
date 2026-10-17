@@ -7,8 +7,14 @@ export type InternalModelConfig = {
   model: string;
   /** Overrides the provider's base URL (tests point it at a fake). */
   baseUrl?: string;
-  /** The provider's key from .env (GEMINI_API_KEY, OPENAI_API_KEY or ANTHROPIC_API_KEY). */
+  /**
+   * PARSIM_INTERNAL_API_KEY, else the provider's key from .env
+   * (GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, or GROQ_API_KEY for
+   * openai-compatible).
+   */
   apiKey?: string;
+  /** PARSIM_INTERNAL_CONTEXT_TOKENS: the model's context window, if set. */
+  contextTokens?: number;
 };
 
 export type CompressionConfig = {

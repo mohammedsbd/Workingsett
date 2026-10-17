@@ -23,7 +23,9 @@ export type ProxyFixture = {
 export async function createProjectWithKey(
   t: TestApp,
   options: {
-    upstream?: 'openai' | 'gemini' | 'anthropic';
+    upstream?: 'openai' | 'gemini' | 'anthropic' | 'openai-compatible';
+    /** For openai-compatible projects. */
+    upstreamBaseUrl?: string;
     providerKey?: string;
   } = {},
 ): Promise<ProxyFixture> {
@@ -34,6 +36,9 @@ export async function createProjectWithKey(
     .send({
       name: 'Test project',
       upstream: options.upstream ?? 'openai',
+      ...(options.upstreamBaseUrl && {
+        upstreamBaseUrl: options.upstreamBaseUrl,
+      }),
       ...(options.providerKey && { providerKey: options.providerKey }),
     })
     .expect(201)

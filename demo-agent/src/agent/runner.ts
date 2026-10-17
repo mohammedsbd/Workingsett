@@ -37,7 +37,10 @@ export type StepRecord = {
   step: number;
   taskId: string;
   usage: Usage | null;
+  /** The provider's time for the call, without rate-limit waits. */
   latencyMs: number;
+  /** Time spent waiting for rate limits before the call. */
+  waitedMs?: number;
   startedAt: string;
   toolCalls: string[];
 };
@@ -207,7 +210,8 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
         step,
         taskId: task.id,
         usage: turn.usage,
-        latencyMs: Date.now() - stepStarted,
+        latencyMs: Date.now() - stepStarted - (turn.waitedMs ?? 0),
+        waitedMs: turn.waitedMs ?? 0,
         startedAt: new Date(stepStarted).toISOString(),
         toolCalls: turn.toolCalls.map((c) => c.name),
       };

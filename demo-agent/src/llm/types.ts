@@ -42,6 +42,8 @@ export type ModelTurn = {
   toolCalls: ToolCall[];
   usage: Usage | null;
   raw?: { provider: ProviderName; content: unknown };
+  /** Time spent waiting for rate limits before this turn (ms). */
+  waitedMs?: number;
 };
 
 export type CompletionRequest = {

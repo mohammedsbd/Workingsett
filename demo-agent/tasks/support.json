@@ -1,0 +1,330 @@
+{
+  "agent": "support",
+  "tasks": [
+    {
+      "id": "T01",
+      "type": "normal",
+      "prompt": "Ticket T01 from Ada Lindqvist: Hello, my order O-2001 has not arrived and the promised delivery date has passed.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T01 is set to credited and the reply offers a 10% credit of 41.55 EUR for O-2001."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "41.55"
+        ]
+      }
+    },
+    {
+      "id": "T02",
+      "type": "normal",
+      "prompt": "Ticket T02 from Bram Okafor: Hello, my order O-2002 arrived with the box crushed and one item broken.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T02 is set to replacement_sent and the reply confirms a replacement for O-2002."
+      ],
+      "expected": {
+        "status": "replacement_sent",
+        "replyMustInclude": [
+          "O-2002"
+        ]
+      }
+    },
+    {
+      "id": "T03",
+      "type": "normal",
+      "prompt": "Ticket T03 from Celine Marsh: Hello, my order O-2003 never arrived and the tracking has not moved for days. If you refund anything, please put it on my store gift card GC-4471-XY.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T03 is set to refunded and the reply confirms a full refund of 477.05 EUR for O-2003.",
+        "The reply sends the refund to the gift card GC-4471-XY."
+      ],
+      "expected": {
+        "status": "refunded",
+        "replyMustInclude": [
+          "477.05",
+          "GC-4471-XY"
+        ]
+      }
+    },
+    {
+      "id": "T04",
+      "type": "normal",
+      "prompt": "Ticket T04 from Dario Venn: Hello, my order O-2004 shows as delivered, but I never received it.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T04 is set to investigating and the reply gives the tracking number TRK394988D."
+      ],
+      "expected": {
+        "status": "investigating",
+        "replyMustInclude": [
+          "TRK394988D"
+        ]
+      }
+    },
+    {
+      "id": "T05",
+      "type": "normal",
+      "prompt": "Ticket T05 from Elif Kaya: Hello, my order O-2005 has not arrived and the promised delivery date has passed. I am moving, so please give the courier my new phone number +47 400 12 345.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T05 is set to credited and the reply offers a 10% credit of 6.23 EUR for O-2005.",
+        "The reply confirms the courier gets the phone number +47 400 12 345."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "6.23",
+          "+47 400 12 345"
+        ]
+      }
+    },
+    {
+      "id": "T06",
+      "type": "normal",
+      "prompt": "Ticket T06 from Farid Haddad: Hello, my order O-2006 arrived with the box crushed and one item broken. It was a birthday present: please gift-wrap any replacement with the note \"Happy 40th, Sam\".",
+      "plannedSteps": 4,
+      "checklist": [
+        "T06 is set to replacement_sent and the reply confirms a replacement for O-2006.",
+        "The reply confirms the replacement is gift-wrapped with the note \"Happy 40th, Sam\"."
+      ],
+      "expected": {
+        "status": "replacement_sent",
+        "replyMustInclude": [
+          "O-2006",
+          "Happy 40th, Sam"
+        ]
+      }
+    },
+    {
+      "id": "T07",
+      "type": "normal",
+      "prompt": "Ticket T07 from Greta Sollie: Hello, my order O-2007 shows as delivered, but I never received it.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T07 is set to investigating and the reply gives the tracking number TRK767511G."
+      ],
+      "expected": {
+        "status": "investigating",
+        "replyMustInclude": [
+          "TRK767511G"
+        ]
+      }
+    },
+    {
+      "id": "T08",
+      "type": "normal",
+      "prompt": "Ticket T08 from Hiro Tanabe: Hello, my order O-2008 never arrived and the tracking has not moved for days.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T08 is set to refunded and the reply confirms a full refund of 286.20 EUR for O-2008."
+      ],
+      "expected": {
+        "status": "refunded",
+        "replyMustInclude": [
+          "286.20"
+        ]
+      }
+    },
+    {
+      "id": "T09",
+      "type": "cross_ticket",
+      "prompt": "Ticket T09 from Celine Marsh: Hi, it is Celine Marsh again. My other order O-2021 never arrived either. Please refund it to the same gift card I gave you last time.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T09 is set to refunded and the reply confirms a full refund of 441.50 EUR for O-2021.",
+        "The reply sends the refund to the gift card GC-4471-XY the customer gave in T03."
+      ],
+      "expected": {
+        "status": "refunded",
+        "replyMustInclude": [
+          "441.50",
+          "GC-4471-XY"
+        ]
+      },
+      "references": [
+        "T03"
+      ]
+    },
+    {
+      "id": "T10",
+      "type": "normal",
+      "prompt": "Ticket T10 from Ines Pereira: Hello, my order O-2009 has not arrived and the promised delivery date has passed.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T10 is set to credited and the reply offers a 10% credit of 14.77 EUR for O-2009."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "14.77"
+        ]
+      }
+    },
+    {
+      "id": "T11",
+      "type": "normal",
+      "prompt": "Ticket T11 from Jonas Brekke: Hello, my order O-2010 arrived with the box crushed and one item broken.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T11 is set to replacement_sent and the reply confirms a replacement for O-2010."
+      ],
+      "expected": {
+        "status": "replacement_sent",
+        "replyMustInclude": [
+          "O-2010"
+        ]
+      }
+    },
+    {
+      "id": "T12",
+      "type": "normal",
+      "prompt": "Ticket T12 from Kemi Adeyemi: Hello, my order O-2011 has not arrived and the promised delivery date has passed.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T12 is set to credited and the reply offers a 10% credit of 13.87 EUR for O-2011."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "13.87"
+        ]
+      }
+    },
+    {
+      "id": "T13",
+      "type": "cross_ticket",
+      "prompt": "Ticket T13 from Elif Kaya: Hello, Elif Kaya again. Order O-2022 is late as well. Please give the courier the same phone number I sent you before.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T13 is set to credited and the reply offers a 10% credit of 13.10 EUR for O-2022.",
+        "The reply confirms the courier gets the phone number +47 400 12 345 from T05."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "13.10",
+          "+47 400 12 345"
+        ]
+      },
+      "references": [
+        "T05"
+      ]
+    },
+    {
+      "id": "T14",
+      "type": "normal",
+      "prompt": "Ticket T14 from Lior Ben-Ami: Hello, my order O-2012 shows as delivered, but I never received it.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T14 is set to investigating and the reply gives the tracking number TRK473434L."
+      ],
+      "expected": {
+        "status": "investigating",
+        "replyMustInclude": [
+          "TRK473434L"
+        ]
+      }
+    },
+    {
+      "id": "T15",
+      "type": "normal",
+      "prompt": "Ticket T15 from Mira Castell: Hello, my order O-2013 never arrived and the tracking has not moved for days.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T15 is set to refunded and the reply confirms a full refund of 170.25 EUR for O-2013."
+      ],
+      "expected": {
+        "status": "refunded",
+        "replyMustInclude": [
+          "170.25"
+        ]
+      }
+    },
+    {
+      "id": "T16",
+      "type": "normal",
+      "prompt": "Ticket T16 from Nils Aaberg: Hello, my order O-2014 arrived with the box crushed and one item broken.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T16 is set to replacement_sent and the reply confirms a replacement for O-2014."
+      ],
+      "expected": {
+        "status": "replacement_sent",
+        "replyMustInclude": [
+          "O-2014"
+        ]
+      }
+    },
+    {
+      "id": "T17",
+      "type": "cross_ticket",
+      "prompt": "Ticket T17 from Farid Haddad: Hi, Farid Haddad here again. Order O-2023, another present, arrived damaged too. Please wrap the replacement with the same note as last time.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T17 is set to replacement_sent and the reply confirms a replacement for O-2023.",
+        "The reply confirms the replacement is wrapped with the note \"Happy 40th, Sam\" from T06."
+      ],
+      "expected": {
+        "status": "replacement_sent",
+        "replyMustInclude": [
+          "O-2023",
+          "Happy 40th, Sam"
+        ]
+      },
+      "references": [
+        "T06"
+      ]
+    },
+    {
+      "id": "T18",
+      "type": "normal",
+      "prompt": "Ticket T18 from Ada Lindqvist: Hello, my order O-2015 has not arrived and the promised delivery date has passed.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T18 is set to credited and the reply offers a 10% credit of 6.76 EUR for O-2015."
+      ],
+      "expected": {
+        "status": "credited",
+        "replyMustInclude": [
+          "6.76"
+        ]
+      }
+    },
+    {
+      "id": "T19",
+      "type": "normal",
+      "prompt": "Ticket T19 from Bram Okafor: Hello, my order O-2016 shows as delivered, but I never received it.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T19 is set to investigating and the reply gives the tracking number TRK113079P."
+      ],
+      "expected": {
+        "status": "investigating",
+        "replyMustInclude": [
+          "TRK113079P"
+        ]
+      }
+    },
+    {
+      "id": "T20",
+      "type": "cross_ticket",
+      "prompt": "Ticket T20 from Dario Venn: Hi, it is Dario Venn again, about the order from my first ticket. I do not have the order number at hand. It still has not turned up: please look into it and send me its tracking number again.",
+      "plannedSteps": 4,
+      "checklist": [
+        "T20 is set to investigating and the reply gives the tracking number TRK394988D.",
+        "The agent finds the order from T04 without being given its number again."
+      ],
+      "expected": {
+        "status": "investigating",
+        "replyMustInclude": [
+          "TRK394988D"
+        ]
+      },
+      "references": [
+        "T04"
+      ]
+    }
+  ]
+}

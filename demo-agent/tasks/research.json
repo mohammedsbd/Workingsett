@@ -1,0 +1,341 @@
+{
+  "agent": "research",
+  "tasks": [
+    {
+      "id": "q01",
+      "type": "normal",
+      "prompt": "Question q01: research the energy storage site \"Halvorsen Works\". What is its round-trip efficiency? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q01\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q01 gives the round-trip efficiency of Halvorsen Works as 70%."
+      ],
+      "expected": {
+        "answer": "70%"
+      }
+    },
+    {
+      "id": "q02",
+      "type": "normal",
+      "prompt": "Question q02: research the energy storage site \"Kestrel Works\". In which year was it commissioned? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q02\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q02 gives the year it was commissioned of Kestrel Works as 2033."
+      ],
+      "expected": {
+        "answer": "2033"
+      }
+    },
+    {
+      "id": "q03",
+      "type": "normal",
+      "prompt": "Question q03: research the energy storage site \"Varde Basin\". What is its round-trip efficiency? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q03\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q03 gives the round-trip efficiency of Varde Basin as 86%."
+      ],
+      "expected": {
+        "answer": "86%"
+      }
+    },
+    {
+      "id": "q04",
+      "type": "normal",
+      "prompt": "Question q04: research the energy storage site \"Orlin Flats\". In which year was it commissioned? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q04\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q04 gives the year it was commissioned of Orlin Flats as 2030."
+      ],
+      "expected": {
+        "answer": "2030"
+      }
+    },
+    {
+      "id": "q05",
+      "type": "normal",
+      "prompt": "Question q05: research the energy storage site \"Tamsk Ridge\". What is its round-trip efficiency? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q05\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q05 gives the round-trip efficiency of Tamsk Ridge as 72%."
+      ],
+      "expected": {
+        "answer": "72%"
+      }
+    },
+    {
+      "id": "q06",
+      "type": "normal",
+      "prompt": "Question q06: research the energy storage site \"Brevik Basin\". In which year was it commissioned? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q06\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q06 gives the year it was commissioned of Brevik Basin as 2032."
+      ],
+      "expected": {
+        "answer": "2032"
+      }
+    },
+    {
+      "id": "q07",
+      "type": "normal",
+      "prompt": "Question q07: research the energy storage site \"Calder Hollow\". What is its round-trip efficiency? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q07\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q07 gives the round-trip efficiency of Calder Hollow as 72%."
+      ],
+      "expected": {
+        "answer": "72%"
+      }
+    },
+    {
+      "id": "q08",
+      "type": "normal",
+      "prompt": "Question q08: research the energy storage site \"Myrhaug Works\". In which year was it commissioned? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q08\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q08 gives the year it was commissioned of Myrhaug Works as 2029."
+      ],
+      "expected": {
+        "answer": "2029"
+      }
+    },
+    {
+      "id": "q09",
+      "type": "normal",
+      "prompt": "Question q09: research the energy storage site \"Solvane Hollow\". Which company operates it? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q09\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q09 gives the operator of Solvane Hollow as Fairhaven Energy."
+      ],
+      "expected": {
+        "answer": "Fairhaven Energy"
+      }
+    },
+    {
+      "id": "q10",
+      "type": "normal",
+      "prompt": "Question q10: research the energy storage site \"Ravna Flats\". Which company supplies its cells? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q10\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q10 gives the cell supplier of Ravna Flats as Delvon Cells."
+      ],
+      "expected": {
+        "answer": "Delvon Cells"
+      }
+    },
+    {
+      "id": "q11",
+      "type": "normal",
+      "prompt": "Question q11: research the energy storage site \"Dunmore Works\". In which region is it? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q11\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q11 gives the region of Dunmore Works as the Veldt Coast."
+      ],
+      "expected": {
+        "answer": "the Veldt Coast"
+      }
+    },
+    {
+      "id": "q12",
+      "type": "normal",
+      "prompt": "Question q12: research the energy storage site \"Elstad Array\". What is its round-trip efficiency? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q12\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q12 gives the round-trip efficiency of Elstad Array as 68%."
+      ],
+      "expected": {
+        "answer": "68%"
+      }
+    },
+    {
+      "id": "q13",
+      "type": "normal",
+      "prompt": "Question q13: research the energy storage site \"Fjellmark Flats\". In which year was it commissioned? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q13\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q13 gives the year it was commissioned of Fjellmark Flats as 2028."
+      ],
+      "expected": {
+        "answer": "2028"
+      }
+    },
+    {
+      "id": "q14",
+      "type": "normal",
+      "prompt": "Question q14: research the energy storage site \"Grimsel Flats\". Which company operates it? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q14\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q14 gives the operator of Grimsel Flats as Cobalt Vale Energy."
+      ],
+      "expected": {
+        "answer": "Cobalt Vale Energy"
+      }
+    },
+    {
+      "id": "q15",
+      "type": "normal",
+      "prompt": "Question q15: research the energy storage site \"Hesketh Array\". Which company supplies its cells? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q15\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q15 gives the cell supplier of Hesketh Array as Isotta Cells."
+      ],
+      "expected": {
+        "answer": "Isotta Cells"
+      }
+    },
+    {
+      "id": "q16",
+      "type": "normal",
+      "prompt": "Question q16: research the energy storage site \"Ilvary Point\". In which region is it? Read both its site profile and its news page, take a note of the key figures, then save your answer with save_report (question_id \"q16\").",
+      "plannedSteps": 6,
+      "checklist": [
+        "The answer saved for q16 gives the region of Ilvary Point as Ironfjord."
+      ],
+      "expected": {
+        "answer": "Ironfjord"
+      }
+    },
+    {
+      "id": "q17",
+      "type": "late_recall",
+      "prompt": "Question q17: back in question q01 you researched \"Halvorsen Works\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q17\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q17 is 584 MWh, the capacity first read in q01.",
+        "It is not 640 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "584",
+        "wrongAnswer": "640"
+      },
+      "source": {
+        "taskId": "q01",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q18",
+      "type": "late_recall",
+      "prompt": "Question q18: back in question q02 you researched \"Kestrel Works\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q18\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q18 is 170 MWh, the capacity first read in q02.",
+        "It is not 217 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "170",
+        "wrongAnswer": "217"
+      },
+      "source": {
+        "taskId": "q02",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q19",
+      "type": "late_recall",
+      "prompt": "Question q19: back in question q03 you researched \"Varde Basin\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q19\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q19 is 257 MWh, the capacity first read in q03.",
+        "It is not 361 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "257",
+        "wrongAnswer": "361"
+      },
+      "source": {
+        "taskId": "q03",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q20",
+      "type": "late_recall",
+      "prompt": "Question q20: back in question q04 you researched \"Orlin Flats\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q20\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q20 is 894 MWh, the capacity first read in q04.",
+        "It is not 999 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "894",
+        "wrongAnswer": "999"
+      },
+      "source": {
+        "taskId": "q04",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q21",
+      "type": "late_recall",
+      "prompt": "Question q21: back in question q05 you researched \"Tamsk Ridge\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q21\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q21 is 724 MWh, the capacity first read in q05.",
+        "It is not 776 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "724",
+        "wrongAnswer": "776"
+      },
+      "source": {
+        "taskId": "q05",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q22",
+      "type": "late_recall",
+      "prompt": "Question q22: back in question q06 you researched \"Brevik Basin\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q22\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q22 is 647 MWh, the capacity first read in q06.",
+        "It is not 539 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "647",
+        "wrongAnswer": "539"
+      },
+      "source": {
+        "taskId": "q06",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q23",
+      "type": "late_recall",
+      "prompt": "Question q23: back in question q07 you researched \"Calder Hollow\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q23\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q23 is 479 MWh, the capacity first read in q07.",
+        "It is not 577 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "479",
+        "wrongAnswer": "577"
+      },
+      "source": {
+        "taskId": "q07",
+        "stepOffset": 1
+      }
+    },
+    {
+      "id": "q24",
+      "type": "late_recall",
+      "prompt": "Question q24: back in question q08 you researched \"Myrhaug Works\". Its site profile has been revised since you read it. What storage capacity, in MWh, did the site profile report when you first read it? Answer from what you read then, not from the revised page, and save it with save_report (question_id \"q24\").",
+      "plannedSteps": 2,
+      "checklist": [
+        "The answer saved for q24 is 488 MWh, the capacity first read in q08.",
+        "It is not 593 MWh, the figure on the revised page."
+      ],
+      "expected": {
+        "answer": "488",
+        "wrongAnswer": "593"
+      },
+      "source": {
+        "taskId": "q08",
+        "stepOffset": 1
+      }
+    }
+  ]
+}

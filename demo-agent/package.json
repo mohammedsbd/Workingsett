@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit && prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bench": "tsx src/cli/bench.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.131.0",

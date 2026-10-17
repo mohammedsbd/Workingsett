@@ -1,0 +1,867 @@
+{
+  "config": {
+    "agent": "support",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "internalModel": "openai/gpt-oss-120b",
+    "runs": 1,
+    "arms": [
+      "full",
+      "truncate",
+      "summarize",
+      "parsim-shadow",
+      "parsim-on"
+    ],
+    "taskCount": 3,
+    "truncateTurns": 6,
+    "summaryEvery": 6,
+    "dryRun": false,
+    "freeTier": true,
+    "judge": false,
+    "command": "npm run bench -- --agent support --runs 1 --provider groq --tasks 3",
+    "parsimVersion": "backend 1.2.0",
+    "gitCommit": "abc1234",
+    "startedAt": "2026-10-17T12:00:00.000Z",
+    "prices": {
+      "model": {
+        "input": 0.15,
+        "cachedInput": 0.075,
+        "output": 0.6
+      },
+      "internal": {
+        "input": 0.15,
+        "cachedInput": 0.075,
+        "output": 0.6
+      },
+      "note": "Free tier: the run cost nothing; costs are at the list price, so arms can be compared."
+    }
+  },
+  "results": [
+    {
+      "arm": "full",
+      "run": 1,
+      "sessionId": "s-full",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "cross_ticket",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 40000,
+        "outputTokens": 600,
+        "cachedInputTokens": 100
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 400,
+          "startedAt": "2026-10-17T12:00:00.000Z",
+          "toolCalls": []
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 800,
+          "startedAt": "2026-10-17T12:00:01.000Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T01",
+            "status": "credited"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T02",
+            "status": "refunded"
+          },
+          "step": 2,
+          "taskId": "T02"
+        }
+      ],
+      "wallTimeMs": 12000,
+      "costs": {
+        "rawUsd": 0.04,
+        "netUsd": 0.044000000000000004,
+        "cacheAdjustedUsd": 0.036000000000000004
+      }
+    },
+    {
+      "arm": "truncate",
+      "run": 1,
+      "sessionId": "s-truncate",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "cross_ticket",
+          "passed": false,
+          "reason": "no match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 15000,
+        "outputTokens": 600,
+        "cachedInputTokens": 100
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 380,
+          "startedAt": "2026-10-17T12:00:00.000Z",
+          "toolCalls": []
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 760,
+          "startedAt": "2026-10-17T12:00:01.000Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T01",
+            "status": "credited"
+          },
+          "step": 2,
+          "taskId": "T01"
+        }
+      ],
+      "wallTimeMs": 12000,
+      "costs": {
+        "rawUsd": 0.015,
+        "netUsd": 0.0165,
+        "cacheAdjustedUsd": 0.0135
+      }
+    },
+    {
+      "arm": "summarize",
+      "run": 1,
+      "sessionId": "s-summarize",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "cross_ticket",
+          "passed": false,
+          "reason": "no match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 20000,
+        "outputTokens": 600,
+        "cachedInputTokens": 100
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 390,
+          "startedAt": "2026-10-17T12:00:00.000Z",
+          "toolCalls": []
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 780,
+          "startedAt": "2026-10-17T12:00:01.000Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T01",
+            "status": "credited"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T02",
+            "status": "refunded"
+          },
+          "step": 2,
+          "taskId": "T02"
+        }
+      ],
+      "wallTimeMs": 12000,
+      "costs": {
+        "rawUsd": 0.02,
+        "netUsd": 0.022000000000000002,
+        "cacheAdjustedUsd": 0.018000000000000002
+      }
+    },
+    {
+      "arm": "parsim-shadow",
+      "run": 1,
+      "sessionId": "s-parsim-shadow",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "cross_ticket",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 40000,
+        "outputTokens": 600,
+        "cachedInputTokens": 100
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 420,
+          "startedAt": "2026-10-17T12:00:00.000Z",
+          "toolCalls": []
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 840,
+          "startedAt": "2026-10-17T12:00:01.000Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T01",
+            "status": "credited"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T02",
+            "status": "refunded"
+          },
+          "step": 2,
+          "taskId": "T02"
+        }
+      ],
+      "wallTimeMs": 12000,
+      "costs": {
+        "rawUsd": 0.04,
+        "netUsd": 0.044000000000000004,
+        "cacheAdjustedUsd": 0.036000000000000004
+      }
+    },
+    {
+      "arm": "parsim-on",
+      "run": 1,
+      "sessionId": "s-parsim-on",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "cross_ticket",
+          "passed": true,
+          "reason": "match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 50,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 25000,
+        "outputTokens": 600,
+        "cachedInputTokens": 100
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 430,
+          "startedAt": "2026-10-17T12:00:00.000Z",
+          "toolCalls": []
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": null,
+          "latencyMs": 860,
+          "startedAt": "2026-10-17T12:00:01.000Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T01",
+            "status": "credited"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "ticket_id": "T02",
+            "status": "investigating"
+          },
+          "step": 2,
+          "taskId": "T02"
+        }
+      ],
+      "wallTimeMs": 12000,
+      "costs": {
+        "rawUsd": 0.025,
+        "netUsd": 0.027500000000000004,
+        "cacheAdjustedUsd": 0.022500000000000003
+      }
+    }
+  ],
+  "finishedAt": "2026-10-17T12:30:00.000Z",
+  "summaries": [
+    {
+      "arm": "full",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": null,
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 2
+        },
+        "cross_ticket": {
+          "mean": 1,
+          "tasks": 1
+        }
+      },
+      "tokens": {
+        "input": 40000,
+        "output": 600,
+        "cached": 100
+      },
+      "costs": {
+        "raw": 0.04,
+        "net": 0.044000000000000004,
+        "cacheAdjusted": 0.036000000000000004
+      },
+      "netCostByRun": [
+        0.044000000000000004
+      ],
+      "netVsFull": null,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 400,
+        "p95": 800
+      },
+      "overheadVsFull": null,
+      "wallTimeMs": 12000,
+      "sideEffects": null,
+      "issues": []
+    },
+    {
+      "arm": "truncate",
+      "runs": 1,
+      "successByRun": [
+        0.6666666666666666
+      ],
+      "success": {
+        "mean": 0.6666666666666666,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 2
+        },
+        "cross_ticket": {
+          "mean": 0,
+          "tasks": 1
+        }
+      },
+      "tokens": {
+        "input": 15000,
+        "output": 600,
+        "cached": 100
+      },
+      "costs": {
+        "raw": 0.015,
+        "net": 0.0165,
+        "cacheAdjusted": 0.0135
+      },
+      "netCostByRun": [
+        0.0165
+      ],
+      "netVsFull": 0.625,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 380,
+        "p95": 760
+      },
+      "overheadVsFull": null,
+      "wallTimeMs": 12000,
+      "sideEffects": {
+        "missing": 1,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": [
+        {
+          "kind": "missing",
+          "tool": "update_ticket",
+          "target": "t02",
+          "run": 1
+        }
+      ]
+    },
+    {
+      "arm": "summarize",
+      "runs": 1,
+      "successByRun": [
+        0.6666666666666666
+      ],
+      "success": {
+        "mean": 0.6666666666666666,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 2
+        },
+        "cross_ticket": {
+          "mean": 0,
+          "tasks": 1
+        }
+      },
+      "tokens": {
+        "input": 20000,
+        "output": 600,
+        "cached": 100
+      },
+      "costs": {
+        "raw": 0.02,
+        "net": 0.022000000000000002,
+        "cacheAdjusted": 0.018000000000000002
+      },
+      "netCostByRun": [
+        0.022000000000000002
+      ],
+      "netVsFull": 0.5,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 390,
+        "p95": 780
+      },
+      "overheadVsFull": null,
+      "wallTimeMs": 12000,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": []
+    },
+    {
+      "arm": "parsim-shadow",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 2
+        },
+        "cross_ticket": {
+          "mean": 1,
+          "tasks": 1
+        }
+      },
+      "tokens": {
+        "input": 40000,
+        "output": 600,
+        "cached": 100
+      },
+      "costs": {
+        "raw": 0.04,
+        "net": 0.044000000000000004,
+        "cacheAdjusted": 0.036000000000000004
+      },
+      "netCostByRun": [
+        0.044000000000000004
+      ],
+      "netVsFull": 0,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 420,
+        "p95": 840
+      },
+      "overheadVsFull": {
+        "p50": 20,
+        "p95": 40
+      },
+      "wallTimeMs": 12000,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": []
+    },
+    {
+      "arm": "parsim-on",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 2
+        },
+        "cross_ticket": {
+          "mean": 1,
+          "tasks": 1
+        }
+      },
+      "tokens": {
+        "input": 25000,
+        "output": 600,
+        "cached": 100
+      },
+      "costs": {
+        "raw": 0.025,
+        "net": 0.027500000000000004,
+        "cacheAdjusted": 0.022500000000000003
+      },
+      "netCostByRun": [
+        0.027500000000000004
+      ],
+      "netVsFull": 0.375,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 430,
+        "p95": 860
+      },
+      "overheadVsFull": {
+        "p50": 30,
+        "p95": 60
+      },
+      "wallTimeMs": 12000,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 1,
+        "extra": 0
+      },
+      "issues": [
+        {
+          "kind": "changed",
+          "tool": "update_ticket",
+          "target": "t02",
+          "expected": "refunded",
+          "actual": "investigating",
+          "run": 1
+        }
+      ]
+    }
+  ]
+}

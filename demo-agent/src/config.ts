@@ -69,6 +69,30 @@ const positiveInt = (value: string | undefined, name: string) => {
   return Number(value);
 };
 
+/**
+ * The SDK base URL for a provider through Parsim. OpenAI-format SDKs add
+ * /chat/completions to a base ending in /v1; the Anthropic and Gemini SDKs
+ * add /v1/messages and /v1beta/... themselves.
+ */
+export function parsimBaseUrl(provider: ProviderName, parsimUrl: string) {
+  const root = parsimUrl.trim().replace(/\/+$/, '');
+  return provider === 'openai' || provider === 'groq' ? `${root}/v1` : root;
+}
+
+/** A direct provider config, sent through Parsim with a project's key. */
+export function viaParsim(
+  config: ProviderConfig,
+  parsimUrl: string,
+  parsimKey: string,
+): ProviderConfig {
+  return {
+    ...config,
+    baseUrl: parsimBaseUrl(config.provider, parsimUrl),
+    headers: { ...config.headers, 'x-parsim-key': parsimKey },
+    route: 'parsim',
+  };
+}
+
 export function isProvider(value: string): value is ProviderName {
   return (PROVIDERS as readonly string[]).includes(value);
 }
@@ -103,17 +127,14 @@ export function providerConfig(
   let baseUrl =
     env[`${prefix}_BASE_URL`]?.trim() || DIRECT_BASE_URL[provider] || undefined;
   if (route === 'parsim') {
-    const parsim = env.PARSIM_BASE_URL?.trim().replace(/\/+$/, '');
+    const parsim = env.PARSIM_BASE_URL?.trim();
     const parsimKey = env.PARSIM_API_KEY?.trim();
     if (!parsim || !parsimKey) {
       throw new ConfigError(
         'Running through Parsim needs PARSIM_BASE_URL and PARSIM_API_KEY in demo-agent/.env.',
       );
     }
-    // OpenAI-format SDKs add /chat/completions to a base ending in /v1;
-    // the Anthropic and Gemini SDKs add /v1/messages and /v1beta/... themselves.
-    baseUrl =
-      provider === 'openai' || provider === 'groq' ? `${parsim}/v1` : parsim;
+    baseUrl = parsimBaseUrl(provider, parsim);
     headers['x-parsim-key'] = parsimKey;
   }
   const temperature = env.DEMO_TEMPERATURE ?? '0';

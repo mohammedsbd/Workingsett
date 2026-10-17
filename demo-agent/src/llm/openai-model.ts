@@ -23,6 +23,28 @@ export class RequestTooLargeError extends Error {
   }
 }
 
+/** Retries of a turn whose tool call the provider rejected as malformed. */
+export const TOOL_CALL_RETRIES = 2;
+/**
+ * Temperature for those retries: at temperature 0 a model tends to repeat
+ * the same malformed call, so a retry samples a little.
+ */
+export const TOOL_CALL_RETRY_TEMPERATURE = 0.3;
+
+/**
+ * Groq validates tool calls against their schema and answers 400
+ * (tool_use_failed) when the model produced a malformed one. That is the
+ * model's own mistake, not a bad request: asking again usually fixes it.
+ */
+export function isToolCallValidationError(error: unknown): boolean {
+  return (
+    error instanceof OpenAI.APIError &&
+    error.status === 400 &&
+    (error.code === 'tool_use_failed' ||
+      /tool call validation failed/i.test(error.message))
+  );
+}
+
 function toOpenAi(messages: ChatMessage[]): ChatCompletionMessageParam[] {
   return messages.map((message): ChatCompletionMessageParam => {
     switch (message.role) {
@@ -93,18 +115,35 @@ export class OpenAiChatModel implements ChatModel {
       },
     }));
     try {
-      const completion = await this.client.chat.completions.create(
-        {
-          model: this.model,
-          messages: toOpenAi(request.messages),
-          ...(tools.length && { tools }),
-          max_completion_tokens: this.config.maxOutputTokens,
-          ...(this.config.temperature !== null && {
-            temperature: this.config.temperature,
-          }),
-        },
-        { headers: { 'x-parsim-session-id': request.sessionId } },
-      );
+      const create = (temperature: number | null) =>
+        this.client.chat.completions.create(
+          {
+            model: this.model,
+            messages: toOpenAi(request.messages),
+            ...(tools.length && { tools }),
+            max_completion_tokens: this.config.maxOutputTokens,
+            ...(temperature !== null && { temperature }),
+          },
+          { headers: { 'x-parsim-session-id': request.sessionId } },
+        );
+      let completion;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          completion = await create(
+            attempt === 0
+              ? this.config.temperature
+              : TOOL_CALL_RETRY_TEMPERATURE,
+          );
+          break;
+        } catch (error) {
+          if (
+            !isToolCallValidationError(error) ||
+            attempt >= TOOL_CALL_RETRIES
+          ) {
+            throw error;
+          }
+        }
+      }
       const message = completion.choices[0]?.message;
       return {
         text: message?.content ?? '',

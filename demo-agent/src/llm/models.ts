@@ -41,9 +41,21 @@ export class GuardedModel implements ChatModel {
     this.model = inner.model;
   }
 
-  complete(request: CompletionRequest): Promise<ModelTurn> {
+  async complete(request: CompletionRequest): Promise<ModelTurn> {
     checkContext(request.messages, request.tools, this.limits);
-    return withRateLimitRetry(() => this.inner.complete(request), this.retry);
+    // Rate-limit waits are reported apart, so latency is the provider's.
+    let waitedMs = 0;
+    const sleep =
+      this.retry.sleep ??
+      ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+    const turn = await withRateLimitRetry(() => this.inner.complete(request), {
+      ...this.retry,
+      sleep: (ms) => {
+        waitedMs += ms;
+        return sleep(ms);
+      },
+    });
+    return { ...turn, waitedMs: (turn.waitedMs ?? 0) + waitedMs };
   }
 }
 

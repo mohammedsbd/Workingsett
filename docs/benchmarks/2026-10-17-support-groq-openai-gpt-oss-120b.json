@@ -1,0 +1,2260 @@
+{
+  "config": {
+    "agent": "support",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "internalModel": "openai/gpt-oss-120b",
+    "runs": 1,
+    "arms": [
+      "full",
+      "truncate",
+      "summarize",
+      "parsim-shadow",
+      "parsim-on"
+    ],
+    "taskCount": 4,
+    "truncateTurns": 6,
+    "summaryEvery": 6,
+    "dryRun": false,
+    "freeTier": true,
+    "judge": false,
+    "command": "npm run bench -- --agent support --runs 1 --provider groq --tasks 4 --yes",
+    "parsimVersion": "backend 1.2.0",
+    "gitCommit": "db86391",
+    "startedAt": "2026-10-17T18:42:30.025Z",
+    "prices": {
+      "model": {
+        "input": 0.15,
+        "cachedInput": 0.075,
+        "output": 0.6
+      },
+      "internal": {
+        "input": 0.15,
+        "cachedInput": 0.075,
+        "output": 0.6
+      },
+      "note": "Free tier: the run cost nothing; costs are at the list price, so arms can be compared."
+    }
+  },
+  "results": [
+    {
+      "arm": "full",
+      "run": 1,
+      "sessionId": "demo-support-full-2026-10-17T18-42-30-347Z-83bb4e42",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 3132,
+            "outputTokens": 402,
+            "cachedInputTokens": 1024
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 5255,
+            "outputTokens": 317,
+            "cachedInputTokens": 768
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 7521,
+            "outputTokens": 421,
+            "cachedInputTokens": 0
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T04",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 9788,
+            "outputTokens": 290,
+            "cachedInputTokens": 3072
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 25696,
+        "outputTokens": 1430,
+        "cachedInputTokens": 4864
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 476,
+            "outputTokens": 126,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 507,
+          "startedAt": "2026-10-17T18:42:30.348Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 819,
+            "outputTokens": 137,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 742,
+          "startedAt": "2026-10-17T18:42:30.867Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 3,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 875,
+            "outputTokens": 114,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 847,
+          "startedAt": "2026-10-17T18:42:31.609Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 4,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 962,
+            "outputTokens": 25,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 424,
+          "startedAt": "2026-10-17T18:42:32.456Z",
+          "toolCalls": []
+        },
+        {
+          "step": 5,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1020,
+            "outputTokens": 37,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 460,
+          "startedAt": "2026-10-17T18:42:32.884Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 6,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1350,
+            "outputTokens": 95,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 549,
+          "startedAt": "2026-10-17T18:42:33.345Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 7,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1397,
+            "outputTokens": 139,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 685,
+          "startedAt": "2026-10-17T18:42:33.894Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 8,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1488,
+            "outputTokens": 46,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 584,
+          "startedAt": "2026-10-17T18:42:34.579Z",
+          "toolCalls": []
+        },
+        {
+          "step": 9,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1568,
+            "outputTokens": 35,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 3438,
+          "startedAt": "2026-10-17T18:42:35.167Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 10,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1911,
+            "outputTokens": 129,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 14801,
+          "startedAt": "2026-10-17T18:42:38.605Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 11,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1975,
+            "outputTokens": 101,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 15910,
+          "startedAt": "2026-10-17T18:42:53.406Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 12,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 2067,
+            "outputTokens": 156,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 16809,
+          "startedAt": "2026-10-17T18:43:09.316Z",
+          "toolCalls": []
+        },
+        {
+          "step": 13,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2147,
+            "outputTokens": 40,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 16674,
+          "startedAt": "2026-10-17T18:43:26.131Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 14,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2480,
+            "outputTokens": 105,
+            "cachedInputTokens": 1280
+          },
+          "latencyMs": 18872,
+          "startedAt": "2026-10-17T18:43:42.805Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 15,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2533,
+            "outputTokens": 118,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 10800,
+          "startedAt": "2026-10-17T18:44:01.677Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 16,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2628,
+            "outputTokens": 27,
+            "cachedInputTokens": 1792
+          },
+          "latencyMs": 20456,
+          "startedAt": "2026-10-17T18:44:12.477Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Offered 10% credit of 41.55 EUR for delayed order O-2001.",
+            "status": "credited",
+            "ticket_id": "T01"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Ada,\n\nWe’re sorry your order is delayed. We’ve applied a 10% credit of €41.55 to your account as a gesture of goodwill.\n\nThank you for your patience.\n\nBest regards,\nOutdoor Gear Support",
+            "ticket_id": "T01"
+          },
+          "step": 3,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Sent replacement for damaged order O-2002.",
+            "status": "replacement_sent",
+            "ticket_id": "T02"
+          },
+          "step": 6,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Bram,\n\nWe’re sorry to hear the box was crushed and an item arrived broken. We’ve arranged a replacement for your order O-2002 and it will be shipped shortly.\n\nThank you for letting us know.\n\nBest regards,\nOutdoor Gear Support",
+            "ticket_id": "T02"
+          },
+          "step": 7,
+          "taskId": "T02"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Refunded full amount of 477.05 EUR to gift card GC-4471-XY for lost order O-2003.",
+            "status": "refunded",
+            "ticket_id": "T03"
+          },
+          "step": 10,
+          "taskId": "T03"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Celine,\n\nWe’re sorry your order was lost. We have processed a full refund of €477.05 to your store gift card GC-4471-XY as requested.\n\nThank you for your understanding.\n\nBest regards,\nOutdoor Gear Support",
+            "ticket_id": "T03"
+          },
+          "step": 11,
+          "taskId": "T03"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Opened investigation with carrier for delivered but not received order O-2004.",
+            "status": "investigating",
+            "ticket_id": "T04"
+          },
+          "step": 14,
+          "taskId": "T04"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Dario,\n\nWe’re sorry you haven’t received your order despite the delivery status. We’ve opened an investigation with the carrier and will keep you updated. Your tracking number is TRK394988D.\n\nThank you for your patience.\n\nBest regards,\nOutdoor Gear Support",
+            "ticket_id": "T04"
+          },
+          "step": 15,
+          "taskId": "T04"
+        }
+      ],
+      "wallTimeMs": 122591,
+      "costs": {
+        "rawUsd": 0.0047124,
+        "cacheAdjustedUsd": 0.0043476,
+        "netUsd": 0.0047124
+      }
+    },
+    {
+      "arm": "truncate",
+      "run": 1,
+      "sessionId": "demo-support-truncate-2026-10-17T18-44-32-947Z-cb95a526",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 3108,
+            "outputTokens": 376,
+            "cachedInputTokens": 256
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 4805,
+            "outputTokens": 597,
+            "cachedInputTokens": 1792
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 5521,
+            "outputTokens": 978,
+            "cachedInputTokens": 512
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T04",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 6985,
+            "outputTokens": 548,
+            "cachedInputTokens": 1024
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 20419,
+        "outputTokens": 2499,
+        "cachedInputTokens": 3584
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 476,
+            "outputTokens": 119,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 422,
+          "startedAt": "2026-10-17T18:44:32.948Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 819,
+            "outputTokens": 137,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 663,
+          "startedAt": "2026-10-17T18:44:33.371Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 3,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 875,
+            "outputTokens": 90,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 1532,
+          "startedAt": "2026-10-17T18:44:34.034Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 4,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 938,
+            "outputTokens": 30,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 7662,
+          "startedAt": "2026-10-17T18:44:35.566Z",
+          "toolCalls": []
+        },
+        {
+          "step": 5,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1001,
+            "outputTokens": 37,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 338,
+          "startedAt": "2026-10-17T18:46:33.819Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 6,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1331,
+            "outputTokens": 128,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 705,
+          "startedAt": "2026-10-17T18:46:34.158Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 7,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1378,
+            "outputTokens": 116,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 727,
+          "startedAt": "2026-10-17T18:46:34.863Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 8,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1095,
+            "outputTokens": 316,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 1184,
+          "startedAt": "2026-10-17T18:46:35.590Z",
+          "toolCalls": []
+        },
+        {
+          "step": 9,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1238,
+            "outputTokens": 40,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 468,
+          "startedAt": "2026-10-17T18:46:36.790Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 10,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1518,
+            "outputTokens": 184,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 824,
+          "startedAt": "2026-10-17T18:46:37.258Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 11,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1513,
+            "outputTokens": 156,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 1524,
+          "startedAt": "2026-10-17T18:46:38.082Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 12,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1252,
+            "outputTokens": 598,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 5892,
+          "startedAt": "2026-10-17T18:46:39.606Z",
+          "toolCalls": []
+        },
+        {
+          "step": 13,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1684,
+            "outputTokens": 43,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 14836,
+          "startedAt": "2026-10-17T18:46:45.506Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 14,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1957,
+            "outputTokens": 145,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 12747,
+          "startedAt": "2026-10-17T18:47:00.343Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 15,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1811,
+            "outputTokens": 90,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 13654,
+          "startedAt": "2026-10-17T18:47:13.090Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 16,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1533,
+            "outputTokens": 270,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 14244,
+          "startedAt": "2026-10-17T18:47:26.744Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Offered 10% credit of 41.55 EUR for delayed order O-2001.",
+            "status": "credited",
+            "ticket_id": "T01"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Ada, we’re sorry your order is delayed. We’ve applied a credit of 41.55 EUR to your account as a goodwill gesture.",
+            "ticket_id": "T01"
+          },
+          "step": 3,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Sent replacement for damaged order O-2002.",
+            "status": "replacement_sent",
+            "ticket_id": "T02"
+          },
+          "step": 6,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Bram, we’re sorry the box arrived crushed and an item was broken. We’ve sent a replacement for order O-2002.",
+            "ticket_id": "T02"
+          },
+          "step": 7,
+          "taskId": "T02"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Refunded full amount to gift card GC-4471-XY for lost order O-2003.",
+            "status": "refunded",
+            "ticket_id": "T03"
+          },
+          "step": 10,
+          "taskId": "T03"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Celine, we’re sorry your order was lost. We have refunded the full amount of 477.05 EUR to your store gift card GC-4471-XY.",
+            "ticket_id": "T03"
+          },
+          "step": 11,
+          "taskId": "T03"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Opened investigation with carrier for delivered but not received order O-2004.",
+            "status": "investigating",
+            "ticket_id": "T04"
+          },
+          "step": 14,
+          "taskId": "T04"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Dario, we’re sorry you haven’t received your order. We have opened an investigation with the carrier. Your tracking number is TRK394988D.",
+            "ticket_id": "T04"
+          },
+          "step": 15,
+          "taskId": "T04"
+        }
+      ],
+      "wallTimeMs": 77458,
+      "costs": {
+        "rawUsd": 0.0045622499999999995,
+        "cacheAdjustedUsd": 0.00429345,
+        "netUsd": 0.0045622499999999995
+      }
+    },
+    {
+      "arm": "summarize",
+      "run": 1,
+      "sessionId": "demo-support-summarize-2026-10-17T18-47-41-005Z-3ccea4f1",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 3108,
+            "outputTokens": 436,
+            "cachedInputTokens": 2304
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 6215,
+            "outputTokens": 485,
+            "cachedInputTokens": 2048
+          },
+          "steps": 5,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 5431,
+            "outputTokens": 500,
+            "cachedInputTokens": 1280
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T04",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 6565,
+            "outputTokens": 299,
+            "cachedInputTokens": 768
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 21319,
+        "outputTokens": 1720,
+        "cachedInputTokens": 6400
+      },
+      "internalUsage": {
+        "inputTokens": 1492,
+        "outputTokens": 666,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 2,
+      "parsim": null,
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 476,
+            "outputTokens": 153,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 748,
+          "startedAt": "2026-10-17T18:47:41.006Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 819,
+            "outputTokens": 163,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 5898,
+          "startedAt": "2026-10-17T18:47:41.755Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 3,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 875,
+            "outputTokens": 90,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 4634,
+          "startedAt": "2026-10-17T18:47:47.653Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 4,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 938,
+            "outputTokens": 30,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 2515,
+          "startedAt": "2026-10-17T18:47:52.287Z",
+          "toolCalls": []
+        },
+        {
+          "step": 5,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1001,
+            "outputTokens": 35,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 512,
+          "startedAt": "2026-10-17T18:47:54.810Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 6,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1331,
+            "outputTokens": 146,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 5965,
+          "startedAt": "2026-10-17T18:47:55.322Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 7,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1378,
+            "outputTokens": 128,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 11799,
+          "startedAt": "2026-10-17T18:48:01.287Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 8,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1247,
+            "outputTokens": 99,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 6705,
+          "startedAt": "2026-10-17T18:48:13.086Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 9,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1258,
+            "outputTokens": 77,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 8837,
+          "startedAt": "2026-10-17T18:48:19.791Z",
+          "toolCalls": []
+        },
+        {
+          "step": 10,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1277,
+            "outputTokens": 38,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 10723,
+          "startedAt": "2026-10-17T18:48:28.637Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 11,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1557,
+            "outputTokens": 186,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 10202,
+          "startedAt": "2026-10-17T18:48:39.361Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 12,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1289,
+            "outputTokens": 145,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 9180,
+          "startedAt": "2026-10-17T18:48:49.563Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 13,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1308,
+            "outputTokens": 131,
+            "cachedInputTokens": 512
+          },
+          "latencyMs": 6133,
+          "startedAt": "2026-10-17T18:48:58.743Z",
+          "toolCalls": []
+        },
+        {
+          "step": 14,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1529,
+            "outputTokens": 40,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 21321,
+          "startedAt": "2026-10-17T18:49:04.886Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 15,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1795,
+            "outputTokens": 141,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 13261,
+          "startedAt": "2026-10-17T18:49:26.207Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 16,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1763,
+            "outputTokens": 83,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 10074,
+          "startedAt": "2026-10-17T18:49:39.468Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 17,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 1478,
+            "outputTokens": 35,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 10509,
+          "startedAt": "2026-10-17T18:49:49.542Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Offered 10% credit of 41.55 EUR for delayed order O-2001",
+            "status": "credited",
+            "ticket_id": "T01"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Ada, we’re sorry your order is delayed. We’ve applied a credit of 41.55 EUR to your account as a goodwill gesture.",
+            "ticket_id": "T01"
+          },
+          "step": 3,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Sent replacement for damaged order O-2002",
+            "status": "replacement_sent",
+            "ticket_id": "T02"
+          },
+          "step": 6,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi                                                                                                        ...",
+            "ticket_id": "T   ..."
+          },
+          "step": 7,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Bram, we’re sorry the box arrived crushed and an item was broken. We’ve sent a replacement for your order O-2002 and it will be shipped shortly.",
+            "ticket_id": "T02"
+          },
+          "step": 8,
+          "taskId": "T02"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Refunded full amount €477.05 to gift card GC-4471-XY for lost order O-2003",
+            "status": "refunded",
+            "ticket_id": "T03"
+          },
+          "step": 11,
+          "taskId": "T03"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Celine, we’re sorry your order was lost. We have refunded the full amount of €477.05 to your gift card GC-4471-XY.",
+            "ticket_id": "T03"
+          },
+          "step": 12,
+          "taskId": "T03"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Opened investigation with carrier for delivered order O-2004",
+            "status": "investigating",
+            "ticket_id": "T04"
+          },
+          "step": 15,
+          "taskId": "T04"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Dario, we’re opening an investigation with the carrier regarding your delivery. Your tracking number is TRK394988D.",
+            "ticket_id": "T04"
+          },
+          "step": 16,
+          "taskId": "T04"
+        }
+      ],
+      "wallTimeMs": 139054,
+      "costs": {
+        "rawUsd": 0.00422985,
+        "cacheAdjustedUsd": 0.00374985,
+        "netUsd": 0.00485325
+      }
+    },
+    {
+      "arm": "parsim-shadow",
+      "run": 1,
+      "sessionId": "demo-support-parsim-shadow-2026-10-17T18-50-00-070Z-4a3528fd",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 3108,
+            "outputTokens": 380,
+            "cachedInputTokens": 1792
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 5148,
+            "outputTokens": 350,
+            "cachedInputTokens": 2560
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 7322,
+            "outputTokens": 1268,
+            "cachedInputTokens": 3584
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T04",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 10384,
+            "outputTokens": 284,
+            "cachedInputTokens": 3328
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 25962,
+        "outputTokens": 2282,
+        "cachedInputTokens": 11264
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": {
+        "usage": {
+          "inputTokens": 25962,
+          "outputTokens": 2282,
+          "cachedInputTokens": 11264
+        },
+        "upstreamCalls": 33,
+        "recalls": 0,
+        "compressionCostUsd": 0,
+        "gcTokensSaved": 0
+      },
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 476,
+            "outputTokens": 119,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 4702,
+          "startedAt": "2026-10-17T18:50:00.071Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 819,
+            "outputTokens": 141,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 5330,
+          "startedAt": "2026-10-17T18:50:04.773Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 3,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 875,
+            "outputTokens": 90,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 599,
+          "startedAt": "2026-10-17T18:50:10.103Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 4,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 938,
+            "outputTokens": 30,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 530,
+          "startedAt": "2026-10-17T18:50:10.702Z",
+          "toolCalls": []
+        },
+        {
+          "step": 5,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1001,
+            "outputTokens": 34,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 8450,
+          "startedAt": "2026-10-17T18:50:11.243Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 6,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1331,
+            "outputTokens": 140,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 5932,
+          "startedAt": "2026-10-17T18:50:19.694Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 7,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1378,
+            "outputTokens": 123,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 7849,
+          "startedAt": "2026-10-17T18:50:25.626Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 8,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1438,
+            "outputTokens": 53,
+            "cachedInputTokens": 1280
+          },
+          "latencyMs": 9460,
+          "startedAt": "2026-10-17T18:50:33.475Z",
+          "toolCalls": []
+        },
+        {
+          "step": 9,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1524,
+            "outputTokens": 35,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 2455,
+          "startedAt": "2026-10-17T18:50:42.947Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 10,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1867,
+            "outputTokens": 131,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 10199,
+          "startedAt": "2026-10-17T18:50:45.403Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 11,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1931,
+            "outputTokens": 78,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 6689,
+          "startedAt": "2026-10-17T18:50:55.602Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 12,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 2000,
+            "outputTokens": 1024,
+            "cachedInputTokens": 1280
+          },
+          "latencyMs": 14770,
+          "startedAt": "2026-10-17T18:51:02.291Z",
+          "toolCalls": []
+        },
+        {
+          "step": 13,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2302,
+            "outputTokens": 38,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 16128,
+          "startedAt": "2026-10-17T18:51:17.073Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 14,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2635,
+            "outputTokens": 140,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 14189,
+          "startedAt": "2026-10-17T18:51:33.202Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 15,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2688,
+            "outputTokens": 73,
+            "cachedInputTokens": 1792
+          },
+          "latencyMs": 14987,
+          "startedAt": "2026-10-17T18:51:47.391Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 16,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2759,
+            "outputTokens": 33,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 8086,
+          "startedAt": "2026-10-17T18:52:02.378Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Offered 10% credit of 41.55 EUR for delayed order O-2001.",
+            "status": "credited",
+            "ticket_id": "T01"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Ada, we’re sorry your order is delayed. We’ve applied a credit of 41.55 EUR to your account as a goodwill gesture.",
+            "ticket_id": "T01"
+          },
+          "step": 3,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Sent replacement for damaged order O-2002.",
+            "status": "replacement_sent",
+            "ticket_id": "T02"
+          },
+          "step": 6,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Bram, we’re sorry the box arrived crushed and an item was broken. We’ve sent a replacement for order O-2002.",
+            "ticket_id": "T02"
+          },
+          "step": 7,
+          "taskId": "T02"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Refunded full amount of 477.05 EUR to gift card GC-4471-XY for lost order O-2003.",
+            "status": "refunded",
+            "ticket_id": "T03"
+          },
+          "step": 10,
+          "taskId": "T03"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Celine, we’re sorry your order was lost. We have refunded the full amount of 477.05 EUR to your store gift card GC-4471-XY.",
+            "ticket_id": "T03"
+          },
+          "step": 11,
+          "taskId": "T03"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Opened investigation with carrier for delivered but not received order O-2004.",
+            "status": "investigating",
+            "ticket_id": "T04"
+          },
+          "step": 14,
+          "taskId": "T04"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Dario, we’re sorry you haven’t received your order despite it being marked as delivered. We’ve opened an investigation with the carrier. Your tracking number is TRK394988D.",
+            "ticket_id": "T04"
+          },
+          "step": 15,
+          "taskId": "T04"
+        }
+      ],
+      "wallTimeMs": 130408,
+      "costs": {
+        "rawUsd": 0.0052635,
+        "cacheAdjustedUsd": 0.0044187,
+        "netUsd": 0.0052635
+      }
+    },
+    {
+      "arm": "parsim-on",
+      "run": 1,
+      "sessionId": "demo-support-parsim-on-2026-10-17T18-52-12-007Z-59104828",
+      "stop": {
+        "reason": "completed"
+      },
+      "tasks": [
+        {
+          "taskId": "T01",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 3108,
+            "outputTokens": 402,
+            "cachedInputTokens": 2560
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T02",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 5149,
+            "outputTokens": 505,
+            "cachedInputTokens": 2560
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T03",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 7324,
+            "outputTokens": 441,
+            "cachedInputTokens": 2816
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        },
+        {
+          "taskId": "T04",
+          "type": "normal",
+          "passed": true,
+          "reason": "status and reply match",
+          "judge": null,
+          "usage": {
+            "inputTokens": 9493,
+            "outputTokens": 273,
+            "cachedInputTokens": 5120
+          },
+          "steps": 4,
+          "recalls": 0,
+          "recallHits": 0
+        }
+      ],
+      "usage": {
+        "inputTokens": 25074,
+        "outputTokens": 1621,
+        "cachedInputTokens": 13056
+      },
+      "internalUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0
+      },
+      "internalCalls": 0,
+      "parsim": {
+        "usage": {
+          "inputTokens": 25074,
+          "outputTokens": 1621,
+          "cachedInputTokens": 13056
+        },
+        "upstreamCalls": 30,
+        "recalls": 0,
+        "compressionCostUsd": 0,
+        "gcTokensSaved": 0
+      },
+      "stepRecords": [
+        {
+          "step": 1,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 476,
+            "outputTokens": 119,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 598,
+          "startedAt": "2026-10-17T18:52:12.009Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 2,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 819,
+            "outputTokens": 163,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 1842,
+          "startedAt": "2026-10-17T18:52:12.608Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 3,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 875,
+            "outputTokens": 90,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 6918,
+          "startedAt": "2026-10-17T18:52:14.450Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 4,
+          "taskId": "T01",
+          "usage": {
+            "inputTokens": 938,
+            "outputTokens": 30,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 264,
+          "startedAt": "2026-10-17T18:52:21.368Z",
+          "toolCalls": []
+        },
+        {
+          "step": 5,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1001,
+            "outputTokens": 35,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 238,
+          "startedAt": "2026-10-17T18:52:21.649Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 6,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1331,
+            "outputTokens": 131,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 8052,
+          "startedAt": "2026-10-17T18:52:21.904Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 7,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1378,
+            "outputTokens": 262,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 1103,
+          "startedAt": "2026-10-17T18:52:29.956Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 8,
+          "taskId": "T02",
+          "usage": {
+            "inputTokens": 1439,
+            "outputTokens": 77,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 14615,
+          "startedAt": "2026-10-17T18:52:31.059Z",
+          "toolCalls": []
+        },
+        {
+          "step": 9,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1525,
+            "outputTokens": 35,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 1786,
+          "startedAt": "2026-10-17T18:52:45.690Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 10,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1868,
+            "outputTokens": 147,
+            "cachedInputTokens": 0
+          },
+          "latencyMs": 8980,
+          "startedAt": "2026-10-17T18:52:47.477Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 11,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 1931,
+            "outputTokens": 162,
+            "cachedInputTokens": 1280
+          },
+          "latencyMs": 14758,
+          "startedAt": "2026-10-17T18:52:56.457Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 12,
+          "taskId": "T03",
+          "usage": {
+            "inputTokens": 2000,
+            "outputTokens": 97,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 6911,
+          "startedAt": "2026-10-17T18:53:11.215Z",
+          "toolCalls": []
+        },
+        {
+          "step": 13,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2079,
+            "outputTokens": 43,
+            "cachedInputTokens": 256
+          },
+          "latencyMs": 12004,
+          "startedAt": "2026-10-17T18:53:18.139Z",
+          "toolCalls": [
+            "lookup_order"
+          ]
+        },
+        {
+          "step": 14,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2412,
+            "outputTokens": 83,
+            "cachedInputTokens": 1792
+          },
+          "latencyMs": 19981,
+          "startedAt": "2026-10-17T18:53:30.143Z",
+          "toolCalls": [
+            "update_ticket"
+          ]
+        },
+        {
+          "step": 15,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2467,
+            "outputTokens": 114,
+            "cachedInputTokens": 768
+          },
+          "latencyMs": 2085,
+          "startedAt": "2026-10-17T18:53:50.124Z",
+          "toolCalls": [
+            "send_reply"
+          ]
+        },
+        {
+          "step": 16,
+          "taskId": "T04",
+          "usage": {
+            "inputTokens": 2535,
+            "outputTokens": 33,
+            "cachedInputTokens": 2304
+          },
+          "latencyMs": 13815,
+          "startedAt": "2026-10-17T18:53:52.209Z",
+          "toolCalls": []
+        }
+      ],
+      "sideEffects": [
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Offered 10% credit of 41.55 EUR for delayed order O-2001",
+            "status": "credited",
+            "ticket_id": "T01"
+          },
+          "step": 2,
+          "taskId": "T01"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Ada, we’re sorry your order is delayed. We’ve applied a credit of 41.55 EUR to your account as a goodwill gesture.",
+            "ticket_id": "T01"
+          },
+          "step": 3,
+          "taskId": "T01"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Sent replacement for damaged order O-2002",
+            "status": "replacement_sent",
+            "ticket_id": "T02"
+          },
+          "step": 6,
+          "taskId": "T02"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Bram, we’re sorry the box arrived crushed and an item was broken. We’ve sent a replacement for your order O-2002.",
+            "ticket_id": "T02"
+          },
+          "step": 7,
+          "taskId": "T02"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Refunded full amount 477.05 EUR to gift card GC-4471-XY for lost order O-2003",
+            "status": "refunded",
+            "ticket_id": "T03"
+          },
+          "step": 10,
+          "taskId": "T03"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Celine, we’re sorry your order was lost. We have processed a full refund of 477.05 EUR to your store gift card GC-4471-XY.",
+            "ticket_id": "T03"
+          },
+          "step": 11,
+          "taskId": "T03"
+        },
+        {
+          "tool": "update_ticket",
+          "args": {
+            "note": "Opened investigation with carrier for undelivered but marked delivered order O-2004",
+            "status": "investigating",
+            "ticket_id": "T04"
+          },
+          "step": 14,
+          "taskId": "T04"
+        },
+        {
+          "tool": "send_reply",
+          "args": {
+            "message": "Hi Dario, we’re sorry you haven’t received your order. We’ve opened an investigation with the carrier and will follow up using the tracking number TRK394988D.",
+            "ticket_id": "T04"
+          },
+          "step": 15,
+          "taskId": "T04"
+        }
+      ],
+      "wallTimeMs": 114030,
+      "costs": {
+        "rawUsd": 0.0047336999999999995,
+        "cacheAdjustedUsd": 0.0037545,
+        "netUsd": 0.0047336999999999995
+      }
+    }
+  ],
+  "finishedAt": "2026-10-17T18:53:52.209Z",
+  "summaries": [
+    {
+      "arm": "full",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": null,
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 4
+        }
+      },
+      "tokens": {
+        "input": 25696,
+        "output": 1430,
+        "cached": 4864
+      },
+      "costs": {
+        "raw": 0.0047124,
+        "net": 0.0047124,
+        "cacheAdjusted": 0.0043476
+      },
+      "netCostByRun": [
+        0.0047124
+      ],
+      "netVsFull": null,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 847,
+        "p95": 20456
+      },
+      "waitedMs": null,
+      "overheadVsFull": null,
+      "wallTimeMs": 122591,
+      "sideEffects": null,
+      "issues": []
+    },
+    {
+      "arm": "truncate",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 4
+        }
+      },
+      "tokens": {
+        "input": 20419,
+        "output": 2499,
+        "cached": 3584
+      },
+      "costs": {
+        "raw": 0.0045622499999999995,
+        "net": 0.0045622499999999995,
+        "cacheAdjusted": 0.00429345
+      },
+      "netCostByRun": [
+        0.0045622499999999995
+      ],
+      "netVsFull": 0.03186274509803939,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 1184,
+        "p95": 14836
+      },
+      "waitedMs": null,
+      "overheadVsFull": null,
+      "wallTimeMs": 77458,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": []
+    },
+    {
+      "arm": "summarize",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 4
+        }
+      },
+      "tokens": {
+        "input": 21319,
+        "output": 1720,
+        "cached": 6400
+      },
+      "costs": {
+        "raw": 0.00422985,
+        "net": 0.00485325,
+        "cacheAdjusted": 0.00374985
+      },
+      "netCostByRun": [
+        0.00485325
+      ],
+      "netVsFull": -0.02988922841864011,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 8837,
+        "p95": 21321
+      },
+      "waitedMs": null,
+      "overheadVsFull": null,
+      "wallTimeMs": 139054,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 1
+      },
+      "issues": [
+        {
+          "kind": "extra",
+          "tool": "send_reply",
+          "target": "t ...",
+          "run": 1
+        }
+      ]
+    },
+    {
+      "arm": "parsim-shadow",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 4
+        }
+      },
+      "tokens": {
+        "input": 25962,
+        "output": 2282,
+        "cached": 11264
+      },
+      "costs": {
+        "raw": 0.0052635,
+        "net": 0.0052635,
+        "cacheAdjusted": 0.0044187
+      },
+      "netCostByRun": [
+        0.0052635
+      ],
+      "netVsFull": -0.11694677871148453,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 7849,
+        "p95": 16128
+      },
+      "waitedMs": null,
+      "overheadVsFull": {
+        "p50": 7002,
+        "p95": -4328
+      },
+      "wallTimeMs": 130408,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": []
+    },
+    {
+      "arm": "parsim-on",
+      "runs": 1,
+      "successByRun": [
+        1
+      ],
+      "success": {
+        "mean": 1,
+        "sd": 0
+      },
+      "judgeSuccess": null,
+      "successVsFull": "single run",
+      "byType": {
+        "normal": {
+          "mean": 1,
+          "tasks": 4
+        }
+      },
+      "tokens": {
+        "input": 25074,
+        "output": 1621,
+        "cached": 13056
+      },
+      "costs": {
+        "raw": 0.0047336999999999995,
+        "net": 0.0047336999999999995,
+        "cacheAdjusted": 0.0037545
+      },
+      "netCostByRun": [
+        0.0047336999999999995
+      ],
+      "netVsFull": -0.004519989814107306,
+      "recalls": 0,
+      "recallHits": 0,
+      "latency": {
+        "p50": 6911,
+        "p95": 19981
+      },
+      "waitedMs": null,
+      "overheadVsFull": {
+        "p50": 6064,
+        "p95": -475
+      },
+      "wallTimeMs": 114030,
+      "sideEffects": {
+        "missing": 0,
+        "duplicated": 0,
+        "changed": 0,
+        "extra": 0
+      },
+      "issues": []
+    }
+  ]
+}

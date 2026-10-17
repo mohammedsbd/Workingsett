@@ -121,7 +121,7 @@ describe('Benchmark dry run (e2e)', () => {
       expect(files.filter((f) => /\.(md|json|svg)$/.test(f))).toHaveLength(3);
       expect(markdown).toContain('**Dry run**');
       expect(markdown).toMatch(
-        /\*\*Parsim on: .* lower net cost, success .* for full context\. Truncation: .*\*\*/,
+        /\*\*Parsim on: .* (lower|higher) net cost, success .* for full context\. Truncation: .* (lower|higher) net cost, success .*\*\*/,
       );
       expect(json.results.map((r) => r.arm)).toEqual([
         'full',

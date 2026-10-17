@@ -92,6 +92,61 @@ Every side-effect call (tool, arguments, step, task) is kept in order and writte
 
 The agent builds each request through a `ContextStrategy` (`src/agent/context-strategy.ts`). The default sends the full context. The benchmark adds naive truncation and naive summarization as baselines. Parsim is not a strategy: it is selected with `--via parsim`, with the full context, exactly as a customer's agent would use it.
 
+## Benchmark
+
+`npm run bench` measures Parsim against the obvious alternatives: why not just truncate old messages, or summarize everything?
+
+```bash
+npm run bench -- --agent support --runs 3 --provider gemini
+```
+
+Every task runs in five arms, with the same model, temperature 0 and the same tool recordings:
+
+| Arm | What it is |
+| --- | --- |
+| `full` | No Parsim, full context |
+| `truncate` | Naive truncation: system prompt, first user goal and the last N turns (client side) |
+| `summarize` | Naive summarization: one internal-model summary of everything older than N turns, refreshed every M turns (client side) |
+| `parsim-shadow` | Through Parsim, project in shadow mode |
+| `parsim-on` | Through Parsim, project in on mode |
+
+N and M are `BENCH_TRUNCATE_TURNS` and `BENCH_SUMMARY_EVERY` (6 and 6). For the Parsim arms the bench signs in as `BENCH_PARSIM_EMAIL`, creates (or reuses) one project per arm with the right GC mode, and makes a key for the run.
+
+Options:
+- `--arms`: a subset of the arms.
+- `--tasks <n>`: only the first n tasks.
+- `--judge`: also grade every task with the internal model against its checklist.
+- `--budget <usd>`: stop cleanly, writing partial results, once spending passes it.
+- `--resume`: continue the newest unfinished bench without repeating finished tasks.
+- `--yes`: skip the confirmation (free-tier providers only).
+
+Before a real run the bench prints the estimated requests, tokens and cost per arm. For free tiers it also says whether the run fits the daily quota (`<PROVIDER>_DAILY_TOKENS`, `<PROVIDER>_DAILY_REQUESTS`). It then asks for confirmation.
+
+**Metrics:**
+- task success, from exact checks and optionally the judge, with mean and standard deviation across runs;
+- tokens (input, output, cached);
+- cost three ways:
+  - raw;
+  - net, which adds what Parsim sent upstream for recalls, Parsim's compression summaries and the summarize baseline's summaries;
+  - cache-adjusted;
+- proxy latency overhead at p50 and p95;
+- recalls, and whether they brought back a fact the task needed;
+- side-effect safety: missing, duplicated, changed or extra actions against the full arm;
+- wall time;
+- everything broken down by task type.
+
+A difference between arms counts as significant only when it is larger than the run-to-run spread.
+
+**The report** goes to `docs/benchmarks/<date>-<agent>-<provider>-<model>.md`, with the raw numbers in a `.json` file next to it and an `.svg` chart (task success against net cost). Its headline reads "Parsim on: X% lower net cost, success Y% vs Z% for full context. Truncation: A% lower net cost, success B%." Runs on a free-tier model carry a "Development run, not for publishing" banner. Never edit the numbers by hand.
+
+**Dry run** (`--dry-run`): everything runs against a scripted fake upstream (`src/bench/fake-upstream.ts`) with no real model call. The scripted agent knows only what is in each request, so the baselines lose facts as they would with a real model. For the Parsim arms, point Parsim's `PROXY_OPENAI_BASE_URL` at the fake's port (`--fake-port`). The backend's e2e suite (`backend/test/bench`) does exactly this, in CI.
+
+### The free dev loop
+
+1. **Groq's free tier** for quick iteration on real models: `npm run bench -- --agent support --runs 1 --provider groq --tasks 4`. Its limits are 8,000 tokens per minute and about 200,000 per day on every free model. A request larger than 8,000 tokens is refused outright, so full-context runs stop after about four support tickets: set `GROQ_MAX_REQUEST_TOKENS=8000` to stop cleanly before that. Longer runs need `--resume` over several days.
+2. **The fake upstream for CI:** `npm run bench -- --agent research --dry-run`.
+3. **Gemini Flash, on a paid key, for published numbers:** `npm run bench -- --agent support --runs 3 --provider gemini`.
+
 ## Tests
 
 ```bash
